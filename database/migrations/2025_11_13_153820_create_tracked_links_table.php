@@ -1,0 +1,40 @@
+<?php
+
+use App\Models\Link;
+use App\Models\Source;
+use App\Models\User;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('tracked_links', function (Blueprint $table) {
+            $table->id();
+
+            $table->foreignIdFor(User::class)
+                ->constrained()
+                ->cascadeOnDelete();
+
+            $table->foreignIdFor(Link::class)
+                ->constrained()
+                ->cascadeOnDelete();
+
+            $table->foreignIdFor(Source::class)
+                ->nullable()
+                ->constrained()
+                ->nullOnDelete();
+
+            $table->string('tracking_key')->unique(); // ex: lf_jm_7Ghs2
+
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('tracked_links');
+    }
+};

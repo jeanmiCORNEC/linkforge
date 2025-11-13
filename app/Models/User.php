@@ -48,4 +48,24 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
+
+    public function campaigns()
+    {
+        return $this->hasMany(Campaign::class);
+    }
+
+    public function sources()
+    {
+        return $this->hasMany(Source::class);
+    }
+
+    public function links()
+    {
+        return $this->hasMany(Link::class);
+    }
+
+    public function trackedLinks()
+    {
+        return $this->hasMany(TrackedLink::class);
+    }
 }
