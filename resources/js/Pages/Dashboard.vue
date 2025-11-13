@@ -12,7 +12,6 @@ const props = defineProps({
 const form = useForm({
     title: '',
     destination_url: '',
-    // plus tard on pourra ajouter source_id
 });
 
 const submit = () => {
