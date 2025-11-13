@@ -54,12 +54,21 @@ class LinkController extends Controller
             ->through(function (Link $link) {
                 $defaultTracked = $link->trackedLinks->first();
 
+                $shortUrl = null;
+
+                if ($defaultTracked) {
+                    $shortUrl = route('links.redirect', [
+                        'tracking_key' => $defaultTracked->tracking_key,
+                    ]);
+                }
+
                 return [
                     'id'              => $link->id,
                     'title'           => $link->title,
                     'destination_url' => $link->destination_url,
                     'created_at'      => $link->created_at->format('Y-m-d H:i'),
                     'tracking_key'    => $defaultTracked?->tracking_key,
+                    'short_url'       => $shortUrl,
                 ];
             });
 
