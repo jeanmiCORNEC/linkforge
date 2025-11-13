@@ -1,12 +1,38 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, usePage } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 
-const user = usePage().props.auth.user;
+const props = defineProps({
+    links: {
+        type: Array,
+        default: () => [],
+    },
+});
+
+const form = useForm({
+    title: '',
+    destination_url: '',
+    // plus tard on pourra ajouter source_id
+});
+
+const submit = () => {
+    form.post(route('links.store'), {
+        onSuccess: () => {
+            form.reset();
+        },
+    });
+};
+
+const trackingUrl = (trackedLink) => {
+    if (!trackedLink) return '';
+
+    // Utilise Ziggy pour générer l’URL complète
+    return route('links.redirect', { tracking_key: trackedLink.tracking_key });
+};
 </script>
 
 <template>
-    <Head title="Dashboard – LinkForge" />
+    <Head title="Dashboard" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -15,95 +41,113 @@ const user = usePage().props.auth.user;
             </h2>
         </template>
 
-        <div class="py-8">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-                <!-- Bandeau de bienvenue -->
+        <div class="py-12">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
+                <!-- Bloc création de lien -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
-                        <p class="text-sm text-gray-400">
-                            Bienvenue sur ton espace LinkForge
-                        </p>
-                        <h1 class="mt-1 text-2xl font-semibold">
-                            Salut, {{ user.username ?? user.name }} 👋
-                        </h1>
-                        <p class="mt-2 text-sm text-gray-300">
-                            Plan actuel :
-                            <span
-                                class="inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-300 uppercase tracking-wide"
-                            >
-                                {{ (user.plan || 'free') }} plan
-                            </span>
-                        </p>
-                        <p class="mt-3 text-sm text-gray-300">
-                            Tu pourras bientôt créer tes premiers liens trackés,
-                            les relier à tes vidéos TikTok / Shorts / Reels,
-                            et voir quelles sources génèrent vraiment des clics.
-                        </p>
+                        <h3 class="text-lg font-semibold mb-4">
+                            Créer un lien tracké
+                        </h3>
+
+                        <form @submit.prevent="submit" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Titre
+                                </label>
+                                <input
+                                    v-model="form.title"
+                                    type="text"
+                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
+                                           dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
+                                           focus:border-indigo-500 sm:text-sm"
+                                    placeholder="Lien setup vidéo TikTok"
+                                />
+                                <div v-if="form.errors.title" class="text-sm text-red-500 mt-1">
+                                    {{ form.errors.title }}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    URL de destination
+                                </label>
+                                <input
+                                    v-model="form.destination_url"
+                                    type="url"
+                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
+                                           dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
+                                           focus:border-indigo-500 sm:text-sm"
+                                    placeholder="https://www.amazon.fr/..."
+                                />
+                                <div v-if="form.errors.destination_url" class="text-sm text-red-500 mt-1">
+                                    {{ form.errors.destination_url }}
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-end">
+                                <button
+                                    type="submit"
+                                    class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent
+                                           rounded-md font-semibold text-xs text-white uppercase tracking-widest
+                                           hover:bg-indigo-500 focus:bg-indigo-700 active:bg-indigo-700
+                                           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
+                                           dark:focus:ring-offset-gray-800 transition ease-in-out duration-150"
+                                    :disabled="form.processing"
+                                >
+                                    Créer le lien
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
-                <!-- Cartes de stats placeholder -->
-                <div class="grid gap-4 md:grid-cols-3">
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                        <div class="p-6">
-                            <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">
-                                Clics (7 derniers jours)
-                            </p>
-                            <p class="text-2xl font-semibold text-gray-100">
-                                0
-                            </p>
-                            <p class="mt-1 text-xs text-gray-400">
-                                Les premiers clics apparaîtront ici dès que tu partageras tes liens.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                        <div class="p-6">
-                            <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">
-                                Liens trackés
-                            </p>
-                            <p class="text-2xl font-semibold text-gray-100">
-                                0
-                            </p>
-                            <p class="mt-1 text-xs text-gray-400">
-                                On ajoutera bientôt la création de liens avec courte URL.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                        <div class="p-6">
-                            <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">
-                                Sources (vidéos / posts)
-                            </p>
-                            <p class="text-2xl font-semibold text-gray-100">
-                                0
-                            </p>
-                            <p class="mt-1 text-xs text-gray-400">
-                                Chaque lien sera rattaché à une vidéo, story ou post précis.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section “Prochaines étapes” -->
+                <!-- Bloc liste des liens -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-sm text-gray-300 space-y-2">
-                        <h2 class="text-base font-semibold text-gray-100">
-                            Prochaines étapes dans LinkForge
-                        </h2>
-                        <ol class="list-decimal list-inside space-y-1 text-gray-300">
-                            <li>Définir ton pseudo et ton plan (déjà fait 👌).</li>
-                            <li>Créer tes premières <strong>sources</strong> (vidéos, stories, posts).</li>
-                            <li>Créer des liens trackés par source.</li>
-                            <li>Partager ces liens dans tes bios et descriptions.</li>
-                            <li>Analyser les clics et optimiser ton contenu.</li>
-                        </ol>
-                        <p class="text-xs text-gray-500 mt-3">
-                            Pour l’instant, ce dashboard est une V0. On va brancher
-                            étape par étape les vraies données à ces blocs.
-                        </p>
+                    <div class="p-6 text-gray-900 dark:text-gray-100">
+                        <h3 class="text-lg font-semibold mb-4">
+                            Vos derniers liens
+                        </h3>
+
+                        <div v-if="!links.length" class="text-sm text-gray-500 dark:text-gray-400">
+                            Aucun lien pour le moment. Créez-en un au-dessus 👆
+                        </div>
+
+                        <ul v-else class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <li
+                                v-for="link in links"
+                                :key="link.id"
+                                class="py-4 space-y-2"
+                            >
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-medium">
+                                            {{ link.title }}
+                                        </div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xl">
+                                            {{ link.destination_url }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div
+                                    v-if="link.tracked_links && link.tracked_links.length"
+                                    class="mt-2"
+                                >
+                                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                        Lien tracké
+                                    </label>
+                                    <input
+                                        type="text"
+                                        :value="trackingUrl(link.tracked_links[0])"
+                                        readonly
+                                        class="block w-full rounded-md border-gray-300 dark:border-gray-700
+                                               dark:bg-gray-900 dark:text-gray-100 text-xs"
+                                        @focus="$event.target.select()"
+                                    />
+                                </div>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
