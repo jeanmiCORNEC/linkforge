@@ -75,9 +75,18 @@ class ProfileTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect('/');
 
+        // L'utilisateur est bien déconnecté
         $this->assertGuest();
-        $this->assertNull($user->fresh());
+
+        // 1) Il n'est plus récupérable via la requête Eloquent "normale"
+        $this->assertNull(User::find($user->id));
+
+        // 2) Mais il est bien soft-deleted en base
+        $this->assertSoftDeleted('users', [
+            'id' => $user->id,
+        ]);
     }
+
 
     public function test_correct_password_must_be_provided_to_delete_account(): void
     {
@@ -94,6 +103,12 @@ class ProfileTest extends TestCase
             ->assertSessionHasErrors('password')
             ->assertRedirect('/profile');
 
+        // L’utilisateur existe toujours et n’est pas soft-deleted
         $this->assertNotNull($user->fresh());
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'deleted_at' => null,
+        ]);
     }
 }
