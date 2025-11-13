@@ -15,33 +15,40 @@ class LinkController extends Controller
     {
         $validated = $request->validate([
             'title'           => ['required', 'string', 'max:255'],
-            'destination_url' => ['required', 'url', 'max:2000'],
+            'destination_url' => ['required', 'url', 'max:2048'],
         ]);
 
         $user = $request->user();
 
-        // 1. Créer le lien principal
-        $link = Link::create([
-            'user_id'        => $user->id,
-            'title'          => $validated['title'],
-            'destination_url'=> $validated['destination_url'],
-            'slug'           => Str::slug($validated['title']),
-            'is_active'      => true,
+        // 1) Création du lien
+        $link = $user->links()->create([
+            'title'           => $validated['title'],
+            'destination_url' => $validated['destination_url'],
+            'slug'            => Str::uuid()->toString(), // ou autre logique plus tard
+            'is_active'       => true,
         ]);
 
-        // 2. Créer la version trackée
-        $tracked = TrackedLink::create([
-            'user_id'      => $user->id,
+        // 2) Création du tracked_link par défaut (sans source pour l’instant)
+        $trackedLink = $user->trackedLinks()->create([
             'link_id'      => $link->id,
-            'source_id'    => null, // null = sans source pour simplifier le MVP
+            'source_id'    => null,
             'tracking_key' => Str::random(10),
         ]);
 
-        return response()->json([
-            'message' => 'Link created',
-            'tracked_link' => $tracked,
-        ]);
+        // 3) Si c'est une requête API (Accept: application/json) → on garde l’ancienne réponse JSON
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message'      => 'Link created',
+                'tracked_link' => $trackedLink,
+            ], 201);
+        }
+
+        // 4) Si c'est une requête Inertia (notre cas) → redirection vers la page Liens
+        return redirect()
+            ->route('links.index')
+            ->with('success', 'Lien créé avec succès.');
     }
+    
     public function index(Request $request)
     {
         $links = $request->user()
