@@ -1,6 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
+import Pagination from '@/Components/Pagination.vue';
 import { ref } from 'vue';
 
 const props = defineProps({
@@ -92,15 +93,6 @@ const deleteCampaign = (campaign) => {
     });
 };
 
-// ---------- Pagination ----------
-const goToPage = (link) => {
-    if (!link.url || link.active) return;
-
-    router.get(link.url, {}, {
-        preserveState: true,
-        preserveScroll: true,
-    });
-};
 </script>
 
 <template>
@@ -216,7 +208,6 @@ const goToPage = (link) => {
                                         {{ campaign.sources_count }} source(s)
                                     </p>
                                 </div>
-
                                 <div class="flex items-center gap-2 justify-end">
                                     <!-- Archive / Réactive -->
                                     <button
@@ -254,23 +245,7 @@ const goToPage = (link) => {
                             </div>
 
                             <!-- Pagination -->
-                            <div
-                                v-if="campaigns.links && campaigns.links.length > 1"
-                                class="mt-4 flex justify-center gap-2 text-xs"
-                            >
-                                <button
-                                    v-for="link in campaigns.links"
-                                    :key="link.label"
-                                    type="button"
-                                    class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-700"
-                                    :class="{
-                                        'bg-indigo-600 text-white border-indigo-600': link.active,
-                                        'text-gray-400 cursor-default': !link.url,
-                                    }"
-                                    v-html="link.label"
-                                    @click="goToPage(link)"
-                                />
-                            </div>
+                           <Pagination :links="campaigns.links" />
                         </div>
                     </div>
                 </div>
