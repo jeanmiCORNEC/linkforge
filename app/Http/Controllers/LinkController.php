@@ -85,6 +85,24 @@ class LinkController extends Controller
         return back()->with('success', 'Lien mis à jour.');
     }
     
+    public function toggle(Request $request, Link $link)
+    {
+        $this->ensureOwner($request, $link);
+
+        $link->is_active = !$link->is_active;
+        $link->save();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Statut mis à jour',
+                'is_active' => $link->is_active,
+            ]);
+        }
+
+        return back()->with('success', 'Statut mis à jour.');
+    }
+
+
     public function destroy(Request $request, Link $link)
     {
         $this->ensureOwner($request, $link);
@@ -92,7 +110,7 @@ class LinkController extends Controller
         $link->delete(); // soft delete grâce au trait SoftDeletes
 
         if ($request->wantsJson()) {
-            return response()->json(['message' => 'Lien supprimé.'], 204);
+            return response()->json(['message' => 'Lien supprimé.'], 200);
         }
 
         return back()->with('success', 'Lien supprimé.');
@@ -102,15 +120,28 @@ class LinkController extends Controller
     {
         $user = $request->user();
 
-        $links = Link::query()
+        $query = Link::query()
             ->where('user_id', $user->id)
             ->with(['trackedLinks'])
-            ->withCount('clicks')      // clicks_count
-            ->latest()
-            ->paginate(15);
+            ->withCount('clicks')
+            ->latest();
+
+        // petit filtre statut 
+        if ($status = $request->get('status')) {
+            if ($status === 'active') {
+                $query->where('is_active', true);
+            } elseif ($status === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+
+        $links = $query->paginate(15)->withQueryString();
 
         return Inertia::render('Links/Index', [
-            'links' => $links,
+            'links'   => $links,
+            'filters' => [
+                'status' => $status ?? 'all',
+            ],
         ]);
     }
 
