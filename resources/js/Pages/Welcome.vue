@@ -5,12 +5,17 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 defineProps({
     canLogin: Boolean,
     canRegister: Boolean,
+    auth: {
+        type: Object,
+        default: () => ({ user: null }),
+    },
     laravelVersion: String,
     phpVersion: String,
 });
 </script>
 
 <template>
+
     <Head title="LinkForge – Suis enfin les liens qui rapportent" />
 
     <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
@@ -31,21 +36,22 @@ defineProps({
 
                     <div class="h-6 w-px bg-slate-700 mx-2" />
 
-                    <Link
-                        v-if="canLogin"
-                        :href="route('login')"
-                        class="text-sm hover:text-indigo-300 transition"
-                    >
-                        Connexion
+                    <Link v-if="auth.user" :href="route('dashboard')"
+                        class="px-6 py-3 rounded-full bg-indigo-500 text-white font-semibold">
+                    Aller au Dashboard
                     </Link>
 
-                    <Link
-                        v-if="canRegister"
-                        :href="route('register')"
-                        class="inline-flex items-center rounded-full bg-indigo-500 px-4 py-1.5 text-sm font-medium text-white shadow hover:bg-indigo-400 transition"
-                    >
+                    <!-- Sinon : boutons Connexion / Créer un compte -->
+                    <template v-else>
+                        <Link v-if="canLogin" :href="route('login')" class="text-sm text-gray-300 hover:text-white">
+                        Connexion
+                        </Link>
+
+                        <Link v-if="canRegister" :href="route('register')"
+                            class="px-6 py-3 rounded-full bg-indigo-500 text-white font-semibold">
                         Créer un compte gratuit
-                    </Link>
+                        </Link>
+                    </template>
                 </nav>
             </div>
         </header>
@@ -55,7 +61,8 @@ defineProps({
             <section class="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
                 <div class="max-w-6xl mx-auto px-4 py-16 grid md:grid-cols-2 gap-12 items-center">
                     <div class="space-y-6">
-                        <p class="inline-flex items-center rounded-full border border-indigo-500/40 bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-200 uppercase tracking-[0.15em]">
+                        <p
+                            class="inline-flex items-center rounded-full border border-indigo-500/40 bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-200 uppercase tracking-[0.15em]">
                             SaaS pour créateurs & affiliés
                         </p>
 
@@ -87,12 +94,9 @@ defineProps({
                         </ul>
 
                         <div class="flex flex-wrap items-center gap-3 pt-2">
-                            <Link
-                                v-if="canRegister"
-                                :href="route('register')"
-                                class="inline-flex items-center rounded-md bg-indigo-500 px-5 py-2.5 text-sm font-medium text-white shadow hover:bg-indigo-400 transition"
-                            >
-                                Commencer gratuitement
+                            <Link v-if="canRegister" :href="route('register')"
+                                class="inline-flex items-center rounded-md bg-indigo-500 px-5 py-2.5 text-sm font-medium text-white shadow hover:bg-indigo-400 transition">
+                            Commencer gratuitement
                             </Link>
 
                             <p class="text-xs text-slate-400">
@@ -103,13 +107,15 @@ defineProps({
 
                     <!-- Faux dashboard aperçu -->
                     <div class="hidden md:block">
-                        <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-xl shadow-indigo-900/30">
+                        <div
+                            class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-xl shadow-indigo-900/30">
                             <div class="flex items-center justify-between mb-3">
                                 <div>
                                     <p class="text-xs text-slate-400">Dashboard créateur</p>
                                     <p class="text-sm font-semibold">Exemple : @setup.tok</p>
                                 </div>
-                                <span class="text-[10px] rounded-full bg-emerald-500/10 text-emerald-300 px-2 py-0.5 border border-emerald-500/40">
+                                <span
+                                    class="text-[10px] rounded-full bg-emerald-500/10 text-emerald-300 px-2 py-0.5 border border-emerald-500/40">
                                     Plan FREE
                                 </span>
                             </div>
