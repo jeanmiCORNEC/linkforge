@@ -22,6 +22,7 @@ require __DIR__.'/auth.php';
 
 // Routes auth + email vérifié
 Route::middleware(['auth', 'verified'])->group(function () {
+    
     // Dashboard (Inertia via contrôleur)
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
@@ -29,9 +30,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/links', [LinkController::class, 'index'])
         ->name('links.index');
         
-    // Création de liens trackés depuis le Dashboard (Inertia form)
+    // Liens trackés (Inertia form)
     Route::post('/links', [LinkController::class, 'store'])
         ->name('links.store');
+
+    Route::put('/links/{link}', [LinkController::class, 'update'])
+        ->name('links.update');
+
+    Route::delete('/links/{link}', [LinkController::class, 'destroy'])
+        ->name('links.destroy');
 
     // Profile (Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])
