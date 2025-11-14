@@ -48,36 +48,17 @@ class LinkController extends Controller
             ->route('links.index')
             ->with('success', 'Lien créé avec succès.');
     }
-    
+
     public function index(Request $request)
     {
-        $links = $request->user()
-            ->links()
-            ->with(['trackedLinks' => function ($query) {
-                $query->orderBy('created_at');
-            }])
+        $user = $request->user();
+
+        $links = Link::query()
+            ->where('user_id', $user->id)
+            ->with(['trackedLinks'])
+            ->withCount('clicks')      // clicks_count
             ->latest()
-            ->paginate(10)
-            ->through(function (Link $link) {
-                $defaultTracked = $link->trackedLinks->first();
-
-                $shortUrl = null;
-
-                if ($defaultTracked) {
-                    $shortUrl = route('links.redirect', [
-                        'tracking_key' => $defaultTracked->tracking_key,
-                    ]);
-                }
-
-                return [
-                    'id'              => $link->id,
-                    'title'           => $link->title,
-                    'destination_url' => $link->destination_url,
-                    'created_at'      => $link->created_at->format('Y-m-d H:i'),
-                    'tracking_key'    => $defaultTracked?->tracking_key,
-                    'short_url'       => $shortUrl,
-                ];
-            });
+            ->paginate(15);
 
         return Inertia::render('Links/Index', [
             'links' => $links,

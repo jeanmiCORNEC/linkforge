@@ -12,8 +12,10 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        $links = Link::withCount('trackedLinks')
+        $links = Link::query()
             ->where('user_id', $user->id)
+            ->with(['trackedLinks'])   // pour afficher le lien court
+            ->withCount('clicks')      // => ajoute clicks_count
             ->latest()
             ->take(50)
             ->get();
