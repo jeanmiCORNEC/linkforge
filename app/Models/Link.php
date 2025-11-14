@@ -34,4 +34,16 @@ class Link extends Model
     {
         return $this->hasMany(TrackedLink::class);
     }
+
+    public function clicks()
+    {
+        return $this->hasManyThrough(
+            Click::class,
+            TrackedLink::class,
+            'link_id',       // clé étrangère sur tracked_links
+            'tracked_link_id', // clé étrangère sur clicks
+            'id',            // clé locale sur links
+            'id'             // clé locale sur tracked_links
+        );
+    }
 }

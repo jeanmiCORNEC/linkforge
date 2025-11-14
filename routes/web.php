@@ -17,6 +17,9 @@ Route::get('/', function () {
     ]);
 });
 
+// Routes d'auth Breeze
+require __DIR__.'/auth.php';
+
 // Routes auth + email vérifié
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard (Inertia via contrôleur)
@@ -43,5 +46,3 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('/l/{tracking_key}', [LinkController::class, 'redirect'])
     ->name('links.redirect');
 
-// Routes d'auth Breeze
-require __DIR__.'/auth.php';
