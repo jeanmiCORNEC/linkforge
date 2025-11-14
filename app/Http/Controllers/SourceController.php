@@ -3,33 +3,67 @@
 namespace App\Http\Controllers;
 
 use App\Models\Campaign;
+use App\Models\Source;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class SourceController extends Controller
 {
+    /**
+     * Vérifie que la source appartient bien à l'utilisateur connecté.
+     */
+    protected function ensureOwner(Request $request, Source $source): void
+    {
+        if ($source->user_id !== $request->user()->id) {
+            abort(403);
+        }
+    }
+
+    /**
+     * Liste des campagnes + leurs sources (pour la page Sources).
+     */
+    public function index(Request $request)
+    {
+        $user = $request->user();
+
+        $campaigns = Campaign::query()
+            ->where('user_id', $user->id)
+            ->with(['sources' => function ($query) {
+                $query->orderByDesc('created_at');
+            }])
+            ->orderByDesc('created_at')
+            ->paginate(10)
+            ->withQueryString();
+
+        return Inertia::render('Sources/Index', [
+            'campaigns' => $campaigns,
+        ]);
+    }
+
+    /**
+     * Création d'une source pour une campagne donnée.
+     */
     public function store(Request $request)
     {
         $user = $request->user();
 
         $validated = $request->validate([
-            'campaign_id' => ['required', 'integer', 'exists:campaigns,id'],
+            'campaign_id' => ['required', 'exists:campaigns,id'],
             'name'        => ['required', 'string', 'max:255'],
             'platform'    => ['nullable', 'string', 'max:255'],
-            'external_id' => ['nullable', 'string', 'max:255'],
-            'notes'       => ['nullable', 'string', 'max:2000'],
+            'notes'       => ['nullable', 'string'],
         ]);
 
-        // On s’assure que la campagne appartient bien à l’utilisateur
+        // On vérifie que la campagne appartient bien à l'utilisateur
         $campaign = Campaign::where('id', $validated['campaign_id'])
             ->where('user_id', $user->id)
             ->firstOrFail();
 
         $source = $campaign->sources()->create([
-            'user_id'     => $user->id,
-            'name'        => $validated['name'],
-            'platform'    => $validated['platform'] ?? null,
-            'external_id' => $validated['external_id'] ?? null,
-            'notes'       => $validated['notes'] ?? null,
+            'user_id'  => $user->id,
+            'name'     => $validated['name'],
+            'platform' => $validated['platform'] ?? null,
+            'notes'    => $validated['notes'] ?? null,
         ]);
 
         if ($request->wantsJson()) {
@@ -39,6 +73,49 @@ class SourceController extends Controller
             ], 201);
         }
 
-        return back()->with('success', 'Source créée.');
+        return back()->with('success', 'Source créée avec succès.');
+    }
+
+    /**
+     * Mise à jour d'une source (via la modale d'édition).
+     */
+    public function update(Request $request, Source $source)
+    {
+        $this->ensureOwner($request, $source);
+
+        $validated = $request->validate([
+            'name'     => ['required', 'string', 'max:255'],
+            'platform' => ['nullable', 'string', 'max:255'],
+            'notes'    => ['nullable', 'string'],
+        ]);
+
+        $source->update($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Source mise à jour.',
+                'source'  => $source->fresh('campaign'),
+            ]);
+        }
+
+        return back()->with('success', 'Source mise à jour.');
+    }
+
+    /**
+     * Suppression (soft delete) d'une source.
+     */
+    public function destroy(Request $request, Source $source)
+    {
+        $this->ensureOwner($request, $source);
+
+        $source->delete(); // SoftDeletes sur le modèle Source
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Source supprimée.',
+            ]);
+        }
+
+        return back()->with('success', 'Source supprimée.');
     }
 }
