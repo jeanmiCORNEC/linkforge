@@ -7,6 +7,9 @@ use Illuminate\Foundation\Application;
 use App\Http\Controllers\LinkController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CampaignController;
+use App\Http\Controllers\SourceController;
+
 
 // Landing publique (Inertia)
 Route::get('/', function () {
@@ -27,24 +30,36 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard (Inertia via contrôleur)
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
-
     Route::get('/links', [LinkController::class, 'index'])
         ->name('links.index');
 
     // Liens trackés (Inertia form)
     Route::post('/links', [LinkController::class, 'store'])
         ->name('links.store');
-
     Route::patch('/links/{link}/toggle', [LinkController::class, 'toggle'])
         ->name('links.toggle');
-
     Route::match(['put', 'patch'], '/links/{link}', [LinkController::class, 'update'])
         ->name('links.update');
-
-
     Route::delete('/links/{link}', [LinkController::class, 'destroy'])
         ->name('links.destroy');
 
+    // Campagnes
+    Route::get('/campaigns', [CampaignController::class, 'index'])
+        ->name('campaigns.index');
+    Route::post('/campaigns', [CampaignController::class, 'store'])
+        ->name('campaigns.store');
+    Route::put('/campaigns/{campaign}', [CampaignController::class, 'update'])
+        ->name('campaigns.update');
+    Route::patch('/campaigns/{campaign}/archive', [CampaignController::class, 'archive'])
+        ->name('campaigns.archive');
+    Route::delete('/campaigns/{campaign}', [CampaignController::class, 'destroy'])
+        ->name('campaigns.destroy');
+
+
+    // Sources (création)
+    Route::post('/sources', [SourceController::class, 'store'])
+        ->name('sources.store');
+        
     // Profile (Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
