@@ -84,7 +84,7 @@ class LinkController extends Controller
 
         return back()->with('success', 'Lien mis à jour.');
     }
-    
+
     public function toggle(Request $request, Link $link)
     {
         $this->ensureOwner($request, $link);
@@ -145,20 +145,94 @@ class LinkController extends Controller
         ]);
     }
 
-    public function redirect($tracking_key)
+    public function redirect(Request $request, string $tracking_key)
     {
-        // 1. Retrouver la tracked_link
-        $tracked = TrackedLink::with('link')->where('tracking_key', $tracking_key)->firstOrFail();
+        // 1. Retrouver la tracked_link + son lien associé
+        $tracked = TrackedLink::with(['link' => function ($q) {
+            $q->withTrashed(); // au cas où, pour pouvoir tester is_active + deleted_at
+        }])->where('tracking_key', $tracking_key)->firstOrFail();
 
-        // 2. Log du clic
-        Click::create([
-            'tracked_link_id' => $tracked->id,
-            'ip_address'      => request()->ip(),
-            'user_agent'      => request()->userAgent(),
-            'referrer'        => request()->headers->get('referer'),
-        ]);
+        $link = $tracked->link;
 
-        // 3. Redirection finale
-        return redirect()->away($tracked->link->destination_url);
+        // 2. Si le lien n’existe plus, est soft-deleted ou inactif → 404
+        if (! $link || $link->trashed() || ! $link->is_active) {
+            abort(404); // plus tard on pourra faire une jolie page "Lien expiré"
+        }
+
+        // 3. Log du clic uniquement si ça vaut le coup (anti-bot / anti-spam)
+        if ($this->shouldTrackClick($request, $tracked)) {
+            Click::create([
+                'tracked_link_id' => $tracked->id,
+                'ip_address'      => $request->ip(),
+                'user_agent'      => $request->userAgent(),
+                'referrer'        => $request->headers->get('referer'),
+            ]);
+        }
+
+        // 4. Redirection finale vers le lien d’affiliation
+        return redirect()->away($link->destination_url);
+    }
+
+    /**
+     * Détermine si on doit enregistrer ce clic ou l’ignorer
+     * (pour éviter les bots et le spam de refresh).
+     */
+    protected function shouldTrackClick(Request $request, TrackedLink $tracked): bool
+    {
+        $userAgent = (string) $request->userAgent();
+
+        // 1) UA vide = souvent suspect
+        if ($userAgent === '') {
+            return false;
+        }
+
+        // 2) Bots évidents
+        if ($this->isBot($userAgent)) {
+            return false;
+        }
+
+        // 3) Anti-spam : 1 clic par IP / tracking_key toutes les 5 minutes
+        $ip = $request->ip() ?? 'unknown';
+
+        $recentClickExists = Click::where('tracked_link_id', $tracked->id)
+            ->where('ip_address', $ip)
+            ->where('created_at', '>=', now()->subMinutes(5))
+            ->exists();
+
+        if ($recentClickExists) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Détection très basique des bots via user-agent.
+     * (on pourra raffiner plus tard si besoin).
+     */
+    protected function isBot(string $userAgent): bool
+    {
+        $ua = strtolower($userAgent);
+
+        $botFragments = [
+            'bot',
+            'crawler',
+            'crawl',
+            'spider',
+            'slurp',
+            'facebookexternalhit',
+            'pingdom',
+            'discordbot',
+            'twitterbot',
+            'whatsapp',
+        ];
+
+        foreach ($botFragments as $fragment) {
+            if (str_contains($ua, $fragment)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
