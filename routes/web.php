@@ -57,9 +57,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // Sources (création)
+    Route::get('/sources', [SourceController::class, 'index'])
+        ->name('sources.index');
     Route::post('/sources', [SourceController::class, 'store'])
         ->name('sources.store');
-        
+    Route::put('/sources/{source}', [SourceController::class, 'update'])
+    ->name('sources.update');
+    Route::patch('/sources/{source}/toggle', [SourceController::class, 'toggle'])
+    ->name('sources.toggle');
+    Route::delete('/sources/{source}', [SourceController::class, 'destroy'])
+    ->name('sources.destroy');
+
     // Profile (Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
