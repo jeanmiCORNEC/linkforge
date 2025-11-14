@@ -1,9 +1,10 @@
 <script setup>
 import { ref } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import Pagination from '@/Components/Pagination.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 
-const props = defineProps({
+const { links, filters } = defineProps({
     links: {
         type: Object, // paginator
         required: true,
@@ -105,11 +106,6 @@ const applyFilter = (status) => {
             replace: true,
         },
     );
-};
-const paginationLabel = (link) => {
-    if (link.label === 'pagination.previous') return 'Précédent';
-    if (link.label === 'pagination.next') return 'Suivant';
-    return link.label;
 };
 
 </script>
@@ -281,26 +277,7 @@ const paginationLabel = (link) => {
                         </div>
 
                         <!-- Pagination -->
-                        <div v-if="links.links && links.links.length > 1"
-                            class="mt-6 flex justify-center gap-2 text-xs">
-                            <button v-for="paginationLink in links.links"
-                                :key="paginationLink.label + String(paginationLink.active)" type="button"
-                                class="px-3 py-1 rounded-md border text-xs transition" :class="[
-                                    paginationLink.active
-                                        ? 'bg-indigo-600 text-white border-indigo-600'
-                                        : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800',
-                                    !paginationLink.url ? 'opacity-40 cursor-default' : 'cursor-pointer'
-                                ]" :disabled="!paginationLink.url" @click="
-            paginationLink.url &&
-            router.get(paginationLink.url, {}, {
-                preserveState: true,
-                preserveScroll: true,
-            })
-            ">
-                                {{ paginationLabel(paginationLink) }}
-                            </button>
-                        </div>
-
+                        <Pagination :links="links.links" />
                     </div>
                 </div>
             </div>
