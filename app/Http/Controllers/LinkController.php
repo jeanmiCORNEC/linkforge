@@ -11,6 +11,16 @@ use Inertia\Inertia;
 
 class LinkController extends Controller
 {
+    /**
+     * Vérifie que le lien appartient bien à l'utilisateur connecté.
+     */
+    protected function ensureOwner(Request $request, Link $link): void
+    {
+        if ($link->user_id !== $request->user()->id) {
+            abort(403);
+        }
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -47,6 +57,45 @@ class LinkController extends Controller
         return redirect()
             ->route('links.index')
             ->with('success', 'Lien créé avec succès.');
+    }
+
+    public function update(Request $request, Link $link)
+    {
+        $this->ensureOwner($request, $link);
+
+        $validated = $request->validate([
+            'title'           => ['required', 'string', 'max:255'],
+            'destination_url' => ['required', 'url', 'max:2048'],
+            'is_active'       => ['nullable', 'boolean'],
+        ]);
+
+        $link->update([
+            'title'           => $validated['title'],
+            'destination_url' => $validated['destination_url'],
+            'is_active'       => $validated['is_active'] ?? true,
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Lien mis à jour.',
+                'link'    => $link->fresh('trackedLinks'),
+            ]);
+        }
+
+        return back()->with('success', 'Lien mis à jour.');
+    }
+    
+    public function destroy(Request $request, Link $link)
+    {
+        $this->ensureOwner($request, $link);
+
+        $link->delete(); // soft delete grâce au trait SoftDeletes
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Lien supprimé.'], 204);
+        }
+
+        return back()->with('success', 'Lien supprimé.');
     }
 
     public function index(Request $request)
