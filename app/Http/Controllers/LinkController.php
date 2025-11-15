@@ -45,7 +45,7 @@ class LinkController extends Controller
             'tracking_key' => Str::random(10),
         ]);
 
-        // 3) Si c'est une requête API (Accept: application/json) → on garde l’ancienne réponse JSON
+        // 3) Si c'est une requête API (Accept: application/json)
         if ($request->wantsJson()) {
             return response()->json([
                 'message'      => 'Link created',
@@ -53,7 +53,7 @@ class LinkController extends Controller
             ], 201);
         }
 
-        // 4) Si c'est une requête Inertia (notre cas) → redirection vers la page Liens
+        // 4) Si c'est une requête Inertia (notre cas)
         return redirect()
             ->route('links.index')
             ->with('success', 'Lien créé avec succès.');
@@ -89,19 +89,18 @@ class LinkController extends Controller
     {
         $this->ensureOwner($request, $link);
 
-        $link->is_active = !$link->is_active;
+        $link->is_active = ! $link->is_active;
         $link->save();
 
         if ($request->wantsJson()) {
             return response()->json([
-                'message' => 'Statut mis à jour',
+                'message'   => 'Statut mis à jour',
                 'is_active' => $link->is_active,
             ]);
         }
 
         return back()->with('success', 'Statut mis à jour.');
     }
-
 
     public function destroy(Request $request, Link $link)
     {
@@ -147,30 +146,47 @@ class LinkController extends Controller
 
     public function redirect(Request $request, string $tracking_key)
     {
-        // 1. Retrouver la tracked_link + son lien associé
-        $tracked = TrackedLink::with(['link' => function ($q) {
-            $q->withTrashed(); // au cas où, pour pouvoir tester is_active + deleted_at
-        }])->where('tracking_key', $tracking_key)->firstOrFail();
+        // 1. Retrouver la tracked_link + le lien associé
+        $tracked = TrackedLink::with('link')
+            ->where('tracking_key', $tracking_key)
+            ->firstOrFail();
 
-        $link = $tracked->link;
-
-        // 2. Si le lien n’existe plus, est soft-deleted ou inactif → 404
-        if (! $link || $link->trashed() || ! $link->is_active) {
-            abort(404); // plus tard on pourra faire une jolie page "Lien expiré"
+        // 2. Si le lien est inactif -> 404
+        if (! $tracked->link || ! $tracked->link->is_active) {
+            abort(404);
         }
 
-        // 3. Log du clic uniquement si ça vaut le coup (anti-bot / anti-spam)
-        if ($this->shouldTrackClick($request, $tracked)) {
-            Click::create([
-                'tracked_link_id' => $tracked->id,
-                'ip_address'      => $request->ip(),
-                'user_agent'      => $request->userAgent(),
-                'referrer'        => $request->headers->get('referer'),
-            ]);
+        // 3. Décider si on trace ce clic (bots + anti-spam)
+        if (! $this->shouldTrackClick($request, $tracked)) {
+            return redirect()->away($tracked->link->destination_url);
         }
 
-        // 4. Redirection finale vers le lien d’affiliation
-        return redirect()->away($link->destination_url);
+        // 4. Enrichissement à partir de l’IP et du user-agent
+        $ip  = $request->ip() ?? '0.0.0.0';
+        $ua  = (string) $request->userAgent();
+
+        $device       = $this->guessDeviceFromUserAgent($ua);
+        $browser      = $this->guessBrowserFromUserAgent($ua);
+        $visitorHash  = hash('sha256', $ip . '|' . $ua);
+
+        // 5. Log du clic
+        Click::create([
+            'tracked_link_id' => $tracked->id,
+            'ip_address'      => $ip,
+            'user_agent'      => $ua,
+            'referrer'        => $request->headers->get('referer'),
+
+            // Champs analytics
+            'device'       => $device,
+            'browser'      => $browser,
+            'os'           => null,          // on pourra décider plus tard si on parse l'OS
+            'visitor_hash' => $visitorHash,
+            'country'      => null,
+            'city'         => null,
+        ]);
+
+        // 6. Redirection finale
+        return redirect()->away($tracked->link->destination_url);
     }
 
     /**
@@ -208,7 +224,6 @@ class LinkController extends Controller
 
     /**
      * Détection très basique des bots via user-agent.
-     * (on pourra raffiner plus tard si besoin).
      */
     protected function isBot(string $userAgent): bool
     {
@@ -234,5 +249,50 @@ class LinkController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Déterminer grossièrement le type de device depuis le user-agent.
+     */
+    protected function guessDeviceFromUserAgent(string $ua): string
+    {
+        $ua = strtolower($ua);
+
+        if (str_contains($ua, 'iphone') || str_contains($ua, 'android') && str_contains($ua, 'mobile')) {
+            return 'mobile';
+        }
+
+        if (str_contains($ua, 'ipad') || str_contains($ua, 'tablet')) {
+            return 'tablet';
+        }
+
+        // par défaut : desktop
+        return 'desktop';
+    }
+
+    /**
+     * Déterminer grossièrement le navigateur depuis le user-agent.
+     */
+    protected function guessBrowserFromUserAgent(string $ua): string
+    {
+        $ua = strtolower($ua);
+
+        if (str_contains($ua, 'chrome')) {
+            return 'Chrome';
+        }
+
+        if (str_contains($ua, 'firefox')) {
+            return 'Firefox';
+        }
+
+        if (str_contains($ua, 'safari') && ! str_contains($ua, 'chrome')) {
+            return 'Safari';
+        }
+
+        if (str_contains($ua, 'edg')) {
+            return 'Edge';
+        }
+
+        return 'Other';
     }
 }
