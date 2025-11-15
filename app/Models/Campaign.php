@@ -36,4 +36,9 @@ class Campaign extends Model
     {
         return $this->hasMany(Source::class);
     }
+
+    public function clicks()
+    {
+        return $this->hasMany(Click::class);
+    }
 }

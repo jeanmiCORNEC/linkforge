@@ -3,14 +3,17 @@
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
-use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Links\LinkController;
+use App\Http\Controllers\Sources\SourceController;
+use App\Http\Controllers\Profile\ProfileController;
+use App\Http\Controllers\Campaigns\CampaignController;
+use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Links\LinkAnalyticsController;
 use App\Http\Controllers\Links\SourceTrackedLinkController;
-use App\Http\Controllers\Sources\SourceController;
 use App\Http\Controllers\Sources\SourceAnalyticsController;
-use App\Http\Controllers\Campaigns\CampaignController;
-use App\Http\Controllers\Profile\ProfileController;
+use App\Http\Controllers\Campaigns\CampaignAnalyticsController;
+
+
 
 
 // Landing publique (Inertia)
@@ -78,6 +81,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('campaigns.archive');
     Route::delete('/campaigns/{campaign}', [CampaignController::class, 'destroy'])
         ->name('campaigns.destroy');
+    Route::get('/campaigns/{campaign}/analytics', [CampaignAnalyticsController::class, 'show'])
+    ->name('campaigns.analytics.show');
 
     // Profil
     Route::get('/profile', [ProfileController::class, 'edit'])
