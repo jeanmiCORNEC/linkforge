@@ -8,12 +8,14 @@ use App\Models\Source;
 use App\Models\TrackedLink;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SourceTrackedLinksTest extends TestCase
 {
     use RefreshDatabase;
 
+    #[Test]
     public function guest_is_redirected_from_tracked_links_routes(): void
     {
         $user = User::factory()->create();
@@ -27,13 +29,17 @@ class SourceTrackedLinksTest extends TestCase
         ])->assertRedirect(route('login'));
 
         // Destroy
-        $tracked = TrackedLink::factory()->for($user)->for($source)->for($link)->create();
+        $tracked = TrackedLink::factory()
+            ->for($user)
+            ->for($source)
+            ->for($link)
+            ->create();
 
         $this->delete(route('sources.tracked-links.destroy', [$source, $tracked]))
             ->assertRedirect(route('login'));
     }
 
-   
+    #[Test]
     public function user_can_create_tracked_link_for_his_source_and_link(): void
     {
         $user = User::factory()->create();
@@ -59,6 +65,7 @@ class SourceTrackedLinksTest extends TestCase
         ]);
     }
 
+    #[Test]
     public function user_cannot_create_tracked_link_on_someone_else_source_or_link(): void
     {
         $owner = User::factory()->create();
@@ -82,6 +89,7 @@ class SourceTrackedLinksTest extends TestCase
         $this->assertDatabaseCount('tracked_links', 0);
     }
 
+    #[Test]
     public function user_can_delete_his_tracked_link_for_a_source(): void
     {
         $user = User::factory()->create();
@@ -109,6 +117,7 @@ class SourceTrackedLinksTest extends TestCase
         ]);
     }
 
+    #[Test]
     public function user_cannot_delete_tracked_link_of_someone_else(): void
     {
         $owner = User::factory()->create();
