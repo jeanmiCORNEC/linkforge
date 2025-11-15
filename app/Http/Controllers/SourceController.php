@@ -26,17 +26,18 @@ class SourceController extends Controller
     {
         $user = $request->user();
 
-        $campaigns = Campaign::query()
-            ->where('user_id', $user->id)
-            ->with(['sources' => function ($query) {
-                $query->orderByDesc('created_at');
-            }])
-            ->orderByDesc('created_at')
-            ->paginate(10)
-            ->withQueryString();
+        $campaigns = $user->campaigns()
+            ->with(['sources.trackedLinks.link'])
+            ->latest()
+            ->paginate(10);
+
+        $links = $user->links()
+            ->orderBy('created_at', 'desc')
+            ->get(['id', 'title']);
 
         return Inertia::render('Sources/Index', [
             'campaigns' => $campaigns,
+            'links'     => $links,
         ]);
     }
 
