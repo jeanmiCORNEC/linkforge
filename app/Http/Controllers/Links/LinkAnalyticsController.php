@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Links;
 
 use App\Models\Link;
 use App\Support\Analytics\ClickAnalytics;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Inertia\Inertia;
 
 class LinkAnalyticsController extends Controller

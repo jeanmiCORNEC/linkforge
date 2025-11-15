@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Dashboard;
 
-use App\Models\Campaign;
-use App\Models\Click;
-use App\Models\Link;
-use App\Models\Source;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
+use App\Models\Link;
 use Inertia\Inertia;
+use App\Models\Click;
+use App\Models\Source;
+use App\Models\Campaign;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class DashboardController extends Controller
 {

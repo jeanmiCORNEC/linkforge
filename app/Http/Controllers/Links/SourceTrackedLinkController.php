@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Links;
 
 use App\Models\Link;
 use App\Models\Source;
 use App\Models\TrackedLink;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Http\Controllers\Controller;
 
 class SourceTrackedLinkController extends Controller
 {

@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Campaigns;
 
+use Inertia\Inertia;
 use App\Models\Campaign;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use App\Http\Controllers\Controller;
 
 class CampaignController extends Controller
 {
