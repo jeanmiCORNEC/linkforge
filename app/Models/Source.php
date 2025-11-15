@@ -36,4 +36,16 @@ class Source extends Model
     {
         return $this->hasMany(TrackedLink::class);
     }
+
+    public function clicks()
+    {
+        return $this->hasManyThrough(
+            Click::class,
+            TrackedLink::class,
+            'source_id',        // FK sur tracked_links
+            'tracked_link_id',  // FK sur clicks
+            'id',               // PK local sur sources
+            'id'                // PK local sur tracked_links
+        );
+    }
 }

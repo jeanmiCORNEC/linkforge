@@ -1,7 +1,6 @@
 <?php
 
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
 use App\Http\Controllers\LinkController;
@@ -10,8 +9,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LinkAnalyticsController;
+use App\Http\Controllers\SourceAnalyticsController;
 use App\Http\Controllers\SourceTrackedLinkController;
-
 
 // Landing publique (Inertia)
 Route::get('/', function () {
@@ -24,18 +23,18 @@ Route::get('/', function () {
 })->name('welcome');
 
 // Routes d'auth Breeze
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
 
 // Routes auth + email vérifié
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // Dashboard (Inertia via contrôleur)
+    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
+
+    // Liens
     Route::get('/links', [LinkController::class, 'index'])
         ->name('links.index');
-
-    // Liens trackés (Inertia form)
     Route::post('/links', [LinkController::class, 'store'])
         ->name('links.store');
     Route::patch('/links/{link}/toggle', [LinkController::class, 'toggle'])
@@ -44,8 +43,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('links.update');
     Route::delete('/links/{link}', [LinkController::class, 'destroy'])
         ->name('links.destroy');
-        Route::get('/links/{link}/analytics', [LinkAnalyticsController::class, 'show'])
+    Route::get('/links/{link}/analytics', [LinkAnalyticsController::class, 'show'])
         ->name('links.analytics.show');
+
+    // Sources + analytics + tracked links
+    Route::get('/sources', [SourceController::class, 'index'])
+        ->name('sources.index');
+    Route::post('/sources', [SourceController::class, 'store'])
+        ->name('sources.store');
+    Route::put('/sources/{source}', [SourceController::class, 'update'])
+        ->name('sources.update');
+    Route::patch('/sources/{source}/toggle', [SourceController::class, 'toggle'])
+        ->name('sources.toggle');
+    Route::delete('/sources/{source}', [SourceController::class, 'destroy'])
+        ->name('sources.destroy');
+
+    Route::get('/sources/{source}/analytics', [SourceAnalyticsController::class, 'show'])
+        ->name('sources.analytics.show');
+
+    Route::post('/sources/{source}/tracked-links', [SourceTrackedLinkController::class, 'store'])
+        ->name('sources.tracked-links.store');
+    Route::delete('/sources/{source}/tracked-links/{trackedLink}', [SourceTrackedLinkController::class, 'destroy'])
+        ->name('sources.tracked-links.destroy');
 
     // Campagnes
     Route::get('/campaigns', [CampaignController::class, 'index'])
@@ -59,24 +78,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/campaigns/{campaign}', [CampaignController::class, 'destroy'])
         ->name('campaigns.destroy');
 
-
-    // Sources (création)
-    Route::get('/sources', [SourceController::class, 'index'])
-        ->name('sources.index');
-    Route::post('/sources', [SourceController::class, 'store'])
-        ->name('sources.store');
-    Route::put('/sources/{source}', [SourceController::class, 'update'])
-    ->name('sources.update');
-    Route::patch('/sources/{source}/toggle', [SourceController::class, 'toggle'])
-    ->name('sources.toggle');
-    Route::delete('/sources/{source}', [SourceController::class, 'destroy'])
-    ->name('sources.destroy');
-    Route::post('/sources/{source}/tracked-links', [SourceTrackedLinkController::class, 'store'])
-        ->name('sources.tracked-links.store');
-    Route::delete('/sources/{source}/tracked-links/{trackedLink}', [SourceTrackedLinkController::class, 'destroy'])
-        ->name('sources.tracked-links.destroy');
-
-    // Profile (Breeze)
+    // Profil
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])
@@ -85,6 +87,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('profile.destroy');
 });
 
-// Route publique de redirection courte (pas Inertia, simple redirect HTTP)
+// Route publique de redirection courte
 Route::get('/l/{tracking_key}', [LinkController::class, 'redirect'])
     ->name('links.redirect');
