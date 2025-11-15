@@ -18,10 +18,21 @@ class DashboardController extends Controller
 
         // --- Stats globales du compte ---
         $stats = [
-            'links_count'     => Link::where('user_id', $user->id)->count(),
-            'campaigns_count' => Campaign::where('user_id', $user->id)->count(),
-            'sources_count'   => Source::where('user_id', $user->id)->count(),
-            'clicks_count'    => Click::whereHas('trackedLink', function ($q) use ($user) {
+            'links_count' => Link::where('user_id', $user->id)->count(),
+
+            // On ne compte pas les campagnes soft-deleted
+            'campaigns_count' => Campaign::where('user_id', $user->id)
+                ->whereNull('deleted_at')
+                ->count(),
+
+            // On ne compte que les sources rattachées à une campagne non supprimée
+            'sources_count' => Source::where('user_id', $user->id)
+                ->whereHas('campaign', function ($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->count(),
+
+            'clicks_count' => Click::whereHas('trackedLink', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })->count(),
         ];
@@ -47,9 +58,9 @@ class DashboardController extends Controller
             $key = $day->toDateString();
 
             $dailyClicks[] = [
-                'date'   => $day->format('Y-m-d'),
-                'label'  => $day->format('d/m'),
-                'count'  => (int) ($raw[$key] ?? 0),
+                'date'  => $day->format('Y-m-d'),
+                'label' => $day->format('d/m'),
+                'count' => (int) ($raw[$key] ?? 0),
             ];
         }
 
