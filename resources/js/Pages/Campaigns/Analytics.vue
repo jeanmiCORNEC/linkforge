@@ -114,7 +114,7 @@ const clicksPerDay = computed(() => props.stats?.clicksPerDay ?? []);
                             <div class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
                                 {{ stats.totalClicks ?? 0 }}
                             </div>
-                            <div class="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+                            <div class="mt-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
                                 Sur les {{ stats.period?.days ?? currentDays }} derniers jours
                             </div>
                         </div>
@@ -126,7 +126,7 @@ const clicksPerDay = computed(() => props.stats?.clicksPerDay ?? []);
                             <div class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
                                 {{ stats.uniqueVisitors ?? 0 }}
                             </div>
-                            <div class="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+                            <div class="mt-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
                                 Basé sur le hash visiteur
                             </div>
                         </div>
@@ -138,7 +138,7 @@ const clicksPerDay = computed(() => props.stats?.clicksPerDay ?? []);
                             <div class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
                                 Depuis le {{ stats.period?.since ?? '—' }}
                             </div>
-                            <div class="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+                            <div class="mt-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
                                 Paramètre "days" = {{ currentDays }}
                             </div>
                         </div>

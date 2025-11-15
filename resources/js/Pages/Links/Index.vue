@@ -84,14 +84,21 @@ const updateLink = () => {
     });
 };
 
-// --- URL courte affichée dans la table ---
-const shortUrl = (link) => {
-    const tracked = link.tracked_links && link.tracked_links.length
-        ? link.tracked_links[0]
-        : null;
+// --- Helpers : tracked link par défaut + URL courte ---
+const getDefaultTrackedLink = (link) => {
+    if (!link.tracked_links || !link.tracked_links.length) {
+        return null;
+    }
 
-    if (!tracked) return 'Aucun tracking key';
+    // On privilégie le tracked_link "général" (sans source)
+    const withoutSource = link.tracked_links.find((t) => t.source_id === null);
+    return withoutSource ?? link.tracked_links[0];
+};
 
+const getShortUrlForLink = (link) => {
+    const tracked = getDefaultTrackedLink(link);
+    if (!tracked) return '';
+    // Route /l/{tracking_key}
     return route('links.redirect', { tracking_key: tracked.tracking_key });
 };
 
@@ -106,6 +113,31 @@ const applyFilter = (status) => {
             replace: true,
         },
     );
+};
+
+// --- Copy to clipboard + toast ---
+const showToast = ref(false);
+const toastMessage = ref('');
+
+const showCopyToast = (message = 'Lien copié dans le presse-papier') => {
+    toastMessage.value = message;
+    showToast.value = true;
+
+    setTimeout(() => {
+        showToast.value = false;
+    }, 2000);
+};
+
+const copyToClipboard = async (text) => {
+    if (!text) return;
+
+    try {
+        await navigator.clipboard.writeText(text);
+        showCopyToast();
+    } catch (e) {
+        console.error('Erreur copy clipboard', e);
+        showCopyToast('Impossible de copier le lien');
+    }
 };
 </script>
 
@@ -246,15 +278,24 @@ const applyFilter = (status) => {
                                             </div>
                                         </td>
 
-                                        <td class="px-4 py-3">
-                                            <input
-                                                type="text"
-                                                :value="shortUrl(link)"
-                                                readonly
-                                                class="w-full rounded-md border-gray-300 dark:border-gray-700
-                                                       dark:bg-gray-900 dark:text-gray-100 text-xs"
-                                                @focus="$event.target.select()"
-                                            />
+                                        <!-- Lien court + bouton Copier -->
+                                        <td class="px-4 py-3 text-xs text-gray-700 dark:text-gray-200">
+                                            <div class="flex items-center gap-2">
+                                                <span class="truncate max-w-[220px]">
+                                                    {{ getShortUrlForLink(link) || 'Aucun tracking key' }}
+                                                </span>
+
+                                                <button
+                                                    v-if="getShortUrlForLink(link)"
+                                                    type="button"
+                                                    class="inline-flex items-center px-2 py-1 text-xs md:text-sm rounded-md
+                                                           border border-indigo-500 text-indigo-500
+                                                           hover:bg-indigo-50 dark:hover:bg-indigo-900/40"
+                                                    @click="copyToClipboard(getShortUrlForLink(link))"
+                                                >
+                                                    Copier
+                                                </button>
+                                            </div>
                                         </td>
 
                                         <td class="px-4 py-3">
@@ -397,5 +438,28 @@ const applyFilter = (status) => {
                 </form>
             </div>
         </div>
+
+        <!-- Toast copie -->
+        <transition name="fade">
+            <div
+                v-if="showToast"
+                class="fixed bottom-4 right-4 z-50 px-4 py-2 rounded-md shadow-lg
+                       bg-gray-900 text-white text-xs flex items-center gap-2"
+            >
+                <span>{{ toastMessage }}</span>
+            </div>
+        </transition>
     </AuthenticatedLayout>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(4px);
+}
+</style>

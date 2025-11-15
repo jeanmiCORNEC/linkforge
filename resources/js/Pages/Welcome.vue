@@ -122,24 +122,24 @@ defineProps({
 
                             <div class="grid grid-cols-3 gap-3 mb-4">
                                 <div class="rounded-xl bg-slate-950/60 border border-slate-800 p-3">
-                                    <p class="text-[11px] text-slate-400">Clics (7 jours)</p>
+                                    <p class="text-xs md:text-sm text-slate-400">Clics (7 jours)</p>
                                     <p class="text-lg font-semibold">1 284</p>
-                                    <p class="text-[11px] text-emerald-400 mt-1">+32%</p>
+                                    <p class="text-xs md:text-sm text-emerald-400 mt-1">+32%</p>
                                 </div>
                                 <div class="rounded-xl bg-slate-950/60 border border-slate-800 p-3">
-                                    <p class="text-[11px] text-slate-400">Liens trackés</p>
+                                    <p class="text-xs md:text-sm text-slate-400">Liens trackés</p>
                                     <p class="text-lg font-semibold">27</p>
-                                    <p class="text-[11px] text-slate-400 mt-1">6 pages bio</p>
+                                    <p class="text-xs md:text-sm text-slate-400 mt-1">6 pages bio</p>
                                 </div>
                                 <div class="rounded-xl bg-slate-950/60 border border-slate-800 p-3">
-                                    <p class="text-[11px] text-slate-400">Sources actives</p>
+                                    <p class="text-xs md:text-sm text-slate-400">Sources actives</p>
                                     <p class="text-lg font-semibold">14</p>
-                                    <p class="text-[11px] text-slate-400 mt-1">Shorts, Reels, Stories</p>
+                                    <p class="text-xs md:text-sm text-slate-400 mt-1">Shorts, Reels, Stories</p>
                                 </div>
                             </div>
 
-                            <p class="text-[11px] text-slate-400 mb-2">Top sources</p>
-                            <div class="space-y-1.5 text-[11px]">
+                            <p class="text-xs md:text-sm text-slate-400 mb-2">Top sources</p>
+                            <div class="space-y-1.5 text-xs md:text-sm">
                                 <div class="flex justify-between">
                                     <span>🎧 TikTok – Setup 2025</span>
                                     <span class="text-slate-300">432 clics</span>
@@ -213,7 +213,7 @@ defineProps({
         </main>
 
         <footer class="border-t border-slate-800 bg-slate-950">
-            <div class="max-w-6xl mx-auto px-4 py-4 text-[11px] flex justify-between text-slate-500">
+            <div class="max-w-6xl mx-auto px-4 py-4 text-xs md:text-sm flex justify-between text-slate-500">
                 <span>© {{ new Date().getFullYear() }} LinkForge – Micro-SaaS pour créateurs & affiliés.</span>
                 <span>Made en France 🇫🇷</span>
             </div>
