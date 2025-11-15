@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import Pagination from '@/Components/Pagination.vue';
 import { ref, onMounted } from 'vue';
 
@@ -8,6 +8,11 @@ const props = defineProps({
     campaigns: {
         type: Object, // paginator
         required: true,
+    },
+    // Liste des liens de l'utilisateur pour alimenter le select de la modale
+    links: {
+        type: Array,
+        default: () => [],
     },
 });
 
@@ -82,10 +87,65 @@ const updateSource = () => {
         },
     });
 };
+
+// --- Gestion des liens trackés d'une source ---
+const isTrackedModalOpen = ref(false);
+const currentSource = ref(null);
+
+const trackedForm = useForm({
+    link_id: '',
+});
+
+const openTrackedLinkModal = (source) => {
+    currentSource.value = source;
+    trackedForm.reset();
+    trackedForm.clearErrors();
+    isTrackedModalOpen.value = true;
+};
+
+const closeTrackedLinkModal = () => {
+    isTrackedModalOpen.value = false;
+    currentSource.value = null;
+};
+
+const createTrackedLink = () => {
+    if (!currentSource.value) return;
+
+    trackedForm.post(
+        route('sources.tracked-links.store', currentSource.value.id),
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                isTrackedModalOpen.value = false;
+            },
+        },
+    );
+};
+
+// Suppression d'un lien tracké pour une source
+const deleteTrackedForm = useForm({});
+
+const deleteTrackedLink = (source, tracked) => {
+    if (!confirm('Supprimer ce lien tracké pour cette source ?')) return;
+
+    deleteTrackedForm.delete(
+        route('sources.tracked-links.destroy', {
+            source: source.id,
+            trackedLink: tracked.id,
+        }),
+        {
+            preserveScroll: true,
+        },
+    );
+};
+
+// Helper pour afficher l'URL courte à partir du tracking_key
+const shortUrlFromTrackingKey = (trackingKey) => {
+    return route('links.redirect', { tracking_key: trackingKey });
+};
 </script>
 
 <template>
-
     <Head title="Sources" />
 
     <AuthenticatedLayout>
@@ -104,20 +164,33 @@ const updateSource = () => {
                             Ajouter une source à une campagne
                         </h3>
 
-                        <form @submit.prevent="createSource" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <form
+                            @submit.prevent="createSource"
+                            class="grid grid-cols-1 md:grid-cols-4 gap-4"
+                        >
                             <!-- Campagne -->
                             <div class="md:col-span-1">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     Campagne
                                 </label>
-                                <select v-model="createForm.campaign_id" class="block w-full rounded-md border-gray-300 dark:border-gray-700
+                                <select
+                                    v-model="createForm.campaign_id"
+                                    class="block w-full rounded-md border-gray-300 dark:border-gray-700
                                            dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
-                                           focus:border-indigo-500 text-sm">
-                                    <option v-for="campaign in campaigns.data" :key="campaign.id" :value="campaign.id">
+                                           focus:border-indigo-500 text-sm"
+                                >
+                                    <option
+                                        v-for="campaign in campaigns.data"
+                                        :key="campaign.id"
+                                        :value="campaign.id"
+                                    >
                                         {{ campaign.name }}
                                     </option>
                                 </select>
-                                <div v-if="createForm.errors.campaign_id" class="text-sm text-red-500 mt-1">
+                                <div
+                                    v-if="createForm.errors.campaign_id"
+                                    class="text-sm text-red-500 mt-1"
+                                >
                                     {{ createForm.errors.campaign_id }}
                                 </div>
                             </div>
@@ -127,11 +200,18 @@ const updateSource = () => {
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     Nom de la source
                                 </label>
-                                <input v-model="createForm.name" type="text" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
+                                <input
+                                    v-model="createForm.name"
+                                    type="text"
+                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
                                            dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
                                            focus:border-indigo-500 text-sm"
-                                    placeholder="TikTok bio, YouTube description..." />
-                                <div v-if="createForm.errors.name" class="text-sm text-red-500 mt-1">
+                                    placeholder="TikTok bio, YouTube description..."
+                                />
+                                <div
+                                    v-if="createForm.errors.name"
+                                    class="text-sm text-red-500 mt-1"
+                                >
                                     {{ createForm.errors.name }}
                                 </div>
                             </div>
@@ -141,11 +221,18 @@ const updateSource = () => {
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     Plateforme (optionnel)
                                 </label>
-                                <input v-model="createForm.platform" type="text" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
+                                <input
+                                    v-model="createForm.platform"
+                                    type="text"
+                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
                                            dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
                                            focus:border-indigo-500 text-sm"
-                                    placeholder="TikTok, YouTube, Newsletter..." />
-                                <div v-if="createForm.errors.platform" class="text-sm text-red-500 mt-1">
+                                    placeholder="TikTok, YouTube, Newsletter..."
+                                />
+                                <div
+                                    v-if="createForm.errors.platform"
+                                    class="text-sm text-red-500 mt-1"
+                                >
                                     {{ createForm.errors.platform }}
                                 </div>
                             </div>
@@ -155,22 +242,32 @@ const updateSource = () => {
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     Notes (optionnel)
                                 </label>
-                                <textarea v-model="createForm.notes" rows="2" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
+                                <textarea
+                                    v-model="createForm.notes"
+                                    rows="2"
+                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
                                            dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
                                            focus:border-indigo-500 text-sm"
-                                    placeholder="Ex : lien dans la bio TikTok avec CTA spécial..." />
-                                <div v-if="createForm.errors.notes" class="text-sm text-red-500 mt-1">
+                                    placeholder="Ex : lien dans la bio TikTok avec CTA spécial..."
+                                />
+                                <div
+                                    v-if="createForm.errors.notes"
+                                    class="text-sm text-red-500 mt-1"
+                                >
                                     {{ createForm.errors.notes }}
                                 </div>
                             </div>
 
                             <div class="md:col-span-4 flex justify-end">
-                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent
+                                <button
+                                    type="submit"
+                                    class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent
                                            rounded-md font-semibold text-xs text-white uppercase tracking-widest
                                            hover:bg-indigo-500 focus:bg-indigo-700 active:bg-indigo-700
                                            focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
                                            dark:focus:ring-offset-gray-800 transition ease-in-out duration-150"
-                                    :disabled="createForm.processing">
+                                    :disabled="createForm.processing"
+                                >
                                     Ajouter la source
                                 </button>
                             </div>
@@ -185,13 +282,19 @@ const updateSource = () => {
                             Vos campagnes
                         </h3>
 
-                        <div v-if="!campaigns.data.length" class="text-sm text-gray-500 dark:text-gray-400">
+                        <div
+                            v-if="!campaigns.data.length"
+                            class="text-sm text-gray-500 dark:text-gray-400"
+                        >
                             Aucune campagne pour le moment. Créez-en d'abord une dans l’onglet Campagnes.
                         </div>
 
                         <div v-else class="space-y-4">
-                            <div v-for="campaign in campaigns.data" :key="campaign.id"
-                                class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-900/10 dark:bg-gray-900/40">
+                            <div
+                                v-for="campaign in campaigns.data"
+                                :key="campaign.id"
+                                class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-900/10 dark:bg-gray-900/40"
+                            >
                                 <div class="flex items-center justify-between mb-2">
                                     <div>
                                         <div class="font-semibold">
@@ -203,42 +306,108 @@ const updateSource = () => {
                                     </div>
                                 </div>
 
-                                <div v-if="!campaign.sources.length" class="text-xs text-gray-500 dark:text-gray-400">
+                                <div
+                                    v-if="!campaign.sources.length"
+                                    class="text-xs text-gray-500 dark:text-gray-400"
+                                >
                                     Aucune source pour cette campagne.
                                 </div>
 
                                 <div v-else class="mt-2 space-y-2">
-                                    <div v-for="source in campaign.sources" :key="source.id"
-                                        class="flex items-start justify-between text-sm bg-gray-800/60 rounded-md px-3 py-2">
-                                        <div>
-                                            <div class="flex items-center gap-2">
-                                                <span class="font-medium">
-                                                    {{ source.name }}
-                                                </span>
-                                                <span v-if="source.platform"
-                                                    class="px-2 py-0.5 rounded-full text-[10px] font-medium
-                                                           bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-200">
-                                                    {{ source.platform }}
-                                                </span>
+                                    <div
+                                        v-for="source in campaign.sources"
+                                        :key="source.id"
+                                        class="flex flex-col gap-2 text-sm bg-gray-800/60 rounded-md px-3 py-2"
+                                    >
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-medium">
+                                                        {{ source.name }}
+                                                    </span>
+                                                    <span
+                                                        v-if="source.platform"
+                                                        class="px-2 py-0.5 rounded-full text-[10px] font-medium
+                                                               bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-200"
+                                                    >
+                                                        {{ source.platform }}
+                                                    </span>
+                                                </div>
+                                                <div
+                                                    v-if="source.notes"
+                                                    class="text-xs text-gray-400 mt-1"
+                                                >
+                                                    {{ source.notes }}
+                                                </div>
                                             </div>
-                                            <div v-if="source.notes" class="text-xs text-gray-400 mt-1">
-                                                {{ source.notes }}
+
+                                            <div class="flex items-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    class="px-2 py-1 text-xs rounded-md border border-gray-500
+                                                           text-gray-700 dark:text-gray-200 dark:border-gray-400
+                                                           hover:bg-gray-50 dark:hover:bg-gray-700/60"
+                                                    @click="openEditModal(source)"
+                                                >
+                                                    Éditer
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    class="px-2 py-1 text-xs rounded-md border border-red-600
+                                                           text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
+                                                    @click="deleteSource(source)"
+                                                    :disabled="deleteForm.processing"
+                                                >
+                                                    Supprimer
+                                                </button>
                                             </div>
                                         </div>
 
-                                        <div class="flex items-center gap-2">
-                                            <button type="button" class="px-2 py-1 text-xs rounded-md border border-gray-500
-                                                       text-gray-700 dark:text-gray-200 dark:border-gray-400
-                                                       hover:bg-gray-50 dark:hover:bg-gray-700/60"
-                                                @click="openEditModal(source)">
-                                                Éditer
+                                        <!-- Bouton pour ajouter un lien tracké -->
+                                        <div class="flex items-center justify-between mt-1">
+                                            <div class="text-[11px] text-gray-400">
+                                                Lier un ou plusieurs liens à cette source pour suivre ses performances.
+                                            </div>
+                                            <button
+                                                type="button"
+                                                class="px-2 py-1 text-[11px] rounded-md border border-indigo-500
+                                                       text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
+                                                @click="openTrackedLinkModal(source)"
+                                            >
+                                                Ajouter un lien tracké
                                             </button>
+                                        </div>
 
-                                            <button type="button" class="px-2 py-1 text-xs rounded-md border border-red-600
-                                                       text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
-                                                @click="deleteSource(source)" :disabled="deleteForm.processing">
-                                                Supprimer
-                                            </button>
+                                        <!-- Liste des liens trackés existants pour cette source -->
+                                        <div
+                                            v-if="source.tracked_links && source.tracked_links.length"
+                                            class="mt-2 space-y-1"
+                                        >
+                                            <div
+                                                v-for="tracked in source.tracked_links"
+                                                :key="tracked.id"
+                                                class="flex items-center justify-between text-xs bg-gray-900/60 rounded-md px-2 py-1"
+                                            >
+                                                <div class="flex flex-col">
+                                                    <span class="font-medium">
+                                                        {{ tracked.link?.title || 'Lien sans titre' }}
+                                                    </span>
+                                                    <span class="text-[11px] text-gray-400 break-all">
+                                                        {{ shortUrlFromTrackingKey(tracked.tracking_key) }}
+                                                    </span>
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    class="ml-2 px-2 py-1 text-[11px] rounded-md border border-red-500
+                                                           text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
+                                                    @click="deleteTrackedLink(source, tracked)"
+                                                    :disabled="deleteTrackedForm.processing"
+                                                >
+                                                    Supprimer
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -253,14 +422,22 @@ const updateSource = () => {
         </div>
 
         <!-- Modale d'édition -->
-        <div v-if="isEditOpen && editingSource" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div
+            v-if="isEditOpen && editingSource"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+        >
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-lg">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <div
+                    class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center"
+                >
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                         Éditer la source
                     </h3>
-                    <button type="button" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                        @click="closeEditModal">
+                    <button
+                        type="button"
+                        class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                        @click="closeEditModal"
+                    >
                         ✕
                     </button>
                 </div>
@@ -270,10 +447,17 @@ const updateSource = () => {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Nom de la source
                         </label>
-                        <input v-model="editForm.name" type="text" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
+                        <input
+                            v-model="editForm.name"
+                            type="text"
+                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
                                    dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
-                                   focus:border-indigo-500 text-sm" />
-                        <div v-if="editForm.errors.name" class="text-sm text-red-500 mt-1">
+                                   focus:border-indigo-500 text-sm"
+                        />
+                        <div
+                            v-if="editForm.errors.name"
+                            class="text-sm text-red-500 mt-1"
+                        >
                             {{ editForm.errors.name }}
                         </div>
                     </div>
@@ -282,10 +466,17 @@ const updateSource = () => {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Plateforme (optionnel)
                         </label>
-                        <input v-model="editForm.platform" type="text" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
+                        <input
+                            v-model="editForm.platform"
+                            type="text"
+                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
                                    dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
-                                   focus:border-indigo-500 text-sm" />
-                        <div v-if="editForm.errors.platform" class="text-sm text-red-500 mt-1">
+                                   focus:border-indigo-500 text-sm"
+                        />
+                        <div
+                            v-if="editForm.errors.platform"
+                            class="text-sm text-red-500 mt-1"
+                        >
                             {{ editForm.errors.platform }}
                         </div>
                     </div>
@@ -294,28 +485,114 @@ const updateSource = () => {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Notes (optionnel)
                         </label>
-                        <textarea v-model="editForm.notes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
+                        <textarea
+                            v-model="editForm.notes"
+                            rows="3"
+                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
                                    dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
-                                   focus:border-indigo-500 text-sm" />
-                        <div v-if="editForm.errors.notes" class="text-sm text-red-500 mt-1">
+                                   focus:border-indigo-500 text-sm"
+                        />
+                        <div
+                            v-if="editForm.errors.notes"
+                            class="text-sm text-red-500 mt-1"
+                        >
                             {{ editForm.errors.notes }}
                         </div>
                     </div>
                 </div>
 
-                <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2">
-                    <button type="button" class="px-4 py-2 text-xs rounded-md border border-gray-300 dark:border-gray-600
+                <div
+                    class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2"
+                >
+                    <button
+                        type="button"
+                        class="px-4 py-2 text-xs rounded-md border border-gray-300 dark:border-gray-600
                                text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/60"
-                        @click="closeEditModal">
+                        @click="closeEditModal"
+                    >
                         Annuler
                     </button>
-                    <button type="button" class="px-4 py-2 text-xs rounded-md bg-indigo-600 text-white font-semibold
+                    <button
+                        type="button"
+                        class="px-4 py-2 text-xs rounded-md bg-indigo-600 text-white font-semibold
                                hover:bg-indigo-500 focus:bg-indigo-700 active:bg-indigo-700
                                focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
-                               dark:focus:ring-offset-gray-800" @click="updateSource" :disabled="editForm.processing">
+                               dark:focus:ring-offset-gray-800"
+                        @click="updateSource"
+                        :disabled="editForm.processing"
+                    >
                         Sauvegarder
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Modale création lien tracké -->
+        <div
+            v-if="isTrackedModalOpen && currentSource"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        >
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                    Ajouter un lien tracké
+                </h3>
+
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                    Source :
+                    <span class="font-semibold">{{ currentSource.name }}</span>
+                </p>
+
+                <form @submit.prevent="createTrackedLink" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Lien à suivre
+                        </label>
+                        <select
+                            v-model="trackedForm.link_id"
+                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
+                                   dark:bg-gray-900 dark:text-gray-100 text-sm"
+                        >
+                            <option value="" disabled>Choisissez un lien</option>
+                            <option
+                                v-for="link in links"
+                                :key="link.id"
+                                :value="link.id"
+                            >
+                                {{ link.title }}
+                            </option>
+                        </select>
+                        <div
+                            v-if="trackedForm.errors.link_id"
+                            class="text-sm text-red-500 mt-1"
+                        >
+                            {{ trackedForm.errors.link_id }}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-3 mt-4">
+                        <button
+                            type="button"
+                            class="px-3 py-2 text-xs rounded-md border border-gray-300
+                                   text-gray-700 dark:text-gray-200 dark:border-gray-600
+                                   hover:bg-gray-50 dark:hover:bg-gray-700/60"
+                            @click="closeTrackedLinkModal"
+                        >
+                            Annuler
+                        </button>
+
+                        <button
+                            type="submit"
+                            class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent
+                                   rounded-md font-semibold text-xs text-white uppercase tracking-widest
+                                   hover:bg-indigo-500 focus:bg-indigo-700 active:bg-indigo-700
+                                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
+                                   dark:focus:ring-offset-gray-800 transition ease-in-out duration-150"
+                            :disabled="trackedForm.processing"
+                        >
+                            Créer le lien tracké
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </AuthenticatedLayout>

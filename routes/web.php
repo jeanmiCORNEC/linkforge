@@ -5,11 +5,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
 use App\Http\Controllers\LinkController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\SourceController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CampaignController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LinkAnalyticsController;
+use App\Http\Controllers\SourceTrackedLinkController;
 
 
 // Landing publique (Inertia)
@@ -70,6 +71,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     ->name('sources.toggle');
     Route::delete('/sources/{source}', [SourceController::class, 'destroy'])
     ->name('sources.destroy');
+    Route::post('/sources/{source}/tracked-links', [SourceTrackedLinkController::class, 'store'])
+        ->name('sources.tracked-links.store');
+    Route::delete('/sources/{source}/tracked-links/{trackedLink}', [SourceTrackedLinkController::class, 'destroy'])
+        ->name('sources.tracked-links.destroy');
 
     // Profile (Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])
