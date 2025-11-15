@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Sources;
 
+use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Source;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Http\Controllers\Controller;
 
 class SourceController extends Controller
 {
@@ -28,13 +28,23 @@ class SourceController extends Controller
         $user = $request->user();
 
         $campaigns = $user->campaigns()
-            ->with(['sources.trackedLinks.link'])
+            ->with([
+                'sources' => function ($query) {
+                    $query->with(['trackedLinks.link']);
+                },
+            ])
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
+        // Tous les liens de l'utilisateur pour peupler le <select>
         $links = $user->links()
             ->orderBy('created_at', 'desc')
-            ->get(['id', 'title']);
+            ->get([
+                'id',
+                'title',
+                'destination_url',
+            ]);
 
         return Inertia::render('Sources/Index', [
             'campaigns' => $campaigns,

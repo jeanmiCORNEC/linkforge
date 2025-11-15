@@ -9,6 +9,10 @@ const props = defineProps({
         type: Object, // paginator
         required: true,
     },
+    links: {
+        type: Array,
+        required: true,
+    },
 });
 
 // --- Formulaire de création de source ---
@@ -90,6 +94,35 @@ const goToAnalytics = (source) => {
         {},
         {
             preserveScroll: true,
+        },
+    );
+};
+
+// --- Lier un lien à une source (TrackedLink) ---
+const selectedLinks = ref({}); // { [sourceId]: linkId }
+
+const trackedLinkForm = useForm({
+    link_id: '',
+});
+
+const attachLinkToSource = (source) => {
+    const linkId = selectedLinks.value[source.id];
+
+    if (!linkId) {
+        alert('Choisis un lien à connecter à cette source.');
+        return;
+    }
+
+    trackedLinkForm.link_id = linkId;
+
+    trackedLinkForm.post(
+        route('sources.tracked-links.store', source.id),
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Optionnel : reset la valeur
+                // selectedLinks.value[source.id] = '';
+            },
         },
     );
 };
@@ -277,7 +310,7 @@ const goToAnalytics = (source) => {
                                         :key="source.id"
                                         class="flex items-start justify-between text-sm bg-gray-800/60 rounded-md px-3 py-2"
                                     >
-                                        <div>
+                                        <div class="flex-1 min-w-0">
                                             <div class="flex items-center gap-2">
                                                 <span class="font-medium">
                                                     {{ source.name }}
@@ -317,9 +350,52 @@ const goToAnalytics = (source) => {
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            <!-- Ajouter un lien tracké à cette source -->
+                                            <div class="mt-3 space-y-1 text-xs">
+                                                <div class="font-medium text-gray-400">
+                                                    Ajouter un lien tracké à cette source
+                                                </div>
+
+                                                <div class="flex flex-col sm:flex-row gap-2">
+                                                    <select
+                                                        v-model="selectedLinks[source.id]"
+                                                        class="flex-1 rounded-md border-gray-300 dark:border-gray-700
+                                                               dark:bg-gray-900 dark:text-gray-100 text-xs"
+                                                    >
+                                                        <option value="">
+                                                            Choisir un lien…
+                                                        </option>
+                                                        <option
+                                                            v-for="link in links"
+                                                            :key="link.id"
+                                                            :value="link.id"
+                                                        >
+                                                            {{ link.title }} – {{ link.destination_url }}
+                                                        </option>
+                                                    </select>
+
+                                                    <button
+                                                        type="button"
+                                                        class="px-3 py-1 rounded-md bg-indigo-600 text-white text-xs font-semibold
+                                                               hover:bg-indigo-500 disabled:opacity-50"
+                                                        :disabled="trackedLinkForm.processing"
+                                                        @click="attachLinkToSource(source)"
+                                                    >
+                                                        Connecter
+                                                    </button>
+                                                </div>
+
+                                                <div
+                                                    v-if="trackedLinkForm.errors.link_id"
+                                                    class="text-red-500 mt-1"
+                                                >
+                                                    {{ trackedLinkForm.errors.link_id }}
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <div class="flex flex-col items-end gap-2">
+                                        <div class="flex flex-col items-end gap-2 ml-4">
                                             <!-- Bouton stats -->
                                             <button
                                                 type="button"
