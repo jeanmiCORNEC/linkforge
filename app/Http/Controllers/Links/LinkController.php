@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Links;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -8,6 +8,7 @@ use App\Models\Link;
 use App\Models\TrackedLink;
 use App\Models\Click;
 use Inertia\Inertia;
+use App\Http\Controllers\Controller;
 
 class LinkController extends Controller
 {

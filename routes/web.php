@@ -3,14 +3,15 @@
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
-use App\Http\Controllers\LinkController;
-use App\Http\Controllers\SourceController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\CampaignController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\LinkAnalyticsController;
-use App\Http\Controllers\SourceAnalyticsController;
-use App\Http\Controllers\SourceTrackedLinkController;
+use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Links\LinkController;
+use App\Http\Controllers\Links\LinkAnalyticsController;
+use App\Http\Controllers\Links\SourceTrackedLinkController;
+use App\Http\Controllers\Sources\SourceController;
+use App\Http\Controllers\Sources\SourceAnalyticsController;
+use App\Http\Controllers\Campaigns\CampaignController;
+use App\Http\Controllers\Profile\ProfileController;
+
 
 // Landing publique (Inertia)
 Route::get('/', function () {
