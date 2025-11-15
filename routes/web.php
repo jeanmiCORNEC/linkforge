@@ -1,20 +1,17 @@
 <?php
 
-use Inertia\Inertia;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
-use App\Http\Controllers\Links\LinkController;
-use App\Http\Controllers\Sources\SourceController;
-use App\Http\Controllers\Profile\ProfileController;
-use App\Http\Controllers\Campaigns\CampaignController;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Links\LinkController;
 use App\Http\Controllers\Links\LinkAnalyticsController;
 use App\Http\Controllers\Links\SourceTrackedLinkController;
+use App\Http\Controllers\Sources\SourceController;
 use App\Http\Controllers\Sources\SourceAnalyticsController;
+use App\Http\Controllers\Campaigns\CampaignController;
 use App\Http\Controllers\Campaigns\CampaignAnalyticsController;
-
-
-
+use App\Http\Controllers\Profile\ProfileController;
 
 // Landing publique (Inertia)
 Route::get('/', function () {
@@ -27,11 +24,10 @@ Route::get('/', function () {
 })->name('welcome');
 
 // Routes d'auth Breeze
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
 // Routes auth + email vérifié
 Route::middleware(['auth', 'verified'])->group(function () {
-
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
@@ -57,8 +53,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('sources.store');
     Route::put('/sources/{source}', [SourceController::class, 'update'])
         ->name('sources.update');
-    Route::patch('/sources/{source}/toggle', [SourceController::class, 'toggle'])
-        ->name('sources.toggle');
     Route::delete('/sources/{source}', [SourceController::class, 'destroy'])
         ->name('sources.destroy');
 
@@ -82,7 +76,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/campaigns/{campaign}', [CampaignController::class, 'destroy'])
         ->name('campaigns.destroy');
     Route::get('/campaigns/{campaign}/analytics', [CampaignAnalyticsController::class, 'show'])
-    ->name('campaigns.analytics.show');
+        ->name('campaigns.analytics.show');
 
     // Profil
     Route::get('/profile', [ProfileController::class, 'edit'])

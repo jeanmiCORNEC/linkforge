@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head, useForm, router, Link as InertiaLink } from '@inertiajs/vue3';
 import Pagination from '@/Components/Pagination.vue';
 import { ref } from 'vue';
 
@@ -96,6 +96,7 @@ const deleteCampaign = (campaign) => {
 </script>
 
 <template>
+
     <Head title="Campagnes" />
 
     <AuthenticatedLayout>
@@ -119,14 +120,10 @@ const deleteCampaign = (campaign) => {
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Nom de la campagne
                                 </label>
-                                <input
-                                    v-model="createForm.name"
-                                    type="text"
-                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
+                                <input v-model="createForm.name" type="text" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
                                            dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
                                            focus:border-indigo-500 sm:text-sm"
-                                    placeholder="Lancement ebook, Pack presets TikTok..."
-                                />
+                                    placeholder="Lancement ebook, Pack presets TikTok..." />
                                 <div v-if="createForm.errors.name" class="text-sm text-red-500 mt-1">
                                     {{ createForm.errors.name }}
                                 </div>
@@ -136,29 +133,22 @@ const deleteCampaign = (campaign) => {
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Notes (optionnel)
                                 </label>
-                                <textarea
-                                    v-model="createForm.notes"
-                                    rows="2"
-                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
+                                <textarea v-model="createForm.notes" rows="2" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
                                            dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
                                            focus:border-indigo-500 sm:text-sm"
-                                    placeholder="Ex : Objectif, public cible, promo en cours..."
-                                />
+                                    placeholder="Ex : Objectif, public cible, promo en cours..." />
                                 <div v-if="createForm.errors.notes" class="text-sm text-red-500 mt-1">
                                     {{ createForm.errors.notes }}
                                 </div>
                             </div>
 
                             <div class="flex justify-end">
-                                <button
-                                    type="submit"
-                                    class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent
+                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent
                                            rounded-md font-semibold text-xs text-white uppercase tracking-widest
                                            hover:bg-indigo-500 focus:bg-indigo-700 active:bg-indigo-700
                                            focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
                                            dark:focus:ring-offset-gray-800 transition ease-in-out duration-150"
-                                    :disabled="createForm.processing"
-                                >
+                                    :disabled="createForm.processing">
                                     Créer la campagne
                                 </button>
                             </div>
@@ -178,24 +168,18 @@ const deleteCampaign = (campaign) => {
                         </div>
 
                         <div v-else class="space-y-4">
-                            <div
-                                v-for="campaign in campaigns.data"
-                                :key="campaign.id"
-                                class="border border-gray-200 dark:border-gray-700 rounded-lg p-4
+                            <div v-for="campaign in campaigns.data" :key="campaign.id" class="border border-gray-200 dark:border-gray-700 rounded-lg p-4
                                        bg-gray-50 dark:bg-gray-900/40 flex flex-col sm:flex-row
-                                       sm:items-center sm:justify-between gap-4"
-                            >
+                                       sm:items-center sm:justify-between gap-4">
                                 <div class="space-y-1">
                                     <div class="flex items-center gap-2">
                                         <h4 class="font-semibold">
                                             {{ campaign.name }}
                                         </h4>
-                                        <span
-                                            class="px-2 py-0.5 rounded-full text-[10px] font-medium"
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium"
                                             :class="campaign.status === 'active'
                                                 ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
-                                                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-200'"
-                                        >
+                                                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-200'">
                                             {{ campaign.status === 'active' ? 'Active' : 'Archivée' }}
                                         </span>
                                     </div>
@@ -209,43 +193,38 @@ const deleteCampaign = (campaign) => {
                                     </p>
                                 </div>
                                 <div class="flex items-center gap-2 justify-end">
+                                    <!-- Stats -->
+                                    <InertiaLink :href="route('campaigns.analytics.show', campaign.id)" class="px-2 py-1 text-xs rounded-md border border-indigo-600
+               text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
+                                        Stats
+                                    </InertiaLink>
                                     <!-- Archive / Réactive -->
-                                    <button
-                                        type="button"
-                                        class="px-2 py-1 text-xs rounded-md border
+                                    <button type="button" class="px-2 py-1 text-xs rounded-md border
                                                border-yellow-500 text-yellow-700
                                                hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
-                                        @click="toggleArchive(campaign)"
-                                    >
+                                        @click="toggleArchive(campaign)">
                                         {{ campaign.status === 'active' ? 'Archiver' : 'Réactiver' }}
                                     </button>
 
                                     <!-- Edit -->
-                                    <button
-                                        type="button"
-                                        class="px-2 py-1 text-xs rounded-md border border-gray-500
+                                    <button type="button" class="px-2 py-1 text-xs rounded-md border border-gray-500
                                                text-gray-700 dark:text-gray-200 dark:border-gray-400
                                                hover:bg-gray-50 dark:hover:bg-gray-700/60"
-                                        @click="openEditModal(campaign)"
-                                    >
+                                        @click="openEditModal(campaign)">
                                         Éditer
                                     </button>
 
                                     <!-- Delete -->
-                                    <button
-                                        type="button"
-                                        class="px-2 py-1 text-xs rounded-md border border-red-600
+                                    <button type="button" class="px-2 py-1 text-xs rounded-md border border-red-600
                                                text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
-                                        @click="deleteCampaign(campaign)"
-                                        :disabled="deleteForm.processing"
-                                    >
+                                        @click="deleteCampaign(campaign)" :disabled="deleteForm.processing">
                                         Supprimer
                                     </button>
                                 </div>
                             </div>
 
                             <!-- Pagination -->
-                           <Pagination :links="campaigns.links" />
+                            <Pagination :links="campaigns.links" />
                         </div>
                     </div>
                 </div>
@@ -253,10 +232,7 @@ const deleteCampaign = (campaign) => {
         </div>
 
         <!-- Modale d'édition -->
-        <div
-            v-if="showEditModal"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        >
+        <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6">
                 <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
                     Éditer la campagne
@@ -267,13 +243,9 @@ const deleteCampaign = (campaign) => {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Nom de la campagne
                         </label>
-                        <input
-                            v-model="editForm.name"
-                            type="text"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
+                        <input v-model="editForm.name" type="text" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
                                    dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
-                                   focus:border-indigo-500 sm:text-sm"
-                        />
+                                   focus:border-indigo-500 sm:text-sm" />
                         <div v-if="editForm.errors.name" class="text-sm text-red-500 mt-1">
                             {{ editForm.errors.name }}
                         </div>
@@ -283,13 +255,9 @@ const deleteCampaign = (campaign) => {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Notes
                         </label>
-                        <textarea
-                            v-model="editForm.notes"
-                            rows="2"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
+                        <textarea v-model="editForm.notes" rows="2" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
                                    dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
-                                   focus:border-indigo-500 sm:text-sm"
-                        />
+                                   focus:border-indigo-500 sm:text-sm" />
                         <div v-if="editForm.errors.notes" class="text-sm text-red-500 mt-1">
                             {{ editForm.errors.notes }}
                         </div>
@@ -300,11 +268,8 @@ const deleteCampaign = (campaign) => {
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Statut
                             </label>
-                            <select
-                                v-model="editForm.status"
-                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
-                                       dark:bg-gray-900 dark:text-gray-100 text-sm"
-                            >
+                            <select v-model="editForm.status" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
+                                       dark:bg-gray-900 dark:text-gray-100 text-sm">
                                 <option value="active">Active</option>
                                 <option value="archived">Archivée</option>
                             </select>
@@ -317,12 +282,8 @@ const deleteCampaign = (campaign) => {
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Début (optionnel)
                             </label>
-                            <input
-                                v-model="editForm.starts_at"
-                                type="date"
-                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
-                                       dark:bg-gray-900 dark:text-gray-100 text-sm"
-                            />
+                            <input v-model="editForm.starts_at" type="date" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
+                                       dark:bg-gray-900 dark:text-gray-100 text-sm" />
                             <div v-if="editForm.errors.starts_at" class="text-sm text-red-500 mt-1">
                                 {{ editForm.errors.starts_at }}
                             </div>
@@ -332,12 +293,8 @@ const deleteCampaign = (campaign) => {
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Fin (optionnel)
                             </label>
-                            <input
-                                v-model="editForm.ends_at"
-                                type="date"
-                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
-                                       dark:bg-gray-900 dark:text-gray-100 text-sm"
-                            />
+                            <input v-model="editForm.ends_at" type="date" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
+                                       dark:bg-gray-900 dark:text-gray-100 text-sm" />
                             <div v-if="editForm.errors.ends_at" class="text-sm text-red-500 mt-1">
                                 {{ editForm.errors.ends_at }}
                             </div>
@@ -345,22 +302,15 @@ const deleteCampaign = (campaign) => {
                     </div>
 
                     <div class="mt-6 flex justify-end gap-2">
-                        <button
-                            type="button"
-                            class="px-3 py-2 text-xs rounded-md border border-gray-300
+                        <button type="button" class="px-3 py-2 text-xs rounded-md border border-gray-300
                                    text-gray-700 dark:text-gray-200 dark:border-gray-600
-                                   hover:bg-gray-50 dark:hover:bg-gray-700/60"
-                            @click="closeEditModal"
-                        >
+                                   hover:bg-gray-50 dark:hover:bg-gray-700/60" @click="closeEditModal">
                             Annuler
                         </button>
 
-                        <button
-                            type="submit"
-                            class="px-4 py-2 text-xs rounded-md bg-indigo-600 text-white
+                        <button type="submit" class="px-4 py-2 text-xs rounded-md bg-indigo-600 text-white
                                    font-semibold hover:bg-indigo-500 disabled:opacity-50"
-                            :disabled="editForm.processing"
-                        >
+                            :disabled="editForm.processing">
                             Enregistrer
                         </button>
                     </div>

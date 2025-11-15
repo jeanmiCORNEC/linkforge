@@ -28,13 +28,34 @@ class CampaignAnalyticsController extends Controller
             $days = 7;
         }
 
-        // 🔑 On part de Click et on filtre via trackedLink -> source -> campaign
+        // On récupère tous les clics liés à cette campagne via:
+        // Click -> trackedLink -> source -> campaign
         $clicksQuery = Click::query()
             ->whereHas('trackedLink.source', function ($query) use ($campaign) {
                 $query->where('campaign_id', $campaign->id);
             });
 
+        // Stats génériques (total, uniques, clics/jour, période…)
         $stats = ClickAnalytics::forPeriod($clicksQuery, $days);
+
+        // Même fenêtre temporelle que forPeriod()
+        $since = now()->subDays($days);
+
+        // Répartition par device
+        $stats['devices'] = (clone $clicksQuery)
+            ->where('created_at', '>=', $since)
+            ->selectRaw("COALESCE(device, 'Unknown') as device, COUNT(*) as total")
+            ->groupBy('device')
+            ->pluck('total', 'device')
+            ->toArray();
+
+        // Répartition par navigateur
+        $stats['browsers'] = (clone $clicksQuery)
+            ->where('created_at', '>=', $since)
+            ->selectRaw("COALESCE(browser, 'Unknown') as browser, COUNT(*) as total")
+            ->groupBy('browser')
+            ->pluck('total', 'browser')
+            ->toArray();
 
         return Inertia::render('Campaigns/Analytics', [
             'campaign' => [
