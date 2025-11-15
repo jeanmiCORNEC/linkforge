@@ -9,6 +9,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\SourceController;
+use App\Http\Controllers\LinkAnalyticsController;
 
 
 // Landing publique (Inertia)
@@ -42,6 +43,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('links.update');
     Route::delete('/links/{link}', [LinkController::class, 'destroy'])
         ->name('links.destroy');
+        Route::get('/links/{link}/analytics', [LinkAnalyticsController::class, 'show'])
+        ->name('links.analytics.show');
 
     // Campagnes
     Route::get('/campaigns', [CampaignController::class, 'index'])
