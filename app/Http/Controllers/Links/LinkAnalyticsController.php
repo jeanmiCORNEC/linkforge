@@ -25,9 +25,13 @@ class LinkAnalyticsController extends Controller
         // Sécurité : propriétaire du lien
         $this->ensureOwner($request, $link);
 
+        // Nombre de jours : 1 à 365, valeur par défaut = 7
         $days = (int) $request->get('days', 7);
         if ($days <= 0) {
             $days = 7;
+        }
+        if ($days > 365) {
+            $days = 365;
         }
 
         // On part de la relation hasManyThrough déjà définie sur Link
@@ -37,9 +41,11 @@ class LinkAnalyticsController extends Controller
 
         return Inertia::render('Links/Analytics', [
             'link' => [
-                'id'    => $link->id,
-                'title' => $link->title,
-                'slug'  => $link->slug,
+                'id'               => $link->id,
+                'title'            => $link->title,
+                'destination_url'  => $link->destination_url,
+                // on garde le slug si tu en as besoin ailleurs
+                'slug'             => $link->slug,
             ],
             'stats' => $stats,
             'filters' => [
