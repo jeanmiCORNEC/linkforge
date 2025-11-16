@@ -131,10 +131,13 @@ const copyToClipboard = async (text) => {
     }
 };
 
-/* ---------- Styles DA LinkForge ---------- */
+/* ---------- Styles DA LinkForge (harmonisés avec les pages Analytics) ---------- */
 
-const cardClass =
-    'rounded-xl border border-slate-800 bg-slate-900/70 shadow-md shadow-slate-950/40';
+const shellCardClass =
+    'relative rounded-3xl border border-slate-800 bg-slate-950/80 px-6 py-5 shadow-xl shadow-indigo-900/30';
+
+const bigCardClass =
+    'rounded-xl border border-slate-800 bg-slate-950/70 p-6 shadow-xl shadow-indigo-900/30';
 
 const primaryButtonClass =
     'inline-flex items-center rounded-md bg-indigo-500 px-4 py-2 text-xs font-semibold ' +
@@ -152,6 +155,12 @@ const warningButtonClass =
     'px-2 py-1 text-xs rounded-md border border-amber-500 text-amber-300 ' +
     'hover:bg-amber-900/20 transition';
 
+const successButtonClass =
+    'px-2 py-1 text-xs rounded-md border border-emerald-500 text-emerald-300 hover:bg-emerald-900/30 transition';
+
+const statsButtonClass =
+    'px-2 py-1 text-[11px] rounded-md border border-indigo-500 text-indigo-300 hover:bg-indigo-900/30 transition';
+
 // Pills filtre (Tous / actifs / inactifs)
 const pillBase =
     'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition';
@@ -162,31 +171,58 @@ const pillClasses = (value) => {
         ? `${pillBase} bg-indigo-500 text-white shadow-sm shadow-indigo-900/40`
         : `${pillBase} bg-slate-900/70 text-slate-300 border border-slate-700 hover:border-indigo-500 hover:text-slate-50`;
 };
-const successButtonClass =
-    'px-2 py-1 text-xs rounded-md border border-emerald-500 text-emerald-300 hover:bg-emerald-900/30 transition';
-
-const statsButtonClass =
-    'px-2 py-1 text-[11px] rounded-md border border-indigo-500 text-indigo-300 hover:bg-indigo-900/30 transition';
-
 </script>
 
 <template>
-
     <Head title="Liens" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <!-- même gabarit que le dashboard -->
-            <h2 class="text-4xl font-bold text-slate-50 tracking-tight">
-                Liens
-            </h2>
-        </template>
+        <div class="min-h-screen bg-slate-950 text-slate-100">
+            <!-- HEADER -->
+            <section class="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+                <div class="w-[95%] mx-auto pt-8 pb-10">
+                    <div :class="shellCardClass + ' flex flex-col md:flex-row md:items-center md:justify-between gap-4'">
+                        <div class="space-y-2">
+                            <p
+                                class="inline-flex items-center rounded-full border border-indigo-500/40 bg-indigo-500/10 px-3 py-1 text-xs md:text-sm font-medium text-indigo-200 uppercase tracking-[0.15em]"
+                            >
+                                Espace – Liens
+                            </p>
+                            <div>
+                                <h1 class="text-2xl md:text-3xl font-semibold tracking-tight">
+                                    Liens trackés
+                                </h1>
+                                <p class="mt-1 text-xs md:text-sm text-slate-400">
+                                    Créez, gérez et analysez vos liens raccourcis.
+                                </p>
+                            </div>
+                        </div>
 
-        <div class="py-8">
-            <div class="w-[95%] mx-auto space-y-8">
+                        <!-- Petit rappel filtre actuel -->
+                        <div class="flex flex-col items-start md:items-end gap-2 text-xs">
+                            <p class="text-slate-400">
+                                Filtre actuel :
+                                <span class="font-semibold text-slate-100">
+                                    {{
+                                        (filters.status || 'all') === 'all'
+                                            ? 'Tous les liens'
+                                            : (filters.status === 'active' ? 'Liens actifs' : 'Liens inactifs')
+                                    }}
+                                </span>
+                            </p>
+                            <p class="text-[11px] text-slate-500">
+                                Vous avez {{ links.total }} lien(s) au total.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CONTENU -->
+            <main class="w-[95%] mx-auto pt-8 pb-12 space-y-8">
                 <!-- Bloc création de lien -->
-                <div :class="cardClass">
-                    <div class="p-6 text-slate-50">
+                <section :class="bigCardClass">
+                    <div class="text-slate-50">
                         <div class="flex items-center justify-between mb-4">
                             <div>
                                 <h3 class="text-sm font-semibold">
@@ -204,9 +240,12 @@ const statsButtonClass =
                                     <label class="block text-xs font-medium text-slate-300">
                                         Titre
                                     </label>
-                                    <input v-model="createForm.title" type="text"
+                                    <input
+                                        v-model="createForm.title"
+                                        type="text"
                                         class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                                        placeholder="Lien setup vidéo TikTok" />
+                                        placeholder="Lien setup vidéo TikTok"
+                                    />
                                     <div v-if="createForm.errors.title" class="text-xs text-red-400 mt-1">
                                         {{ createForm.errors.title }}
                                     </div>
@@ -216,9 +255,12 @@ const statsButtonClass =
                                     <label class="block text-xs font-medium text-slate-300">
                                         URL de destination
                                     </label>
-                                    <input v-model="createForm.destination_url" type="url"
+                                    <input
+                                        v-model="createForm.destination_url"
+                                        type="url"
                                         class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                                        placeholder="https://www.amazon.fr/..." />
+                                        placeholder="https://www.amazon.fr/..."
+                                    />
                                     <div v-if="createForm.errors.destination_url" class="text-xs text-red-400 mt-1">
                                         {{ createForm.errors.destination_url }}
                                     </div>
@@ -226,18 +268,24 @@ const statsButtonClass =
                             </div>
 
                             <div class="flex items-center justify-end">
-                                <button type="submit" :class="primaryButtonClass" :disabled="createForm.processing">
+                                <button
+                                    type="submit"
+                                    :class="primaryButtonClass"
+                                    :disabled="createForm.processing"
+                                >
                                     Créer le lien
                                 </button>
                             </div>
                         </form>
                     </div>
-                </div>
+                </section>
 
                 <!-- Bloc liste des liens -->
-                <div :class="cardClass">
-                    <div class="p-6 text-slate-50">
-                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+                <section :class="bigCardClass">
+                    <div class="text-slate-50">
+                        <div
+                            class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4"
+                        >
                             <h3 class="text-sm font-semibold">
                                 Vos liens
                             </h3>
@@ -246,14 +294,25 @@ const statsButtonClass =
                             <div class="flex items-center gap-3 text-xs">
                                 <span class="text-slate-400">Filtrer :</span>
                                 <div class="flex items-center gap-2">
-                                    <button type="button" :class="pillClasses('all')" @click="applyFilter('all')">
+                                    <button
+                                        type="button"
+                                        :class="pillClasses('all')"
+                                        @click="applyFilter('all')"
+                                    >
                                         Tous
                                     </button>
-                                    <button type="button" :class="pillClasses('active')" @click="applyFilter('active')">
+                                    <button
+                                        type="button"
+                                        :class="pillClasses('active')"
+                                        @click="applyFilter('active')"
+                                    >
                                         Actifs
                                     </button>
-                                    <button type="button" :class="pillClasses('inactive')"
-                                        @click="applyFilter('inactive')">
+                                    <button
+                                        type="button"
+                                        :class="pillClasses('inactive')"
+                                        @click="applyFilter('inactive')"
+                                    >
                                         Inactifs
                                     </button>
                                 </div>
@@ -268,7 +327,8 @@ const statsButtonClass =
                             <table class="min-w-full text-xs">
                                 <thead>
                                     <tr
-                                        class="bg-slate-900/80 text-left text-[11px] font-medium text-slate-400 uppercase tracking-wider">
+                                        class="bg-slate-900/80 text-left text-[11px] font-medium text-slate-400 uppercase tracking-wider"
+                                    >
                                         <th class="px-4 py-3">Titre</th>
                                         <th class="px-4 py-3">Lien court</th>
                                         <th class="px-4 py-3">URL de destination</th>
@@ -278,18 +338,23 @@ const statsButtonClass =
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-800">
-                                    <tr v-for="link in links.data" :key="link.id"
-                                        class="odd:bg-slate-950/60 even:bg-slate-950/30">
+                                    <tr
+                                        v-for="link in links.data"
+                                        :key="link.id"
+                                        class="odd:bg-slate-950/60 even:bg-slate-950/30"
+                                    >
                                         <td class="px-4 py-3 whitespace-nowrap">
                                             <div class="flex items-center gap-2">
                                                 <span class="font-medium">
                                                     {{ link.title }}
                                                 </span>
-                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-medium border"
+                                                <span
+                                                    class="px-2 py-0.5 rounded-full text-[10px] font-medium border"
                                                     :class="link.is_active
                                                         ? 'bg-emerald-900/40 text-emerald-300 border-emerald-500/40'
                                                         : 'bg-slate-800 text-slate-200 border-slate-600'
-                                                        ">
+                                                    "
+                                                >
                                                     {{ link.is_active ? 'Actif' : 'Inactif' }}
                                                 </span>
                                             </div>
@@ -302,17 +367,23 @@ const statsButtonClass =
                                                     {{ getShortUrlForLink(link) || 'Aucun tracking key' }}
                                                 </span>
 
-                                                <button v-if="getShortUrlForLink(link)" type="button"
+                                                <button
+                                                    v-if="getShortUrlForLink(link)"
+                                                    type="button"
                                                     class="inline-flex items-center px-2 py-1 text-[11px] rounded-md border border-indigo-500 text-indigo-300 hover:bg-indigo-900/30 transition"
-                                                    @click="copyToClipboard(getShortUrlForLink(link))">
+                                                    @click="copyToClipboard(getShortUrlForLink(link))"
+                                                >
                                                     Copier
                                                 </button>
                                             </div>
                                         </td>
 
                                         <td class="px-4 py-3">
-                                            <a :href="link.destination_url" target="_blank"
-                                                class="text-indigo-300 hover:text-indigo-200 hover:underline break-all">
+                                            <a
+                                                :href="link.destination_url"
+                                                target="_blank"
+                                                class="text-indigo-300 hover:text-indigo-200 hover:underline break-all"
+                                            >
                                                 {{ link.destination_url }}
                                             </a>
                                         </td>
@@ -326,31 +397,42 @@ const statsButtonClass =
                                         </td>
 
                                         <td
-                                            class="px-4 py-3 whitespace-nowrap text-right space-x-2 flex items-center justify-end">
-
+                                            class="px-4 py-3 whitespace-nowrap text-right space-x-2 flex items-center justify-end"
+                                        >
                                             <!-- Toggle actif / inactif -->
-                                            <button type="button"
+                                            <button
+                                                type="button"
                                                 :class="link.is_active ? warningButtonClass : successButtonClass"
-                                                @click="toggleLink(link)">
+                                                @click="toggleLink(link)"
+                                            >
                                                 {{ link.is_active ? 'Désactiver' : 'Activer' }}
                                             </button>
 
                                             <!-- Bouton Éditer -->
-                                            <button type="button" :class="secondaryButtonClass"
-                                                @click="openEditModal(link)">
+                                            <button
+                                                type="button"
+                                                :class="secondaryButtonClass"
+                                                @click="openEditModal(link)"
+                                            >
                                                 Éditer
                                             </button>
 
                                             <!-- Supprimer -->
-                                            <button type="button" :class="dangerButtonClass" @click="deleteLink(link)"
-                                                :disabled="deleteForm.processing">
+                                            <button
+                                                type="button"
+                                                :class="dangerButtonClass"
+                                                @click="deleteLink(link)"
+                                                :disabled="deleteForm.processing"
+                                            >
                                                 Supprimer
                                             </button>
 
                                             <!-- Voir les stats -->
-                                            <Link :href="route('links.analytics.show', link.id)"
-                                                :class="statsButtonClass">
-                                            Stats
+                                            <Link
+                                                :href="route('links.analytics.show', link.id)"
+                                                :class="statsButtonClass"
+                                            >
+                                                Stats
                                             </Link>
                                         </td>
                                     </tr>
@@ -359,16 +441,22 @@ const statsButtonClass =
                         </div>
 
                         <!-- Pagination -->
-                        <Pagination :links="links.links" />
+                        <div class="mt-4">
+                            <Pagination :links="links.links" />
+                        </div>
                     </div>
-                </div>
-            </div>
+                </section>
+            </main>
         </div>
 
         <!-- Modale d'édition -->
-        <div v-if="isEditOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div
+            v-if="isEditOpen"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        >
             <div
-                class="bg-slate-950 border border-slate-800 rounded-xl shadow-xl shadow-slate-950/60 w-full max-w-lg p-6">
+                class="bg-slate-950 border border-slate-800 rounded-xl shadow-xl shadow-slate-950/60 w-full max-w-lg p-6"
+            >
                 <h3 class="text-sm font-semibold text-slate-50 mb-4">
                     Éditer le lien
                 </h3>
@@ -378,8 +466,11 @@ const statsButtonClass =
                         <label class="block text-xs font-medium text-slate-300">
                             Titre
                         </label>
-                        <input v-model="editForm.title" type="text"
-                            class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 text-sm text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                        <input
+                            v-model="editForm.title"
+                            type="text"
+                            class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 text-sm text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                        />
                         <div v-if="editForm.errors.title" class="text-xs text-red-400 mt-1">
                             {{ editForm.errors.title }}
                         </div>
@@ -389,8 +480,11 @@ const statsButtonClass =
                         <label class="block text-xs font-medium text-slate-300">
                             URL de destination
                         </label>
-                        <input v-model="editForm.destination_url" type="url"
-                            class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 text-sm text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                        <input
+                            v-model="editForm.destination_url"
+                            type="url"
+                            class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 text-sm text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                        />
                         <div v-if="editForm.errors.destination_url" class="text-xs text-red-400 mt-1">
                             {{ editForm.errors.destination_url }}
                         </div>
@@ -401,7 +495,11 @@ const statsButtonClass =
                             Annuler
                         </button>
 
-                        <button type="submit" :class="primaryButtonClass" :disabled="editForm.processing">
+                        <button
+                            type="submit"
+                            :class="primaryButtonClass"
+                            :disabled="editForm.processing"
+                        >
                             Sauvegarder
                         </button>
                     </div>
@@ -411,8 +509,10 @@ const statsButtonClass =
 
         <!-- Toast copie -->
         <transition name="fade">
-            <div v-if="showToast"
-                class="fixed bottom-4 right-4 z-50 px-4 py-2 rounded-md shadow-lg bg-slate-950 border border-slate-700 text-white text-xs flex items-center gap-2">
+            <div
+                v-if="showToast"
+                class="fixed bottom-4 right-4 z-50 px-4 py-2 rounded-md shadow-lg bg-slate-950 border border-slate-700 text-white text-xs flex items-center gap-2"
+            >
                 <span>{{ toastMessage }}</span>
             </div>
         </transition>

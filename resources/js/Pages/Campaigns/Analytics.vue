@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link as InertiaLink, router } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 
 const props = defineProps({
     campaign: {
@@ -18,9 +18,48 @@ const props = defineProps({
     },
 });
 
-const currentDays = computed(() => props.filters.days ?? 7);
+// --- Période sélectionnée ---
+const currentDays = computed(() => Number(props.filters.days ?? 7));
+const customDays = ref(currentDays.value);
 
-const changeDays = (days) => {
+// Helpers formatage
+const formatDateFr = (value) => {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+    return d.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+    });
+};
+
+const formatDayLabel = (value) => {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+    return d.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+    });
+};
+
+const deviceLabel = (key) => {
+    if (key === 'mobile') return 'Mobile';
+    if (key === 'desktop') return 'Desktop';
+    if (key === 'tablet') return 'Tablette';
+    if (!key) return 'Inconnu';
+    return key;
+};
+
+const browserLabel = (key) => key || 'Inconnu';
+
+const clicksPerDay = computed(() => props.stats?.clicksPerDay ?? []);
+
+// --- Changement de période (7 / 30 / perso) ---
+const changePeriod = (days) => {
+    customDays.value = days;
+
     router.get(
         route('campaigns.analytics.show', {
             campaign: props.campaign.id,
@@ -35,207 +74,255 @@ const changeDays = (days) => {
     );
 };
 
-const hasClicks = computed(() => (props.stats?.totalClicks ?? 0) > 0);
+const applyCustomPeriod = () => {
+    const val = Number(customDays.value) || 7;
+    changePeriod(val);
+};
 
-// Helpers pour affichage devices / browsers
-const devicesList = computed(() => {
-    const raw = props.stats?.devices ?? {};
-    return Object.entries(raw).map(([device, total]) => ({
-        device: device || 'Unknown',
-        total,
-    }));
-});
+/* ---------- Styles DA LinkForge (mêmes que link analytics) ---------- */
 
-const browsersList = computed(() => {
-    const raw = props.stats?.browsers ?? {};
-    return Object.entries(raw).map(([browser, total]) => ({
-        browser: browser || 'Unknown',
-        total,
-    }));
-});
+const shellCardClass =
+    'relative rounded-3xl border border-slate-800 bg-slate-950/80 px-6 py-5 shadow-xl shadow-indigo-900/30';
 
-const clicksPerDay = computed(() => props.stats?.clicksPerDay ?? []);
+const cardClass =
+    'rounded-xl border border-slate-800 bg-slate-950/70 p-5 shadow-xl shadow-indigo-900/30';
+
+const bigCardClass =
+    'rounded-xl border border-slate-800 bg-slate-950/70 p-6 shadow-xl shadow-indigo-900/30';
+
+const primaryButtonClass =
+    'inline-flex items-center rounded-md bg-indigo-500 px-3 py-1 text-xs md:text-sm font-semibold text-white shadow-xl shadow-indigo-900/30 hover:bg-indigo-400 disabled:opacity-50 transition';
+
+const periodPillGroupClass =
+    'inline-flex items-center rounded-full bg-slate-900/80 border border-slate-700 p-1';
+
+const periodPillBaseClass =
+    'px-3 py-1 rounded-full text-xs md:text-sm font-medium transition';
 </script>
 
 <template>
-    <Head :title="`Analytics – ${campaign.name}`" />
+    <Head :title="`Stats campagne - ${campaign.name}`" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div>
-                    <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                        Analytics – Campagne
-                    </h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ campaign.name }}
+        <!-- HEADER ANALYTICS -->
+        <section class="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+            <!-- même largeur que la page liens -->
+            <div class="w-[95%] mx-auto pt-8 pb-10">
+                <div :class="shellCardClass + ' flex flex-col md:flex-row md:items-center md:justify-between gap-6'">
+                    <!-- Bloc gauche : titre -->
+                    <div class="space-y-3">
+                        <p
+                            class="inline-flex items-center rounded-full border border-indigo-500/40 bg-indigo-500/10 px-3 py-1 text-xs md:text-sm font-medium text-indigo-200 uppercase tracking-[0.15em]"
+                        >
+                            Analytics – Campagne
+                        </p>
+
+                        <div>
+                            <h1 class="text-xl md:text-2xl font-semibold tracking-tight">
+                                {{ campaign.name }}
+                            </h1>
+                        </div>
+
+                        <InertiaLink
+                            :href="route('campaigns.index')"
+                            class="inline-flex items-center gap-1 text-xs md:text-sm text-slate-400 hover:text-indigo-300 transition"
+                        >
+                            <span>←</span>
+                            <span>Retour aux campagnes</span>
+                        </InertiaLink>
+                    </div>
+
+                    <!-- Bloc droite : période -->
+                    <div class="flex flex-col items-start md:items-end gap-3 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="uppercase tracking-[0.15em] text-slate-400 text-[10px]">
+                                Période
+                            </span>
+
+                            <div :class="periodPillGroupClass">
+                                <button
+                                    type="button"
+                                    :class="[
+                                        periodPillBaseClass,
+                                        currentDays === 7
+                                            ? 'bg-indigo-500 text-white shadow shadow-indigo-500/40'
+                                            : 'text-slate-300 hover:text-white',
+                                    ]"
+                                    @click="changePeriod(7)"
+                                >
+                                    7 jours
+                                </button>
+                                <button
+                                    type="button"
+                                    :class="[
+                                        periodPillBaseClass,
+                                        currentDays === 30
+                                            ? 'bg-indigo-500 text-white shadow shadow-indigo-500/40'
+                                            : 'text-slate-300 hover:text-white',
+                                    ]"
+                                    @click="changePeriod(30)"
+                                >
+                                    30 jours
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 text-xs md:text-sm">
+                            <span class="text-slate-400">Perso (jours) :</span>
+                            <input
+                                v-model="customDays"
+                                type="number"
+                                min="1"
+                                class="w-16 rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-xs md:text-sm text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            />
+                            <button
+                                type="button"
+                                :class="primaryButtonClass"
+                                @click="applyCustomPeriod"
+                            >
+                                Appliquer
+                            </button>
+                        </div>
+
+                        <p class="text-xs md:text-sm text-slate-400">
+                            Analyse des {{ stats.period?.days ?? currentDays }} derniers jours
+                            • Depuis le {{ formatDateFr(stats.period?.since) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTENU ANALYTICS -->
+        <main class="w-[95%] mx-auto pt-8 pb-12 space-y-8">
+            <!-- KPIs : même layout que liens -->
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div :class="cardClass">
+                    <p class="text-xs md:text-sm uppercase tracking-[0.15em] text-slate-400">
+                        Total clics
+                    </p>
+                    <p class="mt-2 text-3xl font-bold">
+                        {{ stats.totalClicks ?? 0 }}
+                    </p>
+                    <p class="mt-1 text-xs md:text-sm text-slate-400">
+                        Sur les {{ stats.period?.days ?? currentDays }} derniers jours
                     </p>
                 </div>
 
-                <div class="flex items-center gap-2 text-sm">
-                    <span class="text-gray-500 dark:text-gray-400">
-                        Période :
-                    </span>
-
-                    <button
-                        type="button"
-                        class="px-3 py-1 rounded-full border text-xs"
-                        :class="currentDays === 7
-                            ? 'bg-indigo-600 text-white border-indigo-600'
-                            : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/60'"
-                        @click="changeDays(7)"
-                    >
-                        7 jours
-                    </button>
-
-                    <button
-                        type="button"
-                        class="px-3 py-1 rounded-full border text-xs"
-                        :class="currentDays === 30
-                            ? 'bg-indigo-600 text-white border-indigo-600'
-                            : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/60'"
-                        @click="changeDays(30)"
-                    >
-                        30 jours
-                    </button>
-                </div>
-            </div>
-        </template>
-
-        <div class="py-8">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-                <!-- Résumé -->
-                <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                            <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                Total clics
-                            </div>
-                            <div class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-                                {{ stats.totalClicks ?? 0 }}
-                            </div>
-                            <div class="mt-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                                Sur les {{ stats.period?.days ?? currentDays }} derniers jours
-                            </div>
-                        </div>
-
-                        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                            <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                Visiteurs uniques
-                            </div>
-                            <div class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-                                {{ stats.uniqueVisitors ?? 0 }}
-                            </div>
-                            <div class="mt-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                                Basé sur le hash visiteur
-                            </div>
-                        </div>
-
-                        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                            <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                Période analysée
-                            </div>
-                            <div class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-                                Depuis le {{ stats.period?.since ?? '—' }}
-                            </div>
-                            <div class="mt-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                                Paramètre "days" = {{ currentDays }}
-                            </div>
-                        </div>
-                    </div>
+                <div :class="cardClass">
+                    <p class="text-xs md:text-sm uppercase tracking-[0.15em] text-slate-400">
+                        Visiteurs uniques
+                    </p>
+                    <p class="mt-2 text-3xl font-bold">
+                        {{ stats.uniqueVisitors ?? 0 }}
+                    </p>
+                    <p class="mt-1 text-xs md:text-sm text-slate-400">
+                        Basé sur le hash visiteur (IP + user-agent)
+                    </p>
                 </div>
 
-                <!-- Détails -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Clics par jour -->
-                    <div class="lg:col-span-2 bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6">
-                        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-4">
-                            Clics par jour
-                        </h3>
+                <div :class="cardClass">
+                    <p class="text-xs md:text-sm uppercase tracking-[0.15em] text-slate-400">
+                        Période analysée
+                    </p>
+                    <p class="mt-2 text-lg font-semibold">
+                        Derniers {{ stats.period?.days ?? currentDays }} jours
+                    </p>
+                    <p class="mt-1 text-xs md:text-sm text-slate-400">
+                        Depuis le {{ formatDateFr(stats.period?.since) }}
+                    </p>
+                </div>
+            </section>
 
-                        <div v-if="!hasClicks" class="text-sm text-gray-500 dark:text-gray-400">
-                            Aucun clic enregistré pour cette campagne sur la période sélectionnée.
-                        </div>
+            <!-- Graph clics / jour (full width) -->
+            <section :class="bigCardClass">
+                <h3 class="text-sm font-semibold mb-1">
+                    Clics par jour
+                </h3>
+                <p class="text-xs md:text-sm text-slate-400 mb-4">
+                    Évolution des clics pour cette campagne sur la période sélectionnée.
+                </p>
 
-                        <div v-else class="space-y-2 text-sm">
+                <div class="flex items-end gap-3 h-40">
+                    <template v-if="clicksPerDay.length">
+                        <div
+                            v-for="day in clicksPerDay"
+                            :key="day.date"
+                            class="flex-1 flex flex-col items-center justify-end gap-1"
+                        >
                             <div
-                                v-for="day in clicksPerDay"
-                                :key="day.date"
-                                class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700/60 pb-1 last:border-b-0"
-                            >
-                                <span class="text-gray-700 dark:text-gray-200">
-                                    {{ day.date }}
-                                </span>
-                                <span class="font-semibold text-gray-900 dark:text-gray-50">
-                                    {{ day.total }}
-                                </span>
+                                class="w-full rounded-t-md bg-indigo-500/80 transition-all"
+                                :style="{ height: `${day.total === 0 ? 4 : Math.min(day.total * 12, 120)}px` }"
+                            />
+                            <div class="text-[10px] text-slate-400">
+                                {{ formatDayLabel(day.date) }}
+                            </div>
+                            <div class="text-[10px] text-slate-200">
+                                {{ day.total }}
                             </div>
                         </div>
-                    </div>
+                    </template>
 
-                    <!-- Devices & browsers -->
-                    <div class="space-y-6">
-                        <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6">
-                            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">
-                                Devices
-                            </h3>
-
-                            <div v-if="!devicesList.length" class="text-sm text-gray-500 dark:text-gray-400">
-                                Aucune donnée device.
-                            </div>
-
-                            <ul v-else class="space-y-2 text-sm">
-                                <li
-                                    v-for="item in devicesList"
-                                    :key="item.device"
-                                    class="flex items-center justify-between"
-                                >
-                                    <span class="text-gray-700 dark:text-gray-200">
-                                        {{ item.device }}
-                                    </span>
-                                    <span class="font-medium text-gray-900 dark:text-gray-50">
-                                        {{ item.total }}
-                                    </span>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6">
-                            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">
-                                Navigateurs
-                            </h3>
-
-                            <div v-if="!browsersList.length" class="text-sm text-gray-500 dark:text-gray-400">
-                                Aucune donnée navigateur.
-                            </div>
-
-                            <ul v-else class="space-y-2 text-sm">
-                                <li
-                                    v-for="item in browsersList"
-                                    :key="item.browser"
-                                    class="flex items-center justify-between"
-                                >
-                                    <span class="text-gray-700 dark:text-gray-200">
-                                        {{ item.browser }}
-                                    </span>
-                                    <span class="font-medium text-gray-900 dark:text-gray-50">
-                                        {{ item.total }}
-                                    </span>
-                                </li>
-                            </ul>
-                        </div>
+                    <div v-else class="text-xs text-slate-400">
+                        Aucun clic enregistré pour cette campagne sur la période sélectionnée.
                     </div>
                 </div>
+            </section>
 
-                <div class="flex justify-start">
-                    <InertiaLink
-                        :href="route('campaigns.index')"
-                        class="inline-flex items-center text-xs text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400"
-                    >
-                        ← Retour aux campagnes
-                    </InertiaLink>
+            <!-- Devices & navigateurs : même largeur, 2 colonnes -->
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div :class="bigCardClass">
+                    <h3 class="text-sm font-semibold mb-2">
+                        Appareils
+                    </h3>
+                    <ul class="space-y-1 text-xs text-slate-200">
+                        <li
+                            v-for="(count, key) in stats.devices"
+                            :key="key"
+                            class="flex justify-between"
+                        >
+                            <span class="text-slate-300">
+                                {{ deviceLabel(key) }}
+                            </span>
+                            <span class="font-semibold">
+                                {{ count }}
+                            </span>
+                        </li>
+                        <li
+                            v-if="!Object.keys(stats.devices || {}).length"
+                            class="text-slate-500"
+                        >
+                            Pas encore de données.
+                        </li>
+                    </ul>
                 </div>
-            </div>
-        </div>
+
+                <div :class="bigCardClass">
+                    <h3 class="text-sm font-semibold mb-2">
+                        Navigateurs
+                    </h3>
+                    <ul class="space-y-1 text-xs text-slate-200">
+                        <li
+                            v-for="(count, key) in stats.browsers"
+                            :key="key"
+                            class="flex justify-between"
+                        >
+                            <span class="text-slate-300">
+                                {{ browserLabel(key) }}
+                            </span>
+                            <span class="font-semibold">
+                                {{ count }}
+                            </span>
+                        </li>
+                        <li
+                            v-if="!Object.keys(stats.browsers || {}).length"
+                            class="text-slate-500"
+                        >
+                            Pas encore de données.
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </main>
     </AuthenticatedLayout>
 </template>
