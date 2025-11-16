@@ -3,18 +3,32 @@ import { ref } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
-import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { Link } from '@inertiajs/vue3';
 
 const showingNavigationDropdown = ref(false);
+
+// Helper route active
+const isActive = (pattern) => route().current(pattern);
+
+// Styles nav
+const navLinkBase =
+    'relative inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-150';
+
+const navLinkClasses = (active) =>
+    [
+        navLinkBase,
+        active
+            ? 'text-slate-50'
+            : 'text-slate-400 hover:text-slate-100',
+    ].join(' ');
 </script>
 
 <template>
     <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
         <!-- Top nav -->
         <nav class="border-b border-slate-800 bg-slate-950/95 backdrop-blur">
-            <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div class="mx-auto w-[95%] px-4 sm:px-6 lg:px-8">
                 <div class="flex h-16 justify-between">
                     <div class="flex">
                         <!-- Logo -->
@@ -24,20 +38,59 @@ const showingNavigationDropdown = ref(false);
                             </Link>
                         </div>
 
-                        <!-- Navigation Links -->
-                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex text-sm">
-                            <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                                Tableau de bord
-                            </NavLink>
-                            <NavLink :href="route('links.index')" :active="route().current('links.index')">
-                                Liens
-                            </NavLink>
-                            <NavLink :href="route('campaigns.index')" :active="route().current('campaigns.*')">
-                                Campagnes
-                            </NavLink>
-                            <NavLink :href="route('sources.index')" :active="route().current('sources.*')">
-                                Sources
-                            </NavLink>
+                        <!-- Navigation Links (desktop) -->
+                        <div class="hidden sm:flex sm:ms-10 items-center space-x-6">
+                            <!-- Dashboard -->
+                            <Link
+                                :href="route('dashboard')"
+                                :class="navLinkClasses(isActive('dashboard'))"
+                                :aria-current="isActive('dashboard') ? 'page' : undefined"
+                            >
+                                <span>Tableau de bord</span>
+                                <span
+                                    v-if="isActive('dashboard')"
+                                    class="pointer-events-none absolute inset-x-2 -bottom-1 h-0.5 rounded-full bg-indigo-500"
+                                />
+                            </Link>
+
+                            <!-- Liens -->
+                            <Link
+                                :href="route('links.index')"
+                                :class="navLinkClasses(isActive('links.index'))"
+                                :aria-current="isActive('links.index') ? 'page' : undefined"
+                            >
+                                <span>Liens</span>
+                                <span
+                                    v-if="isActive('links.index')"
+                                    class="pointer-events-none absolute inset-x-2 -bottom-1 h-0.5 rounded-full bg-indigo-500"
+                                />
+                            </Link>
+
+                            <!-- Campagnes -->
+                            <Link
+                                :href="route('campaigns.index')"
+                                :class="navLinkClasses(isActive('campaigns.*'))"
+                                :aria-current="isActive('campaigns.*') ? 'page' : undefined"
+                            >
+                                <span>Campagnes</span>
+                                <span
+                                    v-if="isActive('campaigns.*')"
+                                    class="pointer-events-none absolute inset-x-2 -bottom-1 h-0.5 rounded-full bg-indigo-500"
+                                />
+                            </Link>
+
+                            <!-- Sources -->
+                            <Link
+                                :href="route('sources.index')"
+                                :class="navLinkClasses(isActive('sources.*'))"
+                                :aria-current="isActive('sources.*') ? 'page' : undefined"
+                            >
+                                <span>Sources</span>
+                                <span
+                                    v-if="isActive('sources.*')"
+                                    class="pointer-events-none absolute inset-x-2 -bottom-1 h-0.5 rounded-full bg-indigo-500"
+                                />
+                            </Link>
                         </div>
                     </div>
 
@@ -46,10 +99,10 @@ const showingNavigationDropdown = ref(false);
                         <div class="relative ms-3">
                             <Dropdown align="right" width="48">
                                 <template #trigger>
-                                    <span class="inline-flex rounded-md">
+                                    <span class="inline-flex rounded-full">
                                         <button
                                             type="button"
-                                            class="inline-flex items-center rounded-full border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-200 transition hover:border-indigo-500 hover:text-white"
+                                            class="inline-flex items-center rounded-full border border-slate-700 bg-slate-900/80 px-3 py-2 text-xs font-medium text-slate-200 shadow-sm shadow-slate-900/40 transition hover:border-indigo-500 hover:text-white hover:bg-slate-900"
                                         >
                                             {{ $page.props.auth.user.name }}
 
@@ -81,7 +134,7 @@ const showingNavigationDropdown = ref(false);
                         </div>
                     </div>
 
-                    <!-- Hamburger -->
+                    <!-- Hamburger (mobile) -->
                     <div class="-me-2 flex items-center sm:hidden">
                         <button
                             @click="showingNavigationDropdown = !showingNavigationDropdown"
@@ -115,8 +168,11 @@ const showingNavigationDropdown = ref(false);
             </div>
 
             <!-- Responsive Navigation Menu -->
-            <div :class="{ block: showingNavigationDropdown, hidden: !showingNavigationDropdown }" class="sm:hidden">
-                <div class="space-y-1 pb-3 pt-2 border-t border-slate-800">
+            <div
+                :class="{ block: showingNavigationDropdown, hidden: !showingNavigationDropdown }"
+                class="sm:hidden"
+            >
+                <div class="space-y-1 pb-3 pt-2 border-t border-slate-800 bg-slate-950">
                     <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
                         Tableau de bord
                     </ResponsiveNavLink>
@@ -132,7 +188,7 @@ const showingNavigationDropdown = ref(false);
                 </div>
 
                 <!-- Responsive Settings Options -->
-                <div class="border-t border-slate-800 pb-1 pt-4">
+                <div class="border-t border-slate-800 pb-1 pt-4 bg-slate-950">
                     <div class="px-4">
                         <div class="text-sm font-medium text-slate-100">
                             {{ $page.props.auth.user.name }}
@@ -154,9 +210,9 @@ const showingNavigationDropdown = ref(false);
             </div>
         </nav>
 
-        <!-- Page Heading (fond sombre, plus de bande blanche) -->
-        <header v-if="$slots.header" class="border-b border-slate-800 bg-slate-950">
-            <div class="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+        <!-- Page Heading -->
+        <header v-if="$slots.header" class="border-b border-slate-900 bg-slate-950">
+            <div class="mx-auto w-[95%] px-4 py-6 sm:px-6 lg:px-8">
                 <slot name="header" />
             </div>
         </header>

@@ -44,12 +44,8 @@ const openEditModal = (campaign) => {
     editForm.name = campaign.name ?? '';
     editForm.notes = campaign.notes ?? '';
     editForm.status = campaign.status ?? 'active';
-    editForm.starts_at = campaign.starts_at
-        ? campaign.starts_at.substring(0, 10)
-        : '';
-    editForm.ends_at = campaign.ends_at
-        ? campaign.ends_at.substring(0, 10)
-        : '';
+    editForm.starts_at = campaign.starts_at ? campaign.starts_at.substring(0, 10) : '';
+    editForm.ends_at = campaign.ends_at ? campaign.ends_at.substring(0, 10) : '';
 
     showEditModal.value = true;
 };
@@ -73,13 +69,7 @@ const updateCampaign = () => {
 
 // ---------- Archive toggle ----------
 const toggleArchive = (campaign) => {
-    router.patch(
-        route('campaigns.archive', campaign.id),
-        {},
-        {
-            preserveScroll: true,
-        },
-    );
+    router.patch(route('campaigns.archive', campaign.id), {}, { preserveScroll: true });
 };
 
 // ---------- Suppression (soft delete) ----------
@@ -93,6 +83,28 @@ const deleteCampaign = (campaign) => {
     });
 };
 
+// Styles DA
+const cardClass =
+    'rounded-xl border border-slate-800 bg-slate-900/70 shadow-md shadow-slate-950/40';
+
+const primaryButtonClass =
+    'inline-flex items-center rounded-md bg-indigo-500 px-4 py-2 text-xs font-semibold text-white shadow-sm shadow-indigo-900/40 hover:bg-indigo-400 disabled:opacity-50 transition';
+
+const secondaryButtonClass =
+    'px-2 py-1 text-xs rounded-md border border-slate-600 text-slate-200 hover:bg-slate-800 transition';
+
+const warningButtonClass =
+    'px-2 py-1 text-xs rounded-md border border-amber-500 text-amber-300 hover:bg-amber-900/20 transition';
+
+const dangerButtonClass =
+    'px-2 py-1 text-xs rounded-md border border-red-500 text-red-400 hover:bg-red-900/30 transition';
+
+const ghostBadgeClass =
+    'px-2 py-0.5 rounded-full text-[10px] font-medium border';
+
+const successButtonClass =
+    'px-2 py-1 text-xs rounded-md border border-emerald-500 text-emerald-300 hover:bg-emerald-900/30 transition';
+
 </script>
 
 <template>
@@ -101,54 +113,60 @@ const deleteCampaign = (campaign) => {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            <!-- même gabarit que Dashboard / Liens -->
+            <h2 class="text-4xl font-bold text-slate-50 tracking-tight">
                 Campagnes
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
+        <div class="py-8">
+            <div class="w-[95%] mx-auto space-y-8">
                 <!-- Création de campagne -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900 dark:text-gray-100">
-                        <h3 class="text-lg font-semibold mb-4">
-                            Créer une campagne
-                        </h3>
-
-                        <form @submit.prevent="createCampaign" class="space-y-4">
+                <div :class="cardClass">
+                    <div class="p-6 text-slate-50">
+                        <div class="flex items-center justify-between mb-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Nom de la campagne
-                                </label>
-                                <input v-model="createForm.name" type="text" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
-                                           dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
-                                           focus:border-indigo-500 sm:text-sm"
-                                    placeholder="Lancement ebook, Pack presets TikTok..." />
-                                <div v-if="createForm.errors.name" class="text-sm text-red-500 mt-1">
-                                    {{ createForm.errors.name }}
+                                <h3 class="text-sm font-semibold">
+                                    Créer une campagne
+                                </h3>
+                                <p class="mt-1 text-xs text-slate-400">
+                                    Regroupez vos liens par promo ou lancement pour suivre leurs performances.
+                                </p>
+                            </div>
+                        </div>
+
+                        <form @submit.prevent="createCampaign" class="space-y-4 text-sm">
+                            <!-- grille compacte : nom (2/3) + notes (1/3) -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <!-- Nom de la campagne -->
+                                <div class="md:col-span-1">
+                                    <label class="block text-xs font-medium text-slate-300">
+                                        Nom de la campagne
+                                    </label>
+                                    <input v-model="createForm.name" type="text"
+                                        class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-950 text-sm text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                        placeholder="Lancement ebook, Pack presets TikTok..." />
+                                    <div v-if="createForm.errors.name" class="text-xs text-red-400 mt-1">
+                                        {{ createForm.errors.name }}
+                                    </div>
+                                </div>
+
+                                <!-- Notes optionnelles, plus compactes -->
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-medium text-slate-300">
+                                        Notes (optionnel)
+                                    </label>
+                                    <textarea v-model="createForm.notes" rows="3"
+                                        class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-950 text-sm text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                                        placeholder="Objectif, promo, canal principal…" />
+                                    <div v-if="createForm.errors.notes" class="text-xs text-red-400 mt-1">
+                                        {{ createForm.errors.notes }}
+                                    </div>
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Notes (optionnel)
-                                </label>
-                                <textarea v-model="createForm.notes" rows="2" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
-                                           dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
-                                           focus:border-indigo-500 sm:text-sm"
-                                    placeholder="Ex : Objectif, public cible, promo en cours..." />
-                                <div v-if="createForm.errors.notes" class="text-sm text-red-500 mt-1">
-                                    {{ createForm.errors.notes }}
-                                </div>
-                            </div>
-
-                            <div class="flex justify-end">
-                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent
-                                           rounded-md font-semibold text-xs text-white uppercase tracking-widest
-                                           hover:bg-indigo-500 focus:bg-indigo-700 active:bg-indigo-700
-                                           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
-                                           dark:focus:ring-offset-gray-800 transition ease-in-out duration-150"
-                                    :disabled="createForm.processing">
+                            <div class="flex justify-end pt-2">
+                                <button type="submit" :class="primaryButtonClass" :disabled="createForm.processing">
                                     Créer la campagne
                                 </button>
                             </div>
@@ -156,70 +174,93 @@ const deleteCampaign = (campaign) => {
                     </div>
                 </div>
 
+
                 <!-- Liste des campagnes -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900 dark:text-gray-100">
-                        <h3 class="text-lg font-semibold mb-4">
+                <div :class="cardClass">
+                    <div class="p-6 text-slate-50">
+                        <h3 class="text-sm font-semibold mb-4">
                             Vos campagnes
                         </h3>
 
-                        <div v-if="!campaigns.data.length" class="text-sm text-gray-500 dark:text-gray-400">
+                        <div v-if="!campaigns.data.length" class="text-xs text-slate-400">
                             Aucune campagne pour le moment. Créez-en une au-dessus 👆
                         </div>
 
                         <div v-else class="space-y-4">
-                            <div v-for="campaign in campaigns.data" :key="campaign.id" class="border border-gray-200 dark:border-gray-700 rounded-lg p-4
-                                       bg-gray-50 dark:bg-gray-900/40 flex flex-col sm:flex-row
-                                       sm:items-center sm:justify-between gap-4">
-                                <div class="space-y-1">
-                                    <div class="flex items-center gap-2">
-                                        <h4 class="font-semibold">
-                                            {{ campaign.name }}
-                                        </h4>
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium"
-                                            :class="campaign.status === 'active'
-                                                ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
-                                                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-200'">
-                                            {{ campaign.status === 'active' ? 'Active' : 'Archivée' }}
-                                        </span>
+                            <!-- Liste “Stripe-like” : une rangée par campagne, séparée par divide-y -->
+                            <div class="divide-y divide-slate-800 rounded-lg bg-slate-950/40 border border-slate-900">
+                                <div v-for="campaign in campaigns.data" :key="campaign.id"
+                                    class="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                                    <!-- Infos campagne -->
+                                    <div class="space-y-1">
+                                        <div class="flex items-center gap-2">
+                                            <h4 class="font-semibold">
+                                                {{ campaign.name }}
+                                            </h4>
+                                            <span :class="[
+                                                ghostBadgeClass,
+                                                campaign.status === 'active'
+                                                    ? 'bg-emerald-900/40 text-emerald-300 border-emerald-500/40'
+                                                    : 'bg-amber-900/30 text-amber-200 border-amber-500/40',
+                                            ]">
+                                                {{ campaign.status === 'active' ? 'Active' : 'Archivée' }}
+                                            </span>
+                                        </div>
+
+                                        <p v-if="campaign.notes" class="text-xs text-slate-400">
+                                            {{ campaign.notes }}
+                                        </p>
+
+                                        <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
+                                            <span>
+                                                {{ campaign.sources_count }} source(s) liée(s)
+                                            </span>
+                                            <span v-if="campaign.starts_at || campaign.ends_at">
+                                                ·
+                                            </span>
+                                            <span v-if="campaign.starts_at || campaign.ends_at">
+                                                Période :
+                                                <span v-if="campaign.starts_at">
+                                                    du {{ campaign.starts_at.substring(0, 10) }}
+                                                </span>
+                                                <span v-if="campaign.starts_at && campaign.ends_at">
+                                                    au
+                                                </span>
+                                                <span v-if="campaign.ends_at">
+                                                    {{ campaign.ends_at.substring(0, 10) }}
+                                                </span>
+                                            </span>
+                                        </div>
                                     </div>
 
-                                    <p v-if="campaign.notes" class="text-xs text-gray-500 dark:text-gray-400">
-                                        {{ campaign.notes }}
-                                    </p>
+                                    <!-- Actions -->
+                                    <div class="flex flex-wrap items-center justify-end gap-2">
+                                        
+                                        <!-- Archive / Réactive -->
+                                        <button type="button"
+                                            :class="campaign.status === 'active' ? warningButtonClass : successButtonClass"
+                                            @click="toggleArchive(campaign)">
+                                            {{ campaign.status === 'active' ? 'Archiver' : 'Réactiver' }}
+                                        </button>
 
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">
-                                        {{ campaign.sources_count }} source(s)
-                                    </p>
-                                </div>
-                                <div class="flex items-center gap-2 justify-end">
-                                    <!-- Stats -->
-                                    <InertiaLink :href="route('campaigns.analytics.show', campaign.id)" class="px-2 py-1 text-xs rounded-md border border-indigo-600
-               text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
-                                        Stats
-                                    </InertiaLink>
-                                    <!-- Archive / Réactive -->
-                                    <button type="button" class="px-2 py-1 text-xs rounded-md border
-                                               border-yellow-500 text-yellow-700
-                                               hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
-                                        @click="toggleArchive(campaign)">
-                                        {{ campaign.status === 'active' ? 'Archiver' : 'Réactiver' }}
-                                    </button>
+                                        <!-- Edit -->
+                                        <button type="button" :class="secondaryButtonClass"
+                                            @click="openEditModal(campaign)">
+                                            Éditer
+                                        </button>
 
-                                    <!-- Edit -->
-                                    <button type="button" class="px-2 py-1 text-xs rounded-md border border-gray-500
-                                               text-gray-700 dark:text-gray-200 dark:border-gray-400
-                                               hover:bg-gray-50 dark:hover:bg-gray-700/60"
-                                        @click="openEditModal(campaign)">
-                                        Éditer
-                                    </button>
-
-                                    <!-- Delete -->
-                                    <button type="button" class="px-2 py-1 text-xs rounded-md border border-red-600
-                                               text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
-                                        @click="deleteCampaign(campaign)" :disabled="deleteForm.processing">
-                                        Supprimer
-                                    </button>
+                                        <!-- Delete -->
+                                        <button type="button" :class="dangerButtonClass"
+                                            @click="deleteCampaign(campaign)" :disabled="deleteForm.processing">
+                                            Supprimer
+                                        </button>
+                                        <!-- Stats -->
+                                         
+                                        <InertiaLink :href="route('campaigns.analytics.show', campaign.id)"
+                                            class="px-2 py-1 text-xs rounded-md border border-indigo-500 text-indigo-300 hover:bg-indigo-900/30 transition">
+                                            Stats
+                                        </InertiaLink>
+                                    </div>
                                 </div>
                             </div>
 
@@ -233,84 +274,79 @@ const deleteCampaign = (campaign) => {
 
         <!-- Modale d'édition -->
         <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6">
-                <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
+            <div
+                class="bg-slate-950 border border-slate-800 rounded-xl shadow-xl shadow-slate-950/60 max-w-lg w-full p-6">
+                <h3 class="text-sm font-semibold mb-4 text-slate-50">
                     Éditer la campagne
                 </h3>
 
-                <form @submit.prevent="updateCampaign" class="space-y-4">
+                <form @submit.prevent="updateCampaign" class="space-y-4 text-slate-50 text-sm">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <label class="block text-xs font-medium text-slate-300">
                             Nom de la campagne
                         </label>
-                        <input v-model="editForm.name" type="text" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
-                                   dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
-                                   focus:border-indigo-500 sm:text-sm" />
-                        <div v-if="editForm.errors.name" class="text-sm text-red-500 mt-1">
+                        <input v-model="editForm.name" type="text"
+                            class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 text-sm text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                        <div v-if="editForm.errors.name" class="text-xs text-red-400 mt-1">
                             {{ editForm.errors.name }}
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <label class="block text-xs font-medium text-slate-300">
                             Notes
                         </label>
-                        <textarea v-model="editForm.notes" rows="2" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
-                                   dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
-                                   focus:border-indigo-500 sm:text-sm" />
-                        <div v-if="editForm.errors.notes" class="text-sm text-red-500 mt-1">
+                        <textarea v-model="editForm.notes" rows="2"
+                            class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 text-sm text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                        <div v-if="editForm.errors.notes" class="text-xs text-red-400 mt-1">
                             {{ editForm.errors.notes }}
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label class="block text-xs font-medium text-slate-300">
                                 Statut
                             </label>
-                            <select v-model="editForm.status" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
-                                       dark:bg-gray-900 dark:text-gray-100 text-sm">
+                            <select v-model="editForm.status"
+                                class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 text-sm text-slate-100">
                                 <option value="active">Active</option>
                                 <option value="archived">Archivée</option>
                             </select>
-                            <div v-if="editForm.errors.status" class="text-sm text-red-500 mt-1">
+                            <div v-if="editForm.errors.status" class="text-xs text-red-400 mt-1">
                                 {{ editForm.errors.status }}
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label class="block text-xs font-medium text-slate-300">
                                 Début (optionnel)
                             </label>
-                            <input v-model="editForm.starts_at" type="date" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
-                                       dark:bg-gray-900 dark:text-gray-100 text-sm" />
-                            <div v-if="editForm.errors.starts_at" class="text-sm text-red-500 mt-1">
+                            <input v-model="editForm.starts_at" type="date"
+                                class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 text-sm text-slate-100" />
+                            <div v-if="editForm.errors.starts_at" class="text-xs text-red-400 mt-1">
                                 {{ editForm.errors.starts_at }}
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label class="block text-xs font-medium text-slate-300">
                                 Fin (optionnel)
                             </label>
-                            <input v-model="editForm.ends_at" type="date" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
-                                       dark:bg-gray-900 dark:text-gray-100 text-sm" />
-                            <div v-if="editForm.errors.ends_at" class="text-sm text-red-500 mt-1">
+                            <input v-model="editForm.ends_at" type="date"
+                                class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 text-sm text-slate-100" />
+                            <div v-if="editForm.errors.ends_at" class="text-xs text-red-400 mt-1">
                                 {{ editForm.errors.ends_at }}
                             </div>
                         </div>
                     </div>
 
                     <div class="mt-6 flex justify-end gap-2">
-                        <button type="button" class="px-3 py-2 text-xs rounded-md border border-gray-300
-                                   text-gray-700 dark:text-gray-200 dark:border-gray-600
-                                   hover:bg-gray-50 dark:hover:bg-gray-700/60" @click="closeEditModal">
+                        <button type="button" :class="secondaryButtonClass" @click="closeEditModal">
                             Annuler
                         </button>
 
-                        <button type="submit" class="px-4 py-2 text-xs rounded-md bg-indigo-600 text-white
-                                   font-semibold hover:bg-indigo-500 disabled:opacity-50"
-                            :disabled="editForm.processing">
+                        <button type="submit" :class="primaryButtonClass" :disabled="editForm.processing">
                             Enregistrer
                         </button>
                     </div>

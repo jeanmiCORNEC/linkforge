@@ -43,13 +43,7 @@ const deleteLink = (link) => {
 
 // --- Toggle actif / inactif ---
 const toggleLink = (link) => {
-    router.patch(
-        route('links.toggle', link.id),
-        {},
-        {
-            preserveScroll: true,
-        },
-    );
+    router.patch(route('links.toggle', link.id), {}, { preserveScroll: true });
 };
 
 // --- Édition (modale) ---
@@ -89,8 +83,6 @@ const getDefaultTrackedLink = (link) => {
     if (!link.tracked_links || !link.tracked_links.length) {
         return null;
     }
-
-    // On privilégie le tracked_link "général" (sans source)
     const withoutSource = link.tracked_links.find((t) => t.source_id === null);
     return withoutSource ?? link.tracked_links[0];
 };
@@ -98,7 +90,6 @@ const getDefaultTrackedLink = (link) => {
 const getShortUrlForLink = (link) => {
     const tracked = getDefaultTrackedLink(link);
     if (!tracked) return '';
-    // Route /l/{tracking_key}
     return route('links.redirect', { tracking_key: tracked.tracking_key });
 };
 
@@ -139,74 +130,103 @@ const copyToClipboard = async (text) => {
         showCopyToast('Impossible de copier le lien');
     }
 };
+
+/* ---------- Styles DA LinkForge ---------- */
+
+const cardClass =
+    'rounded-xl border border-slate-800 bg-slate-900/70 shadow-md shadow-slate-950/40';
+
+const primaryButtonClass =
+    'inline-flex items-center rounded-md bg-indigo-500 px-4 py-2 text-xs font-semibold ' +
+    'text-white shadow-sm shadow-indigo-900/40 hover:bg-indigo-400 disabled:opacity-50 transition';
+
+const secondaryButtonClass =
+    'px-2 py-1 text-xs rounded-md border border-slate-600 text-slate-200 ' +
+    'hover:bg-slate-800 transition';
+
+const dangerButtonClass =
+    'px-2 py-1 text-xs rounded-md border border-red-500 text-red-400 ' +
+    'hover:bg-red-900/30 transition';
+
+const warningButtonClass =
+    'px-2 py-1 text-xs rounded-md border border-amber-500 text-amber-300 ' +
+    'hover:bg-amber-900/20 transition';
+
+// Pills filtre (Tous / actifs / inactifs)
+const pillBase =
+    'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition';
+
+const pillClasses = (value) => {
+    const active = (filters.status || 'all') === value;
+    return active
+        ? `${pillBase} bg-indigo-500 text-white shadow-sm shadow-indigo-900/40`
+        : `${pillBase} bg-slate-900/70 text-slate-300 border border-slate-700 hover:border-indigo-500 hover:text-slate-50`;
+};
+const successButtonClass =
+    'px-2 py-1 text-xs rounded-md border border-emerald-500 text-emerald-300 hover:bg-emerald-900/30 transition';
+
+const statsButtonClass =
+    'px-2 py-1 text-[11px] rounded-md border border-indigo-500 text-indigo-300 hover:bg-indigo-900/30 transition';
+
 </script>
 
 <template>
+
     <Head title="Liens" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            <!-- même gabarit que le dashboard -->
+            <h2 class="text-4xl font-bold text-slate-50 tracking-tight">
                 Liens
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
+        <div class="py-8">
+            <div class="w-[95%] mx-auto space-y-8">
                 <!-- Bloc création de lien -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900 dark:text-gray-100">
+                <div :class="cardClass">
+                    <div class="p-6 text-slate-50">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold">
-                                Créer un lien tracké
-                            </h3>
+                            <div>
+                                <h3 class="text-sm font-semibold">
+                                    Créer un lien tracké
+                                </h3>
+                                <p class="mt-1 text-xs text-slate-400">
+                                    Raccourcissez et trackez vos URLs en quelques secondes.
+                                </p>
+                            </div>
                         </div>
 
-                        <form @submit.prevent="createLink" class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Titre
-                                </label>
-                                <input
-                                    v-model="createForm.title"
-                                    type="text"
-                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
-                                           dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
-                                           focus:border-indigo-500 sm:text-sm"
-                                    placeholder="Lien setup vidéo TikTok"
-                                />
-                                <div v-if="createForm.errors.title" class="text-sm text-red-500 mt-1">
-                                    {{ createForm.errors.title }}
+                        <form @submit.prevent="createLink" class="space-y-4 text-sm">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300">
+                                        Titre
+                                    </label>
+                                    <input v-model="createForm.title" type="text"
+                                        class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                        placeholder="Lien setup vidéo TikTok" />
+                                    <div v-if="createForm.errors.title" class="text-xs text-red-400 mt-1">
+                                        {{ createForm.errors.title }}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    URL de destination
-                                </label>
-                                <input
-                                    v-model="createForm.destination_url"
-                                    type="url"
-                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
-                                           dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
-                                           focus:border-indigo-500 sm:text-sm"
-                                    placeholder="https://www.amazon.fr/..."
-                                />
-                                <div v-if="createForm.errors.destination_url" class="text-sm text-red-500 mt-1">
-                                    {{ createForm.errors.destination_url }}
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300">
+                                        URL de destination
+                                    </label>
+                                    <input v-model="createForm.destination_url" type="url"
+                                        class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                        placeholder="https://www.amazon.fr/..." />
+                                    <div v-if="createForm.errors.destination_url" class="text-xs text-red-400 mt-1">
+                                        {{ createForm.errors.destination_url }}
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="flex items-center justify-end">
-                                <button
-                                    type="submit"
-                                    class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent
-                                           rounded-md font-semibold text-xs text-white uppercase tracking-widest
-                                           hover:bg-indigo-500 focus:bg-indigo-700 active:bg-indigo-700
-                                           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
-                                           dark:focus:ring-offset-gray-800 transition ease-in-out duration-150"
-                                    :disabled="createForm.processing"
-                                >
+                                <button type="submit" :class="primaryButtonClass" :disabled="createForm.processing">
                                     Créer le lien
                                 </button>
                             </div>
@@ -215,39 +235,40 @@ const copyToClipboard = async (text) => {
                 </div>
 
                 <!-- Bloc liste des liens -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900 dark:text-gray-100">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold">
+                <div :class="cardClass">
+                    <div class="p-6 text-slate-50">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+                            <h3 class="text-sm font-semibold">
                                 Vos liens
                             </h3>
 
-                            <div class="flex items-center gap-2 text-sm">
-                                <span class="text-gray-500 dark:text-gray-400">Filtrer :</span>
-                                <select
-                                    class="rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900
-                                           dark:text-gray-100 text-sm"
-                                    :value="filters.status || 'all'"
-                                    @change="applyFilter($event.target.value)"
-                                >
-                                    <option value="all">Tous</option>
-                                    <option value="active">Actifs</option>
-                                    <option value="inactive">Inactifs</option>
-                                </select>
+                            <!-- Filtre sous forme de pills -->
+                            <div class="flex items-center gap-3 text-xs">
+                                <span class="text-slate-400">Filtrer :</span>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" :class="pillClasses('all')" @click="applyFilter('all')">
+                                        Tous
+                                    </button>
+                                    <button type="button" :class="pillClasses('active')" @click="applyFilter('active')">
+                                        Actifs
+                                    </button>
+                                    <button type="button" :class="pillClasses('inactive')"
+                                        @click="applyFilter('inactive')">
+                                        Inactifs
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        <div v-if="!links.data.length" class="text-sm text-gray-500 dark:text-gray-400">
+                        <div v-if="!links.data.length" class="text-xs text-slate-400">
                             Aucun lien pour le moment. Créez-en un au-dessus 👆
                         </div>
 
                         <div v-else class="overflow-x-auto">
-                            <table class="min-w-full text-sm">
+                            <table class="min-w-full text-xs">
                                 <thead>
                                     <tr
-                                        class="bg-gray-100 dark:bg-gray-900/40 text-left text-xs font-medium
-                                               text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                                    >
+                                        class="bg-slate-900/80 text-left text-[11px] font-medium text-slate-400 uppercase tracking-wider">
                                         <th class="px-4 py-3">Titre</th>
                                         <th class="px-4 py-3">Lien court</th>
                                         <th class="px-4 py-3">URL de destination</th>
@@ -256,54 +277,42 @@ const copyToClipboard = async (text) => {
                                         <th class="px-4 py-3 text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                    <tr
-                                        v-for="link in links.data"
-                                        :key="link.id"
-                                        class="bg-white dark:bg-gray-800"
-                                    >
+                                <tbody class="divide-y divide-slate-800">
+                                    <tr v-for="link in links.data" :key="link.id"
+                                        class="odd:bg-slate-950/60 even:bg-slate-950/30">
                                         <td class="px-4 py-3 whitespace-nowrap">
                                             <div class="flex items-center gap-2">
                                                 <span class="font-medium">
                                                     {{ link.title }}
                                                 </span>
-                                                <span
-                                                    class="px-2 py-0.5 rounded-full text-[10px] font-medium"
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-medium border"
                                                     :class="link.is_active
-                                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
-                                                        : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'"
-                                                >
+                                                        ? 'bg-emerald-900/40 text-emerald-300 border-emerald-500/40'
+                                                        : 'bg-slate-800 text-slate-200 border-slate-600'
+                                                        ">
                                                     {{ link.is_active ? 'Actif' : 'Inactif' }}
                                                 </span>
                                             </div>
                                         </td>
 
                                         <!-- Lien court + bouton Copier -->
-                                        <td class="px-4 py-3 text-xs text-gray-700 dark:text-gray-200">
+                                        <td class="px-4 py-3 text-xs text-slate-200">
                                             <div class="flex items-center gap-2">
                                                 <span class="truncate max-w-[220px]">
                                                     {{ getShortUrlForLink(link) || 'Aucun tracking key' }}
                                                 </span>
 
-                                                <button
-                                                    v-if="getShortUrlForLink(link)"
-                                                    type="button"
-                                                    class="inline-flex items-center px-2 py-1 text-xs md:text-sm rounded-md
-                                                           border border-indigo-500 text-indigo-500
-                                                           hover:bg-indigo-50 dark:hover:bg-indigo-900/40"
-                                                    @click="copyToClipboard(getShortUrlForLink(link))"
-                                                >
+                                                <button v-if="getShortUrlForLink(link)" type="button"
+                                                    class="inline-flex items-center px-2 py-1 text-[11px] rounded-md border border-indigo-500 text-indigo-300 hover:bg-indigo-900/30 transition"
+                                                    @click="copyToClipboard(getShortUrlForLink(link))">
                                                     Copier
                                                 </button>
                                             </div>
                                         </td>
 
                                         <td class="px-4 py-3">
-                                            <a
-                                                :href="link.destination_url"
-                                                target="_blank"
-                                                class="text-indigo-500 hover:underline break-all"
-                                            >
+                                            <a :href="link.destination_url" target="_blank"
+                                                class="text-indigo-300 hover:text-indigo-200 hover:underline break-all">
                                                 {{ link.destination_url }}
                                             </a>
                                         </td>
@@ -316,48 +325,32 @@ const copyToClipboard = async (text) => {
                                             {{ new Date(link.created_at).toLocaleString() }}
                                         </td>
 
-                                        <td class="px-4 py-3 whitespace-nowrap text-right space-x-2">
+                                        <td
+                                            class="px-4 py-3 whitespace-nowrap text-right space-x-2 flex items-center justify-end">
+
                                             <!-- Toggle actif / inactif -->
-                                            <button
-                                                type="button"
-                                                class="px-2 py-1 text-xs rounded-md border mr-2 transition"
-                                                :class="link.is_active
-                                                    ? 'border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
-                                                    : 'border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'"
-                                                @click="toggleLink(link)"
-                                            >
+                                            <button type="button"
+                                                :class="link.is_active ? warningButtonClass : successButtonClass"
+                                                @click="toggleLink(link)">
                                                 {{ link.is_active ? 'Désactiver' : 'Activer' }}
                                             </button>
 
                                             <!-- Bouton Éditer -->
-                                            <button
-                                                type="button"
-                                                class="px-2 py-1 text-xs rounded-md border border-gray-500
-                                                       text-gray-700 dark:text-gray-200 dark:border-gray-400
-                                                       hover:bg-gray-50 dark:hover:bg-gray-700/60 mr-2"
-                                                @click="openEditModal(link)"
-                                            >
+                                            <button type="button" :class="secondaryButtonClass"
+                                                @click="openEditModal(link)">
                                                 Éditer
                                             </button>
 
                                             <!-- Supprimer -->
-                                            <button
-                                                type="button"
-                                                class="px-2 py-1 text-xs rounded-md border border-red-600
-                                                       text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
-                                                @click="deleteLink(link)"
-                                                :disabled="deleteForm.processing"
-                                            >
+                                            <button type="button" :class="dangerButtonClass" @click="deleteLink(link)"
+                                                :disabled="deleteForm.processing">
                                                 Supprimer
                                             </button>
 
                                             <!-- Voir les stats -->
-                                            <Link
-                                                :href="route('links.analytics.show', link.id)"
-                                                class="inline-flex items-center px-2 py-1 text-xs rounded-md
-                                                       text-indigo-600 dark:text-indigo-300 hover:underline"
-                                            >
-                                                Voir les stats
+                                            <Link :href="route('links.analytics.show', link.id)"
+                                                :class="statsButtonClass">
+                                            Stats
                                             </Link>
                                         </td>
                                     </tr>
@@ -374,64 +367,41 @@ const copyToClipboard = async (text) => {
 
         <!-- Modale d'édition -->
         <div v-if="isEditOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg p-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            <div
+                class="bg-slate-950 border border-slate-800 rounded-xl shadow-xl shadow-slate-950/60 w-full max-w-lg p-6">
+                <h3 class="text-sm font-semibold text-slate-50 mb-4">
                     Éditer le lien
                 </h3>
 
-                <form @submit.prevent="updateLink" class="space-y-4">
+                <form @submit.prevent="updateLink" class="space-y-4 text-sm text-slate-50">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <label class="block text-xs font-medium text-slate-300">
                             Titre
                         </label>
-                        <input
-                            v-model="editForm.title"
-                            type="text"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
-                                   dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
-                                   focus:border-indigo-500 sm:text-sm"
-                        />
-                        <div v-if="editForm.errors.title" class="text-sm text-red-500 mt-1">
+                        <input v-model="editForm.title" type="text"
+                            class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 text-sm text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                        <div v-if="editForm.errors.title" class="text-xs text-red-400 mt-1">
                             {{ editForm.errors.title }}
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <label class="block text-xs font-medium text-slate-300">
                             URL de destination
                         </label>
-                        <input
-                            v-model="editForm.destination_url"
-                            type="url"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700
-                                   dark:bg-gray-900 dark:text-gray-100 shadow-sm focus:ring-indigo-500
-                                   focus:border-indigo-500 sm:text-sm"
-                        />
-                        <div v-if="editForm.errors.destination_url" class="text-sm text-red-500 mt-1">
+                        <input v-model="editForm.destination_url" type="url"
+                            class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 text-sm text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                        <div v-if="editForm.errors.destination_url" class="text-xs text-red-400 mt-1">
                             {{ editForm.errors.destination_url }}
                         </div>
                     </div>
 
                     <div class="flex items-center justify-end gap-3 mt-6">
-                        <button
-                            type="button"
-                            class="px-3 py-2 text-xs rounded-md border border-gray-300
-                                   text-gray-700 dark:text-gray-200 dark:border-gray-600
-                                   hover:bg-gray-50 dark:hover:bg-gray-700/60"
-                            @click="closeEditModal"
-                        >
+                        <button type="button" :class="secondaryButtonClass" @click="closeEditModal">
                             Annuler
                         </button>
 
-                        <button
-                            type="submit"
-                            class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent
-                                   rounded-md font-semibold text-xs text-white uppercase tracking-widest
-                                   hover:bg-indigo-500 focus:bg-indigo-700 active:bg-indigo-700
-                                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
-                                   dark:focus:ring-offset-gray-800 transition ease-in-out duration-150"
-                            :disabled="editForm.processing"
-                        >
+                        <button type="submit" :class="primaryButtonClass" :disabled="editForm.processing">
                             Sauvegarder
                         </button>
                     </div>
@@ -441,11 +411,8 @@ const copyToClipboard = async (text) => {
 
         <!-- Toast copie -->
         <transition name="fade">
-            <div
-                v-if="showToast"
-                class="fixed bottom-4 right-4 z-50 px-4 py-2 rounded-md shadow-lg
-                       bg-gray-900 text-white text-xs flex items-center gap-2"
-            >
+            <div v-if="showToast"
+                class="fixed bottom-4 right-4 z-50 px-4 py-2 rounded-md shadow-lg bg-slate-950 border border-slate-700 text-white text-xs flex items-center gap-2">
                 <span>{{ toastMessage }}</span>
             </div>
         </transition>
@@ -457,6 +424,7 @@ const copyToClipboard = async (text) => {
 .fade-leave-active {
     transition: opacity 0.2s ease-out, transform 0.2s ease-out;
 }
+
 .fade-enter-from,
 .fade-leave-to {
     opacity: 0;
