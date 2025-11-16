@@ -114,12 +114,19 @@ const attachLinkToSource = (source) => {
     });
 };
 
-// Styles DA
-const cardClass =
-    'rounded-xl border border-slate-800 bg-slate-900/70 shadow-md shadow-slate-950/40';
+/* ---------- Styles DA LinkForge (alignés sur liens / campagnes / analytics) ---------- */
+
+const shellCardClass =
+    'relative rounded-3xl border border-slate-800 bg-slate-950/80 px-6 py-5 shadow-xl shadow-indigo-900/30';
+
+const bigCardClass =
+    'rounded-xl border border-slate-800 bg-slate-950/70 p-6 shadow-xl shadow-indigo-900/30';
 
 const primaryButtonClass =
     'inline-flex items-center rounded-md bg-indigo-500 px-4 py-2 text-xs font-semibold text-white shadow-sm shadow-indigo-900/40 hover:bg-indigo-400 disabled:opacity-50 transition';
+
+const tinyPrimaryButtonClass =
+    'px-3 py-1 text-[11px] rounded-md bg-indigo-500 text-white font-semibold shadow-sm shadow-indigo-900/40 hover:bg-indigo-400 disabled:opacity-50 transition';
 
 const secondaryButtonClass =
     'px-2 py-1 text-xs rounded-md border border-slate-600 text-slate-200 hover:bg-slate-800 transition';
@@ -130,8 +137,8 @@ const dangerButtonClass =
 const statsButtonClass =
     'px-2 py-1 text-[11px] rounded-md border border-indigo-500 text-indigo-300 hover:bg-indigo-900/30 transition';
 
-const tinyPrimaryButtonClass =
-    'px-3 py-1 text-[11px] rounded-md bg-indigo-500 text-white font-semibold shadow-sm shadow-indigo-900/40 hover:bg-indigo-400 disabled:opacity-50 transition';
+const badgePlatformClass =
+    'px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-900/60 text-indigo-200 border border-indigo-500/40';
 </script>
 
 <template>
@@ -139,22 +146,63 @@ const tinyPrimaryButtonClass =
     <Head title="Sources" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-2xl font-bold text-slate-50 tracking-tight">
-                Sources
-            </h2>
-        </template>
+        <div class="min-h-screen bg-slate-950 text-slate-100">
+            <!-- HEADER -->
+            <section class="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+                <div class="w-[95%] mx-auto pt-8 pb-10">
+                    <div
+                        :class="shellCardClass + ' flex flex-col md:flex-row md:items-center md:justify-between gap-4'">
+                        <!-- Bloc gauche -->
+                        <div class="space-y-2">
+                            <p
+                                class="inline-flex items-center rounded-full border border-indigo-500/40 bg-indigo-500/10 px-3 py-1 text-xs md:text-sm font-medium text-indigo-200 uppercase tracking-[0.15em]">
+                                Espace – Sources
+                            </p>
+                            <div>
+                                <h1 class="text-2xl md:text-3xl font-semibold tracking-tight">
+                                    Sources
+                                </h1>
+                                <p class="mt-1 text-xs md:text-sm text-slate-400">
+                                    Connectez vos campagnes et vos liens à des emplacements précis (bio, description,
+                                    newsletter…).
+                                </p>
+                            </div>
+                        </div>
 
-        <div class="py-10">
-            <div class="w-[95%] mx-auto space-y-8">
+                        <!-- Bloc droit : mini résumé -->
+                        <div class="flex flex-col items-start md:items-end gap-2 text-xs">
+                            <p class="text-slate-400">
+                                Campagnes actives :
+                                <span class="font-semibold text-slate-100">
+                                    {{ campaigns.total }}
+                                </span>
+                            </p>
+                            <p class="text-[11px] text-slate-500">
+                                Ajoutez des sources par campagne, puis liez vos liens trackés pour suivre chaque
+                                emplacement.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CONTENU -->
+            <main class="w-[95%] mx-auto pt-8 pb-12 space-y-8">
                 <!-- Bloc création de source -->
-                <div :class="cardClass">
-                    <div class="p-6 text-slate-50 space-y-6 text-sm">
-                        <h3 class="text-sm font-semibold">
-                            Ajouter une source à une campagne
-                        </h3>
+                <section :class="bigCardClass">
+                    <div class="text-slate-50 space-y-6 text-sm">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                            <div>
+                                <h3 class="text-sm font-semibold">
+                                    Ajouter une source à une campagne
+                                </h3>
+                                <p class="mt-1 text-xs text-slate-400">
+                                    Exemple : « Bio TikTok », « Description YouTube », « Newsletter du dimanche », etc.
+                                </p>
+                            </div>
+                        </div>
 
-                        <form @submit.prevent="createSource" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <form @submit.prevent="createSource" class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                             <!-- Campagne -->
                             <div class="md:col-span-1">
                                 <label class="block text-xs font-medium text-slate-300 mb-1">
@@ -217,13 +265,13 @@ const tinyPrimaryButtonClass =
                             </div>
                         </form>
                     </div>
-                </div>
+                </section>
 
                 <!-- Bloc campagnes + sources -->
-                <div :class="cardClass">
-                    <div class="p-6 text-slate-50 text-sm">
+                <section :class="bigCardClass">
+                    <div class="text-slate-50 text-sm">
                         <h3 class="text-sm font-semibold mb-4">
-                            Vos campagnes
+                            Vos campagnes & sources
                         </h3>
 
                         <div v-if="!campaigns.data.length" class="text-xs text-slate-400">
@@ -232,10 +280,10 @@ const tinyPrimaryButtonClass =
 
                         <div v-else class="space-y-4">
                             <div v-for="campaign in campaigns.data" :key="campaign.id"
-                                class="border border-slate-800 rounded-lg p-4 bg-slate-900/80">
+                                class="border border-slate-800 rounded-lg p-4 bg-slate-950/50">
                                 <div class="flex items-center justify-between mb-2">
                                     <div>
-                                        <div class="font-semibold">
+                                        <div class="font-semibold text-slate-50">
                                             {{ campaign.name }}
                                         </div>
                                         <div class="text-xs text-slate-500">
@@ -250,14 +298,14 @@ const tinyPrimaryButtonClass =
 
                                 <div v-else class="mt-2 space-y-2">
                                     <div v-for="source in campaign.sources" :key="source.id"
-                                        class="flex items-start justify-between text-xs bg-slate-950/60 rounded-md px-3 py-2">
+                                        class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 text-xs bg-slate-950/70 rounded-md px-3 py-3">
+                                        <!-- Infos source + tracked links + attach -->
                                         <div class="flex-1 min-w-0">
                                             <div class="flex items-center gap-2">
                                                 <span class="font-medium text-slate-50">
                                                     {{ source.name }}
                                                 </span>
-                                                <span v-if="source.platform"
-                                                    class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-900/60 text-indigo-200 border border-indigo-500/40">
+                                                <span v-if="source.platform" :class="badgePlatformClass">
                                                     {{ source.platform }}
                                                 </span>
                                             </div>
@@ -269,8 +317,8 @@ const tinyPrimaryButtonClass =
                                             <!-- Liste des tracked links -->
                                             <div v-if="source.tracked_links && source.tracked_links.length"
                                                 class="mt-2 space-y-1">
-                                                <div v-for="tracked in source.tracked_links" :key="tracked.id" class="inline-flex items-center text-[11px] bg-slate-900 rounded px-2 py-1
-               max-w-xs sm:max-w-sm lg:max-w-md">
+                                                <div v-for="tracked in source.tracked_links" :key="tracked.id"
+                                                    class="inline-flex items-center text-[11px] bg-slate-900 rounded px-2 py-1 max-w-xs sm:max-w-sm lg:max-w-md">
                                                     <div class="truncate">
                                                         <span class="font-medium">
                                                             {{ tracked.link?.title || 'Lien' }}
@@ -312,9 +360,9 @@ const tinyPrimaryButtonClass =
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="flex items-center gap-2 m-12 ">
-                                            
-                                            <!-- Éditer / Supprimer -->
+
+                                        <!-- Actions -->
+                                        <div class="flex flex-row items-center gap-2 shrink-0">
                                             <button type="button" :class="secondaryButtonClass"
                                                 @click="openEditModal(source)">
                                                 Éditer
@@ -324,8 +372,7 @@ const tinyPrimaryButtonClass =
                                                 @click="deleteSource(source)" :disabled="deleteForm.processing">
                                                 Supprimer
                                             </button>
-                                            
-                                            <!-- Stats -->
+
                                             <button type="button" :class="statsButtonClass"
                                                 @click="goToAnalytics(source)">
                                                 Stats
@@ -335,13 +382,13 @@ const tinyPrimaryButtonClass =
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Pagination -->
-                        <Pagination :links="campaigns.links" />
+                            <!-- Pagination -->
+                            <Pagination :links="campaigns.links" />
+                        </div>
                     </div>
-                </div>
-            </div>
+                </section>
+            </main>
         </div>
 
         <!-- Modale d'édition -->

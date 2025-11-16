@@ -26,9 +26,15 @@ const browserLabel = (key) => {
     return key;
 };
 
-// Styles DA LinkForge
+/* ---------- Styles DA LinkForge ---------- */
+// Card de base : même DA que les pages analytics (glow indigo)
 const cardClass =
-    'rounded-xl border border-slate-800 bg-slate-900/70 shadow-md shadow-slate-950/40';
+    'rounded-xl border border-slate-800 bg-slate-950/70 shadow-xl shadow-indigo-900/30';
+
+// Variante "grande" avec padding
+const bigCardClass = cardClass + ' p-6';
+
+// Cards cliquables (raccourcis)
 const clickableCardClass =
     cardClass +
     ' cursor-pointer hover:border-indigo-500/70 hover:bg-slate-900/90 hover:shadow-indigo-900/40 transition';
@@ -41,19 +47,18 @@ const primaryLinkCardClass = 'block ' + clickableCardClass;
 
     <AuthenticatedLayout>
         <template #header>
-            <!-- H1 typographique (36px) -->
             <h2 class="text-4xl font-bold text-slate-50 tracking-tight">
                 Tableau de bord
             </h2>
         </template>
 
         <div class="py-8">
-            <div class="w-[95%] mx-auto space-y-8">
+            <main class="w-[95%] mx-auto pt-2 pb-12 space-y-8">
                 <!-- Cartes stats principales -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <section class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <!-- Liens -->
-                    <div :class="cardClass" class="p-5">
-                        <div class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                    <div :class="cardClass + ' p-5'">
+                        <div class="text-xs font-medium uppercase tracking-[0.15em] text-slate-400">
                             Liens
                         </div>
                         <div class="mt-2 text-3xl font-semibold text-slate-50">
@@ -65,8 +70,8 @@ const primaryLinkCardClass = 'block ' + clickableCardClass;
                     </div>
 
                     <!-- Clics + uniques -->
-                    <div :class="cardClass" class="p-5">
-                        <div class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                    <div :class="cardClass + ' p-5'">
+                        <div class="text-xs font-medium uppercase tracking-[0.15em] text-slate-400">
                             Clics
                         </div>
                         <div class="mt-2 text-3xl font-semibold text-slate-50">
@@ -78,8 +83,8 @@ const primaryLinkCardClass = 'block ' + clickableCardClass;
                     </div>
 
                     <!-- Campagnes -->
-                    <div :class="cardClass" class="p-5">
-                        <div class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                    <div :class="cardClass + ' p-5'">
+                        <div class="text-xs font-medium uppercase tracking-[0.15em] text-slate-400">
                             Campagnes
                         </div>
                         <div class="mt-2 text-3xl font-semibold text-slate-50">
@@ -91,8 +96,8 @@ const primaryLinkCardClass = 'block ' + clickableCardClass;
                     </div>
 
                     <!-- Sources -->
-                    <div :class="cardClass" class="p-5">
-                        <div class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                    <div :class="cardClass + ' p-5'">
+                        <div class="text-xs font-medium uppercase tracking-[0.15em] text-slate-400">
                             Sources
                         </div>
                         <div class="mt-2 text-3xl font-semibold text-slate-50">
@@ -102,50 +107,47 @@ const primaryLinkCardClass = 'block ' + clickableCardClass;
                             {{ stats.countries_count }} pays touchés
                         </p>
                     </div>
-                </div>
+                </section>
 
                 <!-- Graphique : clics sur 7 jours -->
-                <div :class="cardClass" class="p-6">
+                <section :class="bigCardClass">
                     <div class="flex items-center justify-between mb-1">
                         <h3 class="text-sm font-semibold text-slate-50">
                             Clics sur les 7 derniers jours
                         </h3>
-                        <!-- Placeholder plus tard pour un sélecteur de période à la Stripe -->
-                        <!-- <button class="text-xs text-slate-400 hover:text-slate-100">7 jours ▾</button> -->
                     </div>
                     <p class="text-xs text-slate-400 mb-4">
                         Toutes sources et toutes campagnes confondues.
                     </p>
 
                     <div class="flex items-end gap-3 h-40">
-                        <div
-                            v-for="day in dailyClicks"
-                            :key="day.date"
-                            class="flex-1 flex flex-col items-center justify-end gap-1"
-                        >
+                        <template v-if="dailyClicks.length">
                             <div
-                                class="w-full rounded-t-md bg-indigo-500 transition-all"
-                                :style="{ height: `${day.count === 0 ? 4 : day.count * 8}px` }"
-                            />
-                            <div class="text-[10px] text-slate-400">
-                                {{ day.label }}
+                                v-for="day in dailyClicks"
+                                :key="day.date"
+                                class="flex-1 flex flex-col items-center justify-end gap-1"
+                            >
+                                <div
+                                    class="w-full rounded-t-md bg-indigo-500/80 transition-all"
+                                    :style="{ height: `${day.count === 0 ? 4 : Math.min(day.count * 8, 120)}px` }"
+                                />
+                                <div class="text-[10px] text-slate-400">
+                                    {{ day.label }}
+                                </div>
+                                <div class="text-[10px] text-slate-200">
+                                    {{ day.count }}
+                                </div>
                             </div>
-                            <div class="text-[10px] text-slate-200">
-                                {{ day.count }}
-                            </div>
-                        </div>
+                        </template>
 
-                        <div
-                            v-if="dailyClicks.length === 0"
-                            class="text-xs text-slate-500"
-                        >
+                        <div v-else class="text-xs text-slate-500">
                             Pas encore de clics sur les 7 derniers jours.
                         </div>
                     </div>
-                </div>
+                </section>
 
-                <!-- Résumé devices + navigateurs fusionnés (layout type Mailtrap/Stripe) -->
-                <div :class="cardClass" class="p-6">
+                <!-- Résumé devices + navigateurs -->
+                <section :class="bigCardClass">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                         <!-- Appareils -->
                         <section>
@@ -193,10 +195,10 @@ const primaryLinkCardClass = 'block ' + clickableCardClass;
                             </ul>
                         </section>
                     </div>
-                </div>
+                </section>
 
                 <!-- Raccourcis -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <InertiaLink
                         :href="route('links.index')"
                         :class="primaryLinkCardClass"
@@ -238,8 +240,8 @@ const primaryLinkCardClass = 'block ' + clickableCardClass;
                             </p>
                         </div>
                     </InertiaLink>
-                </div>
-            </div>
+                </section>
+            </main>
         </div>
     </AuthenticatedLayout>
 </template>

@@ -1,9 +1,9 @@
 <script setup>
 import { computed, ref } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link as InertiaLink, router } from '@inertiajs/vue3';
 
-const { source, stats, filters } = defineProps({
+const props = defineProps({
     source: {
         type: Object,
         required: true,
@@ -18,13 +18,16 @@ const { source, stats, filters } = defineProps({
     },
 });
 
-// Sélecteur de période (7 / 30 jours)
-const selectedDays = ref(filters.days || 7);
+// ---- Période sélectionnée (7 / 30 / perso) ----
+const currentDays = computed(() => Number(props.filters.days || 7));
+const customDays = ref(currentDays.value);
 
-const changeDays = () => {
+const changePeriod = (days) => {
+    customDays.value = days;
+
     router.get(
-        route('sources.analytics.show', source.id),
-        { days: selectedDays.value },
+        route('sources.analytics.show', props.source.id),
+        { days },
         {
             preserveState: true,
             preserveScroll: true,
@@ -33,239 +36,309 @@ const changeDays = () => {
     );
 };
 
-// Helpers d'affichage
+const applyCustomPeriod = () => {
+    const val = Number(customDays.value) || 7;
+    changePeriod(val);
+};
 
-const totalClicks = computed(() => stats.total_clicks ?? 0);
-const uniqueVisitors = computed(() => stats.unique_visitors ?? 0);
+// ---- Helpers de stats ----
+const totalClicks = computed(() => props.stats.total_clicks ?? 0);
+const uniqueVisitors = computed(() => props.stats.unique_visitors ?? 0);
 
-const devices = computed(() => stats.devices_breakdown || {});
-const browsers = computed(() => stats.browsers_breakdown || {});
-const clicksPerDay = computed(() => stats.clicks_per_day || []);
+const devices = computed(() => props.stats.devices_breakdown || {});
+const browsers = computed(() => props.stats.browsers_breakdown || {});
+const clicksPerDay = computed(() => props.stats.clicks_per_day || []);
 
 const hasClicks = computed(() => totalClicks.value > 0);
 
-const formatDayLabel = (dateStr) => {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    if (Number.isNaN(d.getTime())) return dateStr;
+// ---- Helpers d’affichage ----
+const formatDateFr = (value) => {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
     return d.toLocaleDateString('fr-FR', {
-        weekday: 'short',
-        day: 'numeric',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
     });
 };
 
-const goBack = () => {
-    router.get(route('sources.index'));
+const formatDayLabel = (value) => {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+    return d.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+    });
 };
+
+const deviceLabel = (key) => {
+    if (key === 'mobile') return 'Mobile';
+    if (key === 'desktop') return 'Desktop';
+    if (key === 'tablet') return 'Tablette';
+    if (!key || key === 'unknown') return 'Inconnu';
+    return key;
+};
+
+const browserLabel = (key) => (key && key !== 'unknown' ? key : 'Inconnu');
+
+/* ---------- Styles DA LinkForge (identiques aux autres pages analytics) ---------- */
+
+const shellCardClass =
+    'relative rounded-3xl border border-slate-800 bg-slate-950/80 px-6 py-5 shadow-xl shadow-indigo-900/30';
+
+const cardClass =
+    'rounded-xl border border-slate-800 bg-slate-950/70 p-5 shadow-xl shadow-indigo-900/30';
+
+const bigCardClass =
+    'rounded-xl border border-slate-800 bg-slate-950/70 p-6 shadow-xl shadow-indigo-900/30';
+
+const primaryButtonClass =
+    'inline-flex items-center rounded-md bg-indigo-500 px-3 py-1 text-xs md:text-sm font-semibold text-white shadow-xl shadow-indigo-900/30 hover:bg-indigo-400 disabled:opacity-50 transition';
+
+const periodPillGroupClass =
+    'inline-flex items-center rounded-full bg-slate-900/80 border border-slate-700 p-1';
+
+const periodPillBaseClass =
+    'px-3 py-1 rounded-full text-xs md:text-sm font-medium transition';
 </script>
 
 <template>
     <Head :title="`Stats source - ${source.name}`" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                        Statistiques de la source
-                    </h2>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Source liée à vos campagnes et liens trackés.
-                    </p>
-                </div>
+        <!-- HEADER ANALYTICS -->
+        <section class="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+            <!-- même largeur que liens / campagnes -->
+            <div class="w-[95%] mx-auto pt-8 pb-10">
+                <div :class="shellCardClass + ' flex flex-col md:flex-row md:items-center md:justify-between gap-6'">
+                    <!-- Bloc gauche : titre source -->
+                    <div class="space-y-3">
+                        <p
+                            class="inline-flex items-center rounded-full border border-indigo-500/40 bg-indigo-500/10 px-3 py-1 text-xs md:text-sm font-medium text-indigo-200 uppercase tracking-[0.15em]"
+                        >
+                            Analytics – Source
+                        </p>
 
-                <button
-                    type="button"
-                    class="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium border border-gray-300
-                           dark:border-gray-600 text-gray-700 dark:text-gray-200
-                           hover:bg-gray-50 dark:hover:bg-gray-700/60 transition"
-                    @click="goBack"
-                >
-                    ← Retour aux sources
-                </button>
-            </div>
-        </template>
-
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
-                <!-- Header source + filtre période -->
-                <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div>
+                        <div class="space-y-1">
                             <div class="flex items-center gap-2">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                <h1 class="text-xl md:text-2xl font-semibold tracking-tight">
                                     {{ source.name }}
-                                </h3>
+                                </h1>
                                 <span
                                     v-if="source.platform"
-                                    class="px-2 py-0.5 rounded-full text-[10px] font-medium
-                                           bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-200"
+                                    class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-900/60 text-indigo-200 border border-indigo-500/40"
                                 >
                                     {{ source.platform }}
                                 </span>
                             </div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                Période analysée : depuis le {{ stats.period?.since }} ({{ stats.period?.days }} jours)
+
+                            <p class="text-xs md:text-sm text-slate-400">
+                                Source liée à vos campagnes et liens trackés.
                             </p>
                         </div>
 
-                        <div class="flex items-center gap-2 text-sm">
-                            <span class="text-gray-500 dark:text-gray-400">Période :</span>
-                            <select
-                                v-model.number="selectedDays"
-                                @change="changeDays"
-                                class="rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900
-                                       dark:text-gray-100 text-sm"
+                        <InertiaLink
+                            :href="route('sources.index')"
+                            class="inline-flex items-center gap-1 text-xs md:text-sm text-slate-400 hover:text-indigo-300 transition"
+                        >
+                            <span>←</span>
+                            <span>Retour aux sources</span>
+                        </InertiaLink>
+                    </div>
+
+                    <!-- Bloc droite : période -->
+                    <div class="flex flex-col items-start md:items-end gap-3 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="uppercase tracking-[0.15em] text-slate-400 text-[10px]">
+                                Période
+                            </span>
+
+                            <div :class="periodPillGroupClass">
+                                <button
+                                    type="button"
+                                    :class="[
+                                        periodPillBaseClass,
+                                        currentDays === 7
+                                            ? 'bg-indigo-500 text-white shadow shadow-indigo-500/40'
+                                            : 'text-slate-300 hover:text-white',
+                                    ]"
+                                    @click="changePeriod(7)"
+                                >
+                                    7 jours
+                                </button>
+                                <button
+                                    type="button"
+                                    :class="[
+                                        periodPillBaseClass,
+                                        currentDays === 30
+                                            ? 'bg-indigo-500 text-white shadow shadow-indigo-500/40'
+                                            : 'text-slate-300 hover:text-white',
+                                    ]"
+                                    @click="changePeriod(30)"
+                                >
+                                    30 jours
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 text-xs md:text-sm">
+                            <span class="text-slate-400">Perso (jours) :</span>
+                            <input
+                                v-model="customDays"
+                                type="number"
+                                min="1"
+                                class="w-16 rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-xs md:text-sm text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            />
+                            <button
+                                type="button"
+                                :class="primaryButtonClass"
+                                @click="applyCustomPeriod"
                             >
-                                <option :value="7">7 jours</option>
-                                <option :value="30">30 jours</option>
-                            </select>
+                                Appliquer
+                            </button>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Cartes principales -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-5">
-                        <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                            Clics
-                        </div>
-                        <div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
-                            {{ totalClicks }}
-                        </div>
-                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                            Clics totaux sur cette source
-                        </p>
-                    </div>
-
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-5">
-                        <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                            Visiteurs uniques
-                        </div>
-                        <div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
-                            {{ uniqueVisitors }}
-                        </div>
-                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                            Basé sur le hash visiteur (IP + user-agent)
-                        </p>
-                    </div>
-
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-5">
-                        <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                            Appareils
-                        </div>
-                        <div class="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                            {{ Object.keys(devices).length || 0 }}
-                        </div>
-                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                            Types d’appareils détectés
-                        </p>
-                    </div>
-
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-5">
-                        <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                            Navigateurs
-                        </div>
-                        <div class="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                            {{ Object.keys(browsers).length || 0 }}
-                        </div>
-                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                            Navigateurs utilisés
+                        <p class="text-xs md:text-sm text-slate-400">
+                            Analyse des {{ props.stats.period?.days ?? currentDays }} derniers jours
+                            • Depuis le {{ formatDateFr(props.stats.period?.since) }}
                         </p>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <!-- Graphique clics / jour -->
-                <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
-                    <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">
-                        Clics sur la période
-                    </h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                        Évolution du trafic pour cette source.
+        <!-- CONTENU ANALYTICS -->
+        <main class="w-[95%] mx-auto pt-8 pb-12 space-y-8">
+            <!-- KPIs -->
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div :class="cardClass">
+                    <p class="text-xs md:text-sm uppercase tracking-[0.15em] text-slate-400">
+                        Total clics
                     </p>
+                    <p class="mt-2 text-3xl font-bold">
+                        {{ totalClicks }}
+                    </p>
+                    <p class="mt-1 text-xs md:text-sm text-slate-400">
+                        Sur les {{ props.stats.period?.days ?? currentDays }} derniers jours
+                    </p>
+                </div>
 
-                    <div v-if="hasClicks" class="flex items-end gap-3 h-40">
+                <div :class="cardClass">
+                    <p class="text-xs md:text-sm uppercase tracking-[0.15em] text-slate-400">
+                        Visiteurs uniques
+                    </p>
+                    <p class="mt-2 text-3xl font-bold">
+                        {{ uniqueVisitors }}
+                    </p>
+                    <p class="mt-1 text-xs md:text-sm text-slate-400">
+                        Basé sur le hash visiteur (IP + user-agent)
+                    </p>
+                </div>
+
+                <div :class="cardClass">
+                    <p class="text-xs md:text-sm uppercase tracking-[0.15em] text-slate-400">
+                        Période analysée
+                    </p>
+                    <p class="mt-2 text-lg font-semibold">
+                        Derniers {{ props.stats.period?.days ?? currentDays }} jours
+                    </p>
+                    <p class="mt-1 text-xs md:text-sm text-slate-400">
+                        Depuis le {{ formatDateFr(props.stats.period?.since) }}
+                    </p>
+                </div>
+            </section>
+
+            <!-- Graph clics / jour (full width) -->
+            <section :class="bigCardClass">
+                <h3 class="text-sm font-semibold mb-1">
+                    Clics par jour
+                </h3>
+                <p class="text-xs md:text-sm text-slate-400 mb-4">
+                    Évolution des clics pour cette source sur la période sélectionnée.
+                </p>
+
+                <div class="flex items-end gap-3 h-40">
+                    <template v-if="hasClicks && clicksPerDay.length">
                         <div
                             v-for="day in clicksPerDay"
                             :key="day.date"
                             class="flex-1 flex flex-col items-center justify-end gap-1"
                         >
                             <div
-                                class="w-full rounded-t-md bg-indigo-500/80 dark:bg-indigo-400 transition-all"
-                                :style="{ height: `${day.total === 0 ? 4 : (day.total * 8)}px` }"
-                            ></div>
-                            <div class="text-[10px] text-gray-500 dark:text-gray-400">
+                                class="w-full rounded-t-md bg-indigo-500/80 transition-all"
+                                :style="{ height: `${day.total === 0 ? 4 : Math.min(day.total * 12, 120)}px` }"
+                            />
+                            <div class="text-[10px] text-slate-400">
                                 {{ formatDayLabel(day.date) }}
                             </div>
-                            <div class="text-[10px] text-gray-700 dark:text-gray-200">
+                            <div class="text-[10px] text-slate-200">
                                 {{ day.total }}
                             </div>
                         </div>
-                    </div>
+                    </template>
 
-                    <div v-else class="text-xs text-gray-500 dark:text-gray-400">
+                    <div v-else class="text-xs text-slate-400">
                         Pas encore de clics pour cette source sur la période sélectionnée.
                     </div>
                 </div>
+            </section>
 
-                <!-- Breakdown appareils + navigateurs -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Devices -->
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
-                        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                            Appareils
-                        </h3>
-                        <ul class="space-y-1 text-xs text-gray-600 dark:text-gray-300">
-                            <li
-                                v-for="(count, key) in devices"
-                                :key="key"
-                                class="flex justify-between"
-                            >
-                                <span>
-                                    <span v-if="key === 'mobile'">Mobile</span>
-                                    <span v-else-if="key === 'desktop'">Desktop</span>
-                                    <span v-else-if="key === 'tablet'">Tablette</span>
-                                    <span v-else-if="key === 'unknown'">Inconnu</span>
-                                    <span v-else>{{ key }}</span>
-                                </span>
-                                <span class="font-semibold">{{ count }}</span>
-                            </li>
-                            <li
-                                v-if="!Object.keys(devices || {}).length"
-                                class="text-gray-400"
-                            >
-                                Pas encore de données.
-                            </li>
-                        </ul>
-                    </div>
-
-                    <!-- Navigateurs -->
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
-                        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                            Navigateurs
-                        </h3>
-                        <ul class="space-y-1 text-xs text-gray-600 dark:text-gray-300">
-                            <li
-                                v-for="(count, key) in browsers"
-                                :key="key"
-                                class="flex justify-between"
-                            >
-                                <span>
-                                    <span v-if="key === 'unknown'">Inconnu</span>
-                                    <span v-else>{{ key }}</span>
-                                </span>
-                                <span class="font-semibold">{{ count }}</span>
-                            </li>
-                            <li
-                                v-if="!Object.keys(browsers || {}).length"
-                                class="text-gray-400"
-                            >
-                                Pas encore de données.
-                            </li>
-                        </ul>
-                    </div>
+            <!-- Devices & navigateurs -->
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div :class="bigCardClass">
+                    <h3 class="text-sm font-semibold mb-2">
+                        Appareils
+                    </h3>
+                    <ul class="space-y-1 text-xs text-slate-200">
+                        <li
+                            v-for="(count, key) in devices"
+                            :key="key"
+                            class="flex justify-between"
+                        >
+                            <span class="text-slate-300">
+                                {{ deviceLabel(key) }}
+                            </span>
+                            <span class="font-semibold">
+                                {{ count }}
+                            </span>
+                        </li>
+                        <li
+                            v-if="!Object.keys(devices || {}).length"
+                            class="text-slate-500"
+                        >
+                            Pas encore de données.
+                        </li>
+                    </ul>
                 </div>
-            </div>
-        </div>
+
+                <div :class="bigCardClass">
+                    <h3 class="text-sm font-semibold mb-2">
+                        Navigateurs
+                    </h3>
+                    <ul class="space-y-1 text-xs text-slate-200">
+                        <li
+                            v-for="(count, key) in browsers"
+                            :key="key"
+                            class="flex justify-between"
+                        >
+                            <span class="text-slate-300">
+                                {{ browserLabel(key) }}
+                            </span>
+                            <span class="font-semibold">
+                                {{ count }}
+                            </span>
+                        </li>
+                        <li
+                            v-if="!Object.keys(browsers || {}).length"
+                            class="text-slate-500"
+                        >
+                            Pas encore de données.
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </main>
     </AuthenticatedLayout>
 </template>
