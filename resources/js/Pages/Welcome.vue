@@ -11,6 +11,10 @@ defineProps({
     },
     laravelVersion: String,
     phpVersion: String,
+    plans: {
+        type: Array,
+        default: () => [],
+    },
 });
 </script>
 
@@ -33,6 +37,7 @@ defineProps({
                     <a href="#how-it-works" class="hover:text-indigo-300 transition">Comment ça marche</a>
                     <a href="#for-who" class="hover:text-indigo-300 transition">Pour qui ?</a>
                     <a href="#features" class="hover:text-indigo-300 transition">Fonctionnalités</a>
+                    <a href="#pricing" class="hover:text-indigo-300 transition">Plans & Tarifs</a>
 
                     <div class="h-6 w-px bg-slate-700 mx-2" />
 
@@ -98,6 +103,11 @@ defineProps({
                                 class="inline-flex items-center rounded-md bg-indigo-500 px-5 py-2.5 text-sm font-medium text-white shadow hover:bg-indigo-400 transition">
                             Commencer gratuitement
                             </Link>
+
+                            <a href="#pricing"
+                                class="inline-flex items-center rounded-md border border-slate-700 px-5 py-2.5 text-sm font-medium text-slate-200 hover:text-white hover:border-indigo-400 transition">
+                                Voir les plans
+                            </a>
 
                             <p class="text-xs text-slate-400">
                                 Plan gratuit pour toujours • Idéal 1 000 – 50 000 abonnés.
@@ -208,6 +218,120 @@ defineProps({
                             performe vraiment.
                         </li>
                     </ol>
+                </div>
+            </section>
+
+            <!-- Section : Pricing -->
+            <section v-if="plans.length" id="pricing" class="border-t border-slate-800 bg-slate-950">
+                <div class="max-w-6xl mx-auto px-4 py-14 space-y-10">
+                    <div class="md:flex md:items-end md:justify-between gap-6">
+                        <div class="space-y-3">
+                            <p class="text-xs uppercase tracking-[0.2em] text-slate-400">
+                                Plans & Tarifs
+                            </p>
+                            <h2 class="text-2xl font-semibold">
+                                Choisis le plan adapté à ta création de contenu
+                            </h2>
+                            <p class="text-sm text-slate-300 max-w-3xl">
+                                LinkForge grandit avec toi : démarre en plan Free pour valider ton tracking,
+                                passe en Pro quand tu as besoin d’exports et d’analytics détaillés,
+                                puis ouvre un plan Scale pour ton studio ou ta micro-agence.
+                            </p>
+                        </div>
+
+                        <p class="text-xs text-slate-400">
+                            Tous les plans incluent la double authentification, la sauvegarde et les exports programmés.
+                        </p>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <article
+                            v-for="plan in plans"
+                            :key="plan.id"
+                            :class="[
+                                'rounded-2xl border p-6 flex flex-col h-full bg-slate-950/70',
+                                plan.featured ? 'border-indigo-500 shadow-lg shadow-indigo-900/40' : 'border-slate-800',
+                            ]"
+                        >
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400">
+                                        {{ plan.name }}
+                                    </p>
+                                    <p class="mt-2 text-2xl font-semibold text-white">
+                                        {{ plan.price_label }}
+                                    </p>
+                                </div>
+
+                                <span
+                                    v-if="plan.featured"
+                                    class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-200 border border-indigo-400/40"
+                                >
+                                    Populaire
+                                </span>
+                            </div>
+
+                            <p class="mt-4 text-sm text-slate-300">
+                                {{ plan.description }}
+                            </p>
+
+                            <div class="mt-6 space-y-3 text-sm text-slate-200">
+                                <div>
+                                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400 mb-1">
+                                        Limites principales
+                                    </p>
+                                    <ul class="space-y-1">
+                                        <li
+                                            v-for="item in plan.limits"
+                                            :key="item"
+                                            class="flex gap-2 text-slate-300"
+                                        >
+                                            <span class="text-indigo-400">•</span>
+                                            <span>{{ item }}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400 mb-1">
+                                        Inclus
+                                    </p>
+                                    <ul class="space-y-1">
+                                        <li
+                                            v-for="feature in plan.features"
+                                            :key="feature"
+                                            class="flex gap-2 text-slate-300"
+                                        >
+                                            <span class="text-emerald-400">✔</span>
+                                            <span>{{ feature }}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 pt-4 border-t border-slate-800">
+                                <component
+                                    v-if="plan.cta_url"
+                                    :is="plan.cta_action === 'register' ? Link : 'a'"
+                                    :href="plan.cta_url"
+                                    class="inline-flex items-center justify-center w-full rounded-md px-4 py-2 text-sm font-semibold transition"
+                                    :class="plan.featured ? 'bg-indigo-500 text-white hover:bg-indigo-400' : 'border border-slate-700 text-slate-100 hover:border-indigo-400'"
+                                    :target="plan.cta_action === 'contact' ? '_blank' : undefined"
+                                >
+                                    {{ plan.cta_label }}
+                                </component>
+
+                                <button
+                                    v-else
+                                    type="button"
+                                    disabled
+                                    class="inline-flex items-center justify-center w-full rounded-md px-4 py-2 text-sm font-semibold border border-slate-800 text-slate-500 cursor-not-allowed"
+                                >
+                                    Bientôt disponible
+                                </button>
+                            </div>
+                        </article>
+                    </div>
                 </div>
             </section>
         </main>
