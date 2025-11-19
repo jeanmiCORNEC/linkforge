@@ -86,6 +86,7 @@ class ClickAnalytics
             'period'         => [
                 'days'  => $days,
                 'since' => $since->toDateString(),
+                'until' => $now->toDateString(),
             ],
             'delta' => [
                 'totalClicks'    => self::deltaPercent($currentClicks, $previousClicks),

@@ -45,6 +45,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('links.destroy');
     Route::get('/links/{link}/analytics', [LinkAnalyticsController::class, 'show'])
         ->name('links.analytics.show');
+    Route::get('/links/{link}/analytics/export', [LinkAnalyticsController::class, 'export'])
+        ->name('links.analytics.export');
 
     // Sources + analytics + tracked links
     Route::get('/sources', [SourceController::class, 'index'])
@@ -58,6 +60,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/sources/{source}/analytics', [SourceAnalyticsController::class, 'show'])
         ->name('sources.analytics.show');
+    Route::get('/sources/{source}/analytics/export', [SourceAnalyticsController::class, 'export'])
+        ->name('sources.analytics.export');
 
     Route::post('/sources/{source}/tracked-links', [SourceTrackedLinkController::class, 'store'])
         ->name('sources.tracked-links.store');
@@ -77,6 +81,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('campaigns.destroy');
     Route::get('/campaigns/{campaign}/analytics', [CampaignAnalyticsController::class, 'show'])
         ->name('campaigns.analytics.show');
+    Route::get('/campaigns/{campaign}/analytics/export', [CampaignAnalyticsController::class, 'export'])
+        ->name('campaigns.analytics.export');
 
     // Profil
     Route::get('/profile', [ProfileController::class, 'edit'])

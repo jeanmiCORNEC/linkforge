@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers\Links;
 
+use App\Http\Controllers\Controller;
+use App\Models\Campaign;
 use App\Models\Link;
 use App\Support\Analytics\ClickAnalytics;
+use App\Support\CsvExporter;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class LinkAnalyticsController extends Controller
@@ -51,6 +55,140 @@ class LinkAnalyticsController extends Controller
             'filters' => [
                 'days' => $days,
             ],
+        ]);
+    }
+
+    public function export(Request $request, Link $link)
+    {
+        $this->ensureOwner($request, $link);
+
+        $days = (int) $request->get('days', 7);
+        if ($days <= 0) {
+            $days = 7;
+        }
+        if ($days > 365) {
+            $days = 365;
+        }
+
+        $stats     = ClickAnalytics::forLink($link->clicks(), $days);
+        $devices   = is_array($stats['devices']) ? $stats['devices'] : $stats['devices']->toArray();
+        $period    = $stats['period'] ?? ['since' => now()->subDays($days)->toDateString(), 'until' => now()->toDateString()];
+        $since     = Carbon::parse($period['since'])->startOfDay();
+        $until     = Carbon::parse($period['until'] ?? now()->toDateString())->endOfDay();
+
+        $mobile  = (int) ($devices['mobile'] ?? 0);
+        $desktop = (int) ($devices['desktop'] ?? 0);
+        $tablet  = (int) ($devices['tablet'] ?? 0);
+        $unknown = max($stats['totalClicks'] - ($mobile + $desktop + $tablet), 0);
+
+        $lastClickAt = $link->clicks()
+            ->whereBetween('clicks.created_at', [$since, $until])
+            ->max('clicks.created_at');
+
+        $sourcesCount = $link->trackedLinks()
+            ->whereNotNull('source_id')
+            ->distinct('source_id')
+            ->count('source_id');
+
+        $trackedLinksCount = $link->trackedLinks()->count();
+
+        $defaultTracked = $link->trackedLinks()
+            ->whereNull('source_id')
+            ->first();
+
+        $mainTrackingUrl = $defaultTracked
+            ? route('links.redirect', ['tracking_key' => $defaultTracked->tracking_key])
+            : '';
+
+        $campaignIds = DB::table('sources')
+            ->join('tracked_links', 'tracked_links.source_id', '=', 'sources.id')
+            ->where('tracked_links.link_id', $link->id)
+            ->whereNull('sources.deleted_at')
+            ->pluck('sources.campaign_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $campaignId   = '';
+        $campaignName = '';
+
+        if ($campaignIds->count() === 1) {
+            $campaign = Campaign::find($campaignIds->first());
+            $campaignId   = $campaign?->id ?? '';
+            $campaignName = $campaign?->name ?? '';
+        } elseif ($campaignIds->count() > 1) {
+            $campaignName = 'Multiple';
+        }
+
+        $columns = [
+            'link_id',
+            'link_title',
+            'destination_url',
+            'slug',
+            'is_active',
+            'created_at',
+            'campaign_id',
+            'campaign_name',
+            'sources_count',
+            'tracked_links_count',
+            'main_tracking_url',
+            'utm_source',
+            'utm_medium',
+            'utm_campaign',
+            'period_days',
+            'period_since',
+            'period_until',
+            'total_clicks',
+            'unique_visitors',
+            'clicks_mobile',
+            'clicks_desktop',
+            'clicks_tablet',
+            'clicks_unknown_device',
+            'last_click_at',
+            'conversions',
+            'revenue',
+            'commission',
+            'epc',
+        ];
+
+        $row = [
+            'link_id'              => $link->id,
+            'link_title'           => $link->title,
+            'destination_url'      => $link->destination_url,
+            'slug'                 => $link->slug,
+            'is_active'            => $link->is_active ? 'true' : 'false',
+            'created_at'           => optional($link->created_at)->toDateTimeString(),
+            'campaign_id'          => $campaignId,
+            'campaign_name'        => $campaignName,
+            'sources_count'        => $sourcesCount,
+            'tracked_links_count'  => $trackedLinksCount,
+            'main_tracking_url'    => $mainTrackingUrl,
+            'utm_source'           => '',
+            'utm_medium'           => '',
+            'utm_campaign'         => '',
+            'period_days'          => $stats['period']['days'] ?? $days,
+            'period_since'         => $period['since'] ?? '',
+            'period_until'         => $period['until'] ?? '',
+            'total_clicks'         => $stats['totalClicks'],
+            'unique_visitors'      => $stats['uniqueVisitors'],
+            'clicks_mobile'        => $mobile,
+            'clicks_desktop'       => $desktop,
+            'clicks_tablet'        => $tablet,
+            'clicks_unknown_device'=> $unknown,
+            'last_click_at'        => $lastClickAt ? Carbon::parse($lastClickAt)->toDateTimeString() : '',
+            'conversions'          => 0,
+            'revenue'              => 0,
+            'commission'           => 0,
+            'epc'                  => 0,
+        ];
+
+        $csv = CsvExporter::build($columns, [$row]);
+
+        $filename = sprintf('link-%s-analytics.csv', $link->id);
+
+        return response($csv, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename={$filename}",
         ]);
     }
 }
