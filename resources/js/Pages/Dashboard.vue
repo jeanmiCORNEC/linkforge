@@ -32,6 +32,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    features: {
+        type: Object,
+        required: true,
+    },
 });
 
 const deviceLabel = (key) => {
@@ -165,6 +169,7 @@ const heatmapCellClass = (value) => {
                             {{ stats.unique_visitors }} visiteurs uniques
                         </p>
                         <p
+                            v-if="props.features.deltas"
                             class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium"
                             :class="deltaClass(props.globalDelta.clicks || 0)"
                         >
@@ -184,6 +189,7 @@ const heatmapCellClass = (value) => {
                             Campagnes actives ou archivées
                         </p>
                         <p
+                            v-if="props.features.deltas"
                             class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium"
                             :class="deltaClass(props.globalDelta.clicks || 0)"
                         >
@@ -203,6 +209,7 @@ const heatmapCellClass = (value) => {
                             {{ stats.countries_count }} pays touchés
                         </p>
                         <p
+                            v-if="props.features.deltas"
                             class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium"
                             :class="deltaClass(props.globalDelta.unique_visitors || 0)"
                         >
@@ -212,7 +219,7 @@ const heatmapCellClass = (value) => {
                 </section>
 
                 <!-- Graphique : clics sur 7 jours -->
-                <section :class="bigCardClass">
+                <section v-if="props.features.heatmap" :class="bigCardClass">
                     <div class="flex items-center justify-between mb-1">
                         <h3 class="text-sm font-semibold text-slate-50">
                             Clics sur les 7 derniers jours
@@ -249,7 +256,7 @@ const heatmapCellClass = (value) => {
                 </section>
 
                 <!-- Heatmap horaire -->
-                <section :class="bigCardClass">
+                <section v-if="props.features.topLists" :class="bigCardClass">
                     <div class="flex items-center justify-between mb-1">
                         <h3 class="text-sm font-semibold text-slate-50">
                             Heatmap horaire
@@ -337,7 +344,7 @@ const heatmapCellClass = (value) => {
                 </section>
 
                 <!-- Top sources / liens -->
-                <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <section v-if="props.features.topLists" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div :class="bigCardClass">
                         <h3 class="text-sm font-semibold text-slate-50 mb-2">
                             Top sources globales

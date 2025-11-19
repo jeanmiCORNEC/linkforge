@@ -64,6 +64,15 @@ const hourlyHeatmap = computed(() => props.stats?.hourlyHeatmap ?? []);
 const heatmapHours = Array.from({ length: 24 }, (_, index) => index);
 const weekdayLabels = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 const weekdayOrder = [1, 2, 3, 4, 5, 6, 0];
+const canExport = computed(() => props.features?.exports ?? false);
+const canExportRaw = computed(() => props.features?.rawLog ?? false);
+const showHeatmap = computed(() => props.features?.heatmap ?? false);
+const showTopLists = computed(() => props.features?.topLists ?? false);
+const showDeltas = computed(() => props.features?.deltas ?? false);
+const canExport = computed(() => props.features?.exports ?? false);
+const showHeatmap = computed(() => props.features?.heatmap ?? false);
+const showTopLists = computed(() => props.features?.topLists ?? false);
+const showDeltas = computed(() => props.features?.deltas ?? false);
 
 const heatmapMatrix = computed(() => {
     const data = hourlyHeatmap.value;
@@ -129,6 +138,13 @@ const applyCustomPeriod = () => {
 
 const exportAnalytics = () => {
     window.location = route('campaigns.analytics.export', {
+        campaign: props.campaign.id,
+        days: currentDays.value,
+    });
+};
+
+const exportRawAnalytics = () => {
+    window.location = route('campaigns.analytics.export-raw', {
         campaign: props.campaign.id,
         days: currentDays.value,
     });
@@ -262,13 +278,25 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                             • Depuis le {{ formatDateFr(stats.period?.since) }}
                         </p>
 
-                        <button
-                            type="button"
-                            :class="primaryButtonClass"
-                            @click="exportAnalytics"
-                        >
-                            Exporter CSV
-                        </button>
+                        <div class="flex gap-2 flex-wrap">
+                            <button
+                                v-if="canExport"
+                                type="button"
+                                :class="primaryButtonClass"
+                                @click="exportAnalytics"
+                            >
+                                Exporter CSV
+                            </button>
+
+                            <button
+                                v-if="canExportRaw"
+                                type="button"
+                                :class="primaryButtonClass"
+                                @click="exportRawAnalytics"
+                            >
+                                Exporter clics (raw)
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -289,6 +317,7 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                         Sur les {{ stats.period?.days ?? currentDays }} derniers jours
                     </p>
                     <p
+                        v-if="showDeltas"
                         class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium"
                         :class="deltaClass(totalDelta)"
                     >
@@ -307,6 +336,7 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                         Basé sur le hash visiteur (IP + user-agent)
                     </p>
                     <p
+                        v-if="showDeltas"
                         class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium"
                         :class="deltaClass(uniqueDelta)"
                     >
@@ -328,7 +358,7 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
             </section>
 
             <!-- Tops : sources / liens / meilleurs jours -->
-            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <section v-if="showTopLists" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div :class="bigCardClass">
                     <h3 class="text-sm font-semibold">
                         Top sources
@@ -428,7 +458,7 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
             </section>
 
             <!-- Graph clics / jour (full width) -->
-            <section :class="bigCardClass">
+            <section v-if="showHeatmap" :class="bigCardClass">
                 <h3 class="text-sm font-semibold mb-1">
                     Clics par jour
                 </h3>

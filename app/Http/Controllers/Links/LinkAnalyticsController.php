@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Link;
 use App\Support\Analytics\ClickAnalytics;
+use App\Support\Analytics\RawClicksExporter;
 use App\Support\CsvExporter;
+use App\Support\Features\FeatureManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -38,10 +40,32 @@ class LinkAnalyticsController extends Controller
             $days = 365;
         }
 
+        $featureScope = FeatureManager::for($request->user());
+        $insights      = ['days'];
+        if ($featureScope->allows('analytics.top_lists')) {
+            $insights[] = 'sources';
+        }
+        if ($featureScope->allows('analytics.heatmap')) {
+            $insights[] = 'heatmap';
+        }
+
         // On part de la relation hasManyThrough déjà définie sur Link
         $clicksQuery = $link->clicks();
 
-        $stats = ClickAnalytics::forLink($clicksQuery, $days);
+        $stats = ClickAnalytics::forLink($clicksQuery, $days, $insights);
+
+        if (! $featureScope->allows('analytics.top_lists')) {
+            unset($stats['topSources']);
+        }
+        if (! $featureScope->allows('analytics.heatmap')) {
+            unset($stats['hourlyHeatmap']);
+        }
+        if (! $featureScope->allows('analytics.deltas')) {
+            $stats['delta'] = [
+                'totalClicks'    => 0,
+                'uniqueVisitors' => 0,
+            ];
+        }
 
         return Inertia::render('Links/Analytics', [
             'link' => [
@@ -55,12 +79,25 @@ class LinkAnalyticsController extends Controller
             'filters' => [
                 'days' => $days,
             ],
+            'features' => [
+                'exports'  => $featureScope->allows('analytics.exports'),
+                'heatmap'  => $featureScope->allows('analytics.heatmap'),
+                'topLists' => $featureScope->allows('analytics.top_lists'),
+                'deltas'   => $featureScope->allows('analytics.deltas'),
+                'rawLog'   => $featureScope->allows('analytics.raw_log'),
+            ],
         ]);
     }
 
     public function export(Request $request, Link $link)
     {
         $this->ensureOwner($request, $link);
+
+        $featureScope = FeatureManager::for($request->user());
+
+        if (! $featureScope->allows('analytics.exports')) {
+            abort(403);
+        }
 
         $days = (int) $request->get('days', 7);
         if ($days <= 0) {
@@ -185,6 +222,44 @@ class LinkAnalyticsController extends Controller
         $csv = CsvExporter::build($columns, [$row]);
 
         $filename = sprintf('link-%s-analytics.csv', $link->id);
+
+        return response($csv, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename={$filename}",
+        ]);
+    }
+
+    public function exportRaw(Request $request, Link $link)
+    {
+        $this->ensureOwner($request, $link);
+
+        $featureScope = FeatureManager::for($request->user());
+
+        if (! $featureScope->allows('analytics.raw_log')) {
+            abort(403);
+        }
+
+        $days = (int) $request->get('days', 7);
+        if ($days <= 0) {
+            $days = 7;
+        }
+        if ($days > 365) {
+            $days = 365;
+        }
+
+        $period = ClickAnalytics::forPeriod($link->clicks(), $days)['period'] ?? [
+            'since' => now()->subDays($days)->toDateString(),
+            'until' => now()->toDateString(),
+        ];
+
+        $since = Carbon::parse($period['since'])->startOfDay();
+        $until = Carbon::parse($period['until'] ?? now()->toDateString())->endOfDay();
+
+        $rows = RawClicksExporter::rows($link->clicks(), $since, $until);
+
+        $csv = CsvExporter::build(RawClicksExporter::columns(), $rows);
+
+        $filename = sprintf('link-%s-raw-clicks.csv', $link->id);
 
         return response($csv, 200, [
             'Content-Type'        => 'text/csv; charset=UTF-8',

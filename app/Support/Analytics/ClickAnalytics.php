@@ -98,32 +98,19 @@ class ClickAnalytics
     /**
      * Variante pour les campagnes : ajoute top sources / liens / jours.
      */
-    public static function forCampaign(Builder|Relation $clicks, int $days = 7): array
+    public static function forCampaign(Builder|Relation $clicks, int $days = 7, array $insights = ['sources', 'links', 'days', 'heatmap']): array
     {
-        return self::withInsights($clicks, $days, [
-            'sources',
-            'links',
-            'days',
-            'heatmap',
-        ]);
+        return self::withInsights($clicks, $days, $insights);
     }
 
-    public static function forSource(Builder|Relation $clicks, int $days = 7): array
+    public static function forSource(Builder|Relation $clicks, int $days = 7, array $insights = ['links', 'days', 'heatmap']): array
     {
-        return self::withInsights($clicks, $days, [
-            'links',
-            'days',
-            'heatmap',
-        ]);
+        return self::withInsights($clicks, $days, $insights);
     }
 
-    public static function forLink(Builder|Relation $clicks, int $days = 7): array
+    public static function forLink(Builder|Relation $clicks, int $days = 7, array $insights = ['sources', 'days', 'heatmap']): array
     {
-        return self::withInsights($clicks, $days, [
-            'sources',
-            'days',
-            'heatmap',
-        ]);
+        return self::withInsights($clicks, $days, $insights);
     }
 
     /**

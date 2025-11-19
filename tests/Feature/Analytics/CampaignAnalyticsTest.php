@@ -20,7 +20,7 @@ class CampaignAnalyticsTest extends TestCase
     #[Test]
     public function user_can_view_campaign_analytics(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['plan' => 'pro']);
 
         $campaign = Campaign::factory()->for($user)->create();
 
@@ -131,7 +131,7 @@ class CampaignAnalyticsTest extends TestCase
     #[Test]
     public function user_can_export_campaign_analytics_csv(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['plan' => 'pro']);
 
         $campaign = Campaign::factory()->for($user)->create();
 
@@ -159,5 +159,45 @@ class CampaignAnalyticsTest extends TestCase
         $response->assertOk();
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
         $this->assertStringContainsString('campaign_id', $response->getContent());
+    }
+
+    #[Test]
+    public function user_can_export_campaign_raw_clicks(): void
+    {
+        $user = User::factory()->create(['plan' => 'pro']);
+
+        $campaign = Campaign::factory()->for($user)->create();
+        $source   = Source::factory()->for($user)->for($campaign)->create();
+        $link     = Link::factory()->for($user)->create();
+        $tracked  = TrackedLink::factory()->for($user)->for($source)->for($link)->create();
+
+        Click::factory()->create([
+            'tracked_link_id' => $tracked->id,
+            'visitor_hash'    => 'raw-campaign',
+            'created_at'      => now(),
+        ]);
+
+        $response = $this->actingAs($user)->get(route('campaigns.analytics.export-raw', [
+            'campaign' => $campaign->id,
+            'days'     => 7,
+        ]));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $this->assertStringContainsString('click_id', $response->getContent());
+    }
+
+    #[Test]
+    public function free_plan_cannot_export_campaign_raw_clicks(): void
+    {
+        $user     = User::factory()->create(['plan' => 'free']);
+        $campaign = Campaign::factory()->for($user)->create();
+
+        $this->actingAs($user)
+            ->get(route('campaigns.analytics.export-raw', [
+                'campaign' => $campaign->id,
+                'days'     => 7,
+            ]))
+            ->assertForbidden();
     }
 }

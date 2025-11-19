@@ -51,6 +51,7 @@ class DashboardTest extends TestCase
             ->has('topCampaigns')
             ->has('topSources')
             ->has('topLinks')
-            ->has('globalDelta'));
+            ->has('globalDelta')
+            ->has('features'));
     }
 }
