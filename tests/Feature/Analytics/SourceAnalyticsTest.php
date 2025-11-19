@@ -86,6 +86,7 @@ class SourceAnalyticsTest extends TestCase
                 // Clés réellement renvoyées par ton SourceAnalyticsController
                 ->where('stats.total_clicks', 3)
                 ->where('stats.unique_visitors', 2)
+                ->has('stats.delta')
                 ->has('stats.top_links')
                 ->where('stats.top_links.0.title', $link->title)
                 ->has('stats.top_days')

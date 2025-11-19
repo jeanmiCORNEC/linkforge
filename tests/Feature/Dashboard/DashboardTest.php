@@ -48,6 +48,8 @@ class DashboardTest extends TestCase
             ->has('stats')
             ->has('dailyClicks')
             ->has('hourlyHeatmap')
-            ->has('topCampaigns'));
+            ->has('topCampaigns')
+            ->has('topSources')
+            ->has('topLinks'));
     }
 }

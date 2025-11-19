@@ -46,6 +46,10 @@ class SourceAnalyticsController extends Controller
             'top_links'          => $rawStats['topLinks'] ?? [],
             'top_days'           => $rawStats['topDays'] ?? [],
             'hourly_heatmap'     => $rawStats['hourlyHeatmap'] ?? [],
+            'delta'              => [
+                'total_clicks'    => $rawStats['delta']['totalClicks'] ?? 0,
+                'unique_visitors' => $rawStats['delta']['uniqueVisitors'] ?? 0,
+            ],
             'period'             => $rawStats['period'],
         ];
 

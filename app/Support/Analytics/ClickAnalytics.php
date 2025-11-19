@@ -23,13 +23,12 @@ class ClickAnalytics
      */
     public static function forPeriod(Builder|Relation $clicks, int $days = 7): array
     {
-        $since = Carbon::now()->subDays($days);
+        $now   = Carbon::now();
+        $since = (clone $now)->subDays($days);
+        $previousStart = (clone $since)->subDays($days);
 
         // Normaliser : si on reçoit une Relation, on récupère son Builder sous-jacent
         $query = self::normalizeQuery($clicks);
-
-        // Total clics "lifetime" : pas de filtre de période
-        $totalClicks = (clone $query)->count();
 
         // On part toujours d'un builder filtré par période
         // ⚠️ IMPORTANT : bien préfixer par clicks.created_at pour éviter l'ambiguïté avec tracked_links
@@ -37,6 +36,17 @@ class ClickAnalytics
 
         // Visiteurs uniques
         $uniqueVisitors = (clone $base)
+            ->distinct('visitor_hash')
+            ->count('visitor_hash');
+
+        $currentClicks = (clone $base)->count();
+
+        // Fenêtre précédente pour la comparaison
+        $previousWindow = (clone $query)
+            ->whereBetween('clicks.created_at', [$previousStart, $since]);
+
+        $previousClicks = (clone $previousWindow)->count();
+        $previousUnique = (clone $previousWindow)
             ->distinct('visitor_hash')
             ->count('visitor_hash');
 
@@ -68,7 +78,7 @@ class ClickAnalytics
             ->values();
 
         return [
-            'totalClicks'    => $totalClicks,
+            'totalClicks'    => $currentClicks,
             'uniqueVisitors' => $uniqueVisitors,
             'devices'        => $devices,
             'browsers'       => $browsers,
@@ -76,6 +86,10 @@ class ClickAnalytics
             'period'         => [
                 'days'  => $days,
                 'since' => $since->toDateString(),
+            ],
+            'delta' => [
+                'totalClicks'    => self::deltaPercent($currentClicks, $previousClicks),
+                'uniqueVisitors' => self::deltaPercent($uniqueVisitors, $previousUnique),
             ],
         ];
     }
@@ -244,5 +258,14 @@ class ClickAnalytics
                 ];
             })
             ->toArray();
+    }
+
+    protected static function deltaPercent(int $current, int $previous): int
+    {
+        if ($previous === 0) {
+            return $current > 0 ? 100 : 0;
+        }
+
+        return (int) round((($current - $previous) / $previous) * 100);
     }
 }

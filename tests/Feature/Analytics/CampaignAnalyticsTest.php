@@ -100,6 +100,7 @@ class CampaignAnalyticsTest extends TestCase
             ->where('campaign.id', $campaign->id)
             ->where('stats.totalClicks', 5)
             ->where('stats.uniqueVisitors', 5)
+            ->has('stats.delta')
             ->has('stats.topSources')
             ->where('stats.topSources.0.name', $secondSource->name)
             ->where('stats.topSources.0.total', 3)

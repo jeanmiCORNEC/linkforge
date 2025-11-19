@@ -79,7 +79,8 @@ class DashboardController extends Controller
             ];
         }
 
-        $heatmapStats = ClickAnalytics::withInsights($clicksQuery, 7, ['heatmap', 'days']);
+        $insights = ClickAnalytics::withInsights($clicksQuery, 7, ['heatmap', 'sources', 'links']);
+        $deltas   = $insights['delta'] ?? ['totalClicks' => 0, 'uniqueVisitors' => 0];
 
         $topCampaigns = (clone $clicksQuery)
             ->join('tracked_links as tl_top', 'tl_top.id', '=', 'clicks.tracked_link_id')
@@ -94,8 +95,14 @@ class DashboardController extends Controller
         return Inertia::render('Dashboard', [
             'stats'          => $stats,
             'dailyClicks'    => $dailyClicks,
-            'hourlyHeatmap'  => $heatmapStats['hourlyHeatmap'] ?? [],
+            'hourlyHeatmap'  => $insights['hourlyHeatmap'] ?? [],
             'topCampaigns'   => $topCampaigns,
+            'topSources'     => $insights['topSources'] ?? [],
+            'topLinks'       => $insights['topLinks'] ?? [],
+            'globalDelta'    => [
+                'clicks'          => $deltas['totalClicks'] ?? 0,
+                'unique_visitors' => $deltas['uniqueVisitors'] ?? 0,
+            ],
         ]);
     }
 }

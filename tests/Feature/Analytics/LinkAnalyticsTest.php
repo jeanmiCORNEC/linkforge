@@ -180,10 +180,11 @@ class LinkAnalyticsTest extends TestCase
             $page
                 ->component('Links/Analytics')
                 ->where('link.id', $link->id)
-                // Comportement actuel : totalClicks = 4 (toute la vie du lien)
-                ->where('stats.totalClicks', 4)
+                // Désormais limité à la fenêtre analysée : 3 clics dans les 7 derniers jours
+                ->where('stats.totalClicks', 3)
                 // On NE force PAS la taille à 7, ton code renvoie seulement les jours présents
                 ->has('stats.clicksPerDay')
+                ->has('stats.delta')
                 ->where('filters.days', 7)
                 ->etc();
         });
