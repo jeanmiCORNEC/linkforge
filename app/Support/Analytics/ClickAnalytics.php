@@ -10,11 +10,16 @@ use Illuminate\Support\Facades\DB;
 class ClickAnalytics
 {
     /**
-     * Calcule les stats de base pour un jeu de clics donné.
+     * Calcule les stats analytiques sur une fenêtre de $days jours
+     * à partir d'une requête de clics déjà contextualisée
+     * (lien, source, campagne, etc.).
      *
-     * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Relations\Relation  $clicks
-     * @param  int  $days  Période en jours (ex : 7 ou 30)
-     * @return array
+     * Convention LinkForge :
+     * - totalClicks       : nombre total de clics sur toute la durée de vie (sans filtre de période)
+     * - uniqueVisitors    : nb de visitor_hash distincts sur la fenêtre de $days jours
+     * - clicksPerDay      : série journalière sur $days jours
+     * - devicesBreakdown  : distribution device sur la fenêtre
+     * - browsersBreakdown : distribution browser sur la fenêtre
      */
     public static function forPeriod(Builder|Relation $clicks, int $days = 7): array
     {
@@ -25,12 +30,12 @@ class ClickAnalytics
             ? $clicks->getQuery()
             : $clicks;
 
+        // Total clics "lifetime" : pas de filtre de période
+        $totalClicks = (clone $query)->count();
+
         // On part toujours d'un builder filtré par période
         // ⚠️ IMPORTANT : bien préfixer par clicks.created_at pour éviter l'ambiguïté avec tracked_links
         $base = (clone $query)->where('clicks.created_at', '>=', $since);
-
-        // Total clics
-        $totalClicks = (clone $base)->count();
 
         // Visiteurs uniques
         $uniqueVisitors = (clone $base)
