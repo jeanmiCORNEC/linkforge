@@ -107,6 +107,7 @@ class CampaignAnalyticsTest extends TestCase
             ->where('stats.topLinks.0.title', $secondLink->title)
             ->has('stats.topDays')
             ->where('stats.topDays.0.total', 3)
+            ->has('stats.hourlyHeatmap')
         );
 
     }

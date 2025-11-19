@@ -60,6 +60,50 @@ const topLinks = computed(() => props.stats?.topLinks ?? []);
 const topDays = computed(() => props.stats?.topDays ?? []);
 const formatPercentage = (value) => `${value ?? 0}%`;
 
+const hourlyHeatmap = computed(() => props.stats?.hourlyHeatmap ?? []);
+const heatmapHours = Array.from({ length: 24 }, (_, index) => index);
+const weekdayLabels = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+const weekdayOrder = [1, 2, 3, 4, 5, 6, 0];
+
+const heatmapMatrix = computed(() => {
+    const data = hourlyHeatmap.value;
+    const map = {};
+    let max = 0;
+
+    data.forEach((entry) => {
+        const weekday = entry.weekday ?? new Date(entry.date).getDay();
+        if (!map[weekday]) {
+            map[weekday] = {
+                label: entry.weekdayLabel || weekdayLabels[weekday] || '',
+                values: {},
+            };
+        }
+        map[weekday].values[entry.hour] = entry.total;
+        if (entry.total > max) {
+            max = entry.total;
+        }
+    });
+
+    const rows = weekdayOrder.map((day) => ({
+        weekday: day,
+        label: map[day]?.label ?? weekdayLabels[day],
+        values: heatmapHours.map((hour) => map[day]?.values?.[hour] ?? 0),
+    }));
+
+    return { rows, max };
+});
+
+const heatmapCellClass = (value) => {
+    const max = heatmapMatrix.value.max;
+    if (!max || value === 0) {
+        return 'bg-slate-900/40 text-slate-500';
+    }
+    const ratio = value / max;
+    if (ratio < 0.33) return 'bg-indigo-900 text-slate-200';
+    if (ratio < 0.66) return 'bg-indigo-700 text-white';
+    return 'bg-indigo-500 text-white';
+};
+
 // --- Changement de période (7 / 30 / perso) ---
 const changePeriod = (days) => {
     customDays.value = days;
@@ -426,6 +470,53 @@ const periodPillBaseClass =
                         </li>
                     </ul>
                 </div>
+            </section>
+
+            <!-- Heatmap -->
+            <section :class="bigCardClass">
+                <h3 class="text-sm font-semibold">
+                    Heatmap horaire
+                </h3>
+                <p class="text-xs text-slate-400 mb-4">
+                    Constatez les créneaux (jour × heure) où la campagne est la plus performante.
+                </p>
+
+                <div v-if="heatmapMatrix.max" class="overflow-x-auto">
+                    <div class="space-y-2 min-w-[600px]">
+                        <div
+                            v-for="row in heatmapMatrix.rows"
+                            :key="row.weekday"
+                            class="flex items-center gap-2 text-[11px]"
+                        >
+                            <span class="w-10 text-right text-slate-400">
+                                {{ row.label }}
+                            </span>
+                            <div
+                                class="flex-1 grid gap-1"
+                                :style="{ gridTemplateColumns: 'repeat(24, minmax(0, 1fr))' }"
+                            >
+                                <div
+                                    v-for="(value, index) in row.values"
+                                    :key="index"
+                                    class="h-5 rounded"
+                                    :class="heatmapCellClass(value)"
+                                    :title="`${value} clics à ${index}h`"
+                                >
+                                    <span class="sr-only">
+                                        {{ value }} clics à {{ index }}h
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-4">
+                        Plus la couleur est lumineuse, plus le créneau est performant.
+                    </p>
+                </div>
+
+                <p v-else class="text-xs text-slate-500">
+                    Pas encore assez de clics pour générer cette heatmap.
+                </p>
             </section>
 
         </main>

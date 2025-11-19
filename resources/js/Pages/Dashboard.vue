@@ -1,6 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link as InertiaLink } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const props = defineProps({
     stats: {
@@ -8,6 +9,14 @@ const props = defineProps({
         required: true,
     },
     dailyClicks: {
+        type: Array,
+        required: true,
+    },
+    hourlyHeatmap: {
+        type: Array,
+        required: true,
+    },
+    topCampaigns: {
         type: Array,
         required: true,
     },
@@ -40,6 +49,49 @@ const clickableCardClass =
     ' cursor-pointer hover:border-indigo-500/70 hover:bg-slate-900/90 hover:shadow-indigo-900/40 transition';
 
 const primaryLinkCardClass = 'block ' + clickableCardClass;
+
+const heatmapHours = Array.from({ length: 24 }, (_, index) => index);
+const weekdayLabels = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+const weekdayOrder = [1, 2, 3, 4, 5, 6, 0];
+
+const heatmapMatrix = computed(() => {
+    const data = props.hourlyHeatmap || [];
+    const map = {};
+    let max = 0;
+
+    data.forEach((entry) => {
+        const weekday = entry.weekday ?? new Date(entry.date).getDay();
+        if (!map[weekday]) {
+            map[weekday] = {
+                label: entry.weekdayLabel || weekdayLabels[weekday] || '',
+                values: {},
+            };
+        }
+        map[weekday].values[entry.hour] = entry.total;
+        if (entry.total > max) {
+            max = entry.total;
+        }
+    });
+
+    const rows = weekdayOrder.map((day) => ({
+        weekday: day,
+        label: map[day]?.label ?? weekdayLabels[day],
+        values: heatmapHours.map((hour) => map[day]?.values?.[hour] ?? 0),
+    }));
+
+    return { rows, max };
+});
+
+const heatmapCellClass = (value) => {
+    const max = heatmapMatrix.value.max;
+    if (!max || value === 0) {
+        return 'bg-slate-900/40 text-slate-500';
+    }
+    const ratio = value / max;
+    if (ratio < 0.33) return 'bg-indigo-900 text-slate-200';
+    if (ratio < 0.66) return 'bg-indigo-700 text-white';
+    return 'bg-indigo-500 text-white';
+};
 </script>
 
 <template>
@@ -144,6 +196,86 @@ const primaryLinkCardClass = 'block ' + clickableCardClass;
                             Pas encore de clics sur les 7 derniers jours.
                         </div>
                     </div>
+                </section>
+
+                <!-- Heatmap horaire -->
+                <section :class="bigCardClass">
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="text-sm font-semibold text-slate-50">
+                            Heatmap horaire
+                        </h3>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">
+                        Visualisez les jours et heures où vos clics sont les plus élevés.
+                    </p>
+
+                    <div v-if="heatmapMatrix.max" class="overflow-x-auto">
+                        <div class="space-y-2 min-w-[600px]">
+                            <div
+                                v-for="row in heatmapMatrix.rows"
+                                :key="row.weekday"
+                                class="flex items-center gap-2 text-[11px]"
+                            >
+                                <span class="w-10 text-right text-slate-400">
+                                    {{ row.label }}
+                                </span>
+                                <div
+                                    class="flex-1 grid gap-1"
+                                    :style="{ gridTemplateColumns: 'repeat(24, minmax(0, 1fr))' }"
+                                >
+                                    <div
+                                        v-for="(value, hour) in row.values"
+                                        :key="hour"
+                                        class="h-5 rounded"
+                                        :class="heatmapCellClass(value)"
+                                        :title="`${value} clics à ${hour}h`"
+                                    >
+                                        <span class="sr-only">
+                                            {{ value }} clics à {{ hour }}h
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-4">
+                            Plus la couleur est lumineuse, plus le créneau est performant.
+                        </p>
+                    </div>
+                    <p v-else class="text-xs text-slate-500">
+                        Pas encore assez de clics pour générer la heatmap.
+                    </p>
+                </section>
+
+                <!-- Top campagnes -->
+                <section :class="bigCardClass">
+                    <h3 class="text-sm font-semibold text-slate-50 mb-2">
+                        Campagnes les plus performantes
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4">
+                        Classement des campagnes (via leurs sources) sur les 7 derniers jours.
+                    </p>
+                    <ul class="space-y-3">
+                        <li
+                            v-for="campaign in topCampaigns"
+                            :key="campaign.id"
+                            class="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-xs md:text-sm text-slate-100 flex items-center justify-between gap-3"
+                        >
+                            <div class="min-w-0">
+                                <p class="font-semibold truncate">
+                                    {{ campaign.name }}
+                                </p>
+                                <p class="text-[11px] text-slate-400">
+                                    {{ campaign.status === 'archived' ? 'Archivée' : 'Active' }}
+                                </p>
+                            </div>
+                            <span class="text-xl font-bold">
+                                {{ campaign.total }}
+                            </span>
+                        </li>
+                        <li v-if="!topCampaigns.length" class="text-xs text-slate-500">
+                            Aucune campagne n’a encore généré de clics mesurés.
+                        </li>
+                    </ul>
                 </section>
 
                 <!-- Résumé devices + navigateurs -->

@@ -10,6 +10,7 @@ use App\Models\Source;
 use App\Models\Campaign;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Support\Analytics\ClickAnalytics;
 
 class DashboardController extends Controller
 {
@@ -78,9 +79,23 @@ class DashboardController extends Controller
             ];
         }
 
+        $heatmapStats = ClickAnalytics::withInsights($clicksQuery, 7, ['heatmap', 'days']);
+
+        $topCampaigns = (clone $clicksQuery)
+            ->join('tracked_links as tl_top', 'tl_top.id', '=', 'clicks.tracked_link_id')
+            ->join('sources as s_top', 's_top.id', '=', 'tl_top.source_id')
+            ->join('campaigns', 'campaigns.id', '=', 's_top.campaign_id')
+            ->select('campaigns.id', 'campaigns.name', 'campaigns.status', \DB::raw('count(*) as total'))
+            ->groupBy('campaigns.id', 'campaigns.name', 'campaigns.status')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->get();
+
         return Inertia::render('Dashboard', [
-            'stats'       => $stats,
-            'dailyClicks' => $dailyClicks,
+            'stats'          => $stats,
+            'dailyClicks'    => $dailyClicks,
+            'hourlyHeatmap'  => $heatmapStats['hourlyHeatmap'] ?? [],
+            'topCampaigns'   => $topCampaigns,
         ]);
     }
 }
