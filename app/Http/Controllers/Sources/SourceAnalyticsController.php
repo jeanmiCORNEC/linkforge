@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Sources;
 use App\Http\Controllers\Controller;
 use App\Models\Source;
 use App\Support\Analytics\ClickAnalytics;
+use App\Support\Analytics\RawClicksExporter;
+use App\Support\Features\FeatureManager;
 use App\Support\CsvExporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -25,6 +27,8 @@ class SourceAnalyticsController extends Controller
             abort(403);
         }
 
+        $featureScope = FeatureManager::for($user);
+
         $days = (int) $request->get('days', 7);
         if ($days <= 0) {
             $days = 7;
@@ -37,7 +41,28 @@ class SourceAnalyticsController extends Controller
         $clicksQuery = $source->clicks();
 
         // Stats enrichies : top liens, meilleurs jours, heatmap…
-        $rawStats = ClickAnalytics::forSource($clicksQuery, $days);
+        $insights = ['days'];
+        if ($featureScope->allows('analytics.top_lists')) {
+            $insights[] = 'links';
+        }
+        if ($featureScope->allows('analytics.heatmap')) {
+            $insights[] = 'heatmap';
+        }
+
+        $rawStats = ClickAnalytics::forSource($clicksQuery, $days, $insights);
+
+        if (! $featureScope->allows('analytics.top_lists')) {
+            unset($rawStats['topLinks']);
+        }
+        if (! $featureScope->allows('analytics.heatmap')) {
+            unset($rawStats['hourlyHeatmap']);
+        }
+        if (! $featureScope->allows('analytics.deltas')) {
+            $rawStats['delta'] = [
+                'totalClicks'    => 0,
+                'uniqueVisitors' => 0,
+            ];
+        }
 
         // Mapping en snake_case pour rester cohérent avec LinkAnalytics + tests
         $stats = [
@@ -66,6 +91,13 @@ class SourceAnalyticsController extends Controller
             'filters' => [
                 'days' => $days,
             ],
+            'features' => [
+                'exports'  => $featureScope->allows('analytics.exports'),
+                'heatmap'  => $featureScope->allows('analytics.heatmap'),
+                'topLists' => $featureScope->allows('analytics.top_lists'),
+                'deltas'   => $featureScope->allows('analytics.deltas'),
+                'rawLog'   => $featureScope->allows('analytics.raw_log'),
+            ],
         ]);
     }
 
@@ -74,6 +106,12 @@ class SourceAnalyticsController extends Controller
         $user = $request->user();
 
         if ($source->user_id !== $user->id) {
+            abort(403);
+        }
+
+        $featureScope = FeatureManager::for($user);
+
+        if (! $featureScope->allows('analytics.exports')) {
             abort(403);
         }
 
@@ -169,6 +207,48 @@ class SourceAnalyticsController extends Controller
         $csv = CsvExporter::build($columns, [$row]);
 
         $filename = sprintf('source-%s-analytics.csv', $source->id);
+
+        return response($csv, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename={$filename}",
+        ]);
+    }
+
+    public function exportRaw(Request $request, Source $source)
+    {
+        $user = $request->user();
+
+        if ($source->user_id !== $user->id) {
+            abort(403);
+        }
+
+        $featureScope = FeatureManager::for($user);
+
+        if (! $featureScope->allows('analytics.raw_log')) {
+            abort(403);
+        }
+
+        $days = (int) $request->get('days', 7);
+        if ($days <= 0) {
+            $days = 7;
+        }
+        if ($days > 365) {
+            $days = 365;
+        }
+
+        $period = ClickAnalytics::forPeriod($source->clicks(), $days)['period'] ?? [
+            'since' => now()->subDays($days)->toDateString(),
+            'until' => now()->toDateString(),
+        ];
+
+        $since = Carbon::parse($period['since'])->startOfDay();
+        $until = Carbon::parse($period['until'] ?? now()->toDateString())->endOfDay();
+
+        $rows = RawClicksExporter::rows($source->clicks(), $since, $until);
+
+        $csv = CsvExporter::build(RawClicksExporter::columns(), $rows);
+
+        $filename = sprintf('source-%s-raw-clicks.csv', $source->id);
 
         return response($csv, 200, [
             'Content-Type'        => 'text/csv; charset=UTF-8',

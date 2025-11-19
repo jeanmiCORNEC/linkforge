@@ -19,7 +19,7 @@ class LinkAnalyticsTest extends TestCase
     #[Test]
     public function it_loads_link_analytics_with_basic_stats(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['plan' => 'pro']);
 
         $link = Link::factory()->create([
             'user_id' => $user->id,
@@ -92,7 +92,7 @@ class LinkAnalyticsTest extends TestCase
     #[Test]
     public function it_displays_clicks_per_day_for_a_link_on_7_days_period(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['plan' => 'pro']);
 
         // On crée le lien via la relation pour rester cohérent avec le domaine
         $link = $user->links()->create([
@@ -215,7 +215,7 @@ class LinkAnalyticsTest extends TestCase
     #[Test]
     public function it_computes_unique_visitors_for_a_link_on_period(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['plan' => 'pro']);
 
         $link = $user->links()->create([
             'title'           => 'Page de vente',
@@ -318,7 +318,7 @@ class LinkAnalyticsTest extends TestCase
     #[Test]
     public function it_exports_link_analytics_csv(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['plan' => 'pro']);
 
         $link = Link::factory()->for($user)->create();
 
@@ -338,5 +338,44 @@ class LinkAnalyticsTest extends TestCase
         $response->assertOk();
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
         $this->assertStringContainsString('link_id', $response->getContent());
+    }
+
+    #[Test]
+    public function it_exports_raw_clicks_for_a_link(): void
+    {
+        $user = User::factory()->create(['plan' => 'pro']);
+
+        $link = Link::factory()->for($user)->create();
+        $tracked = TrackedLink::factory()->for($user)->for($link)->create();
+
+        Click::factory()->create([
+            'tracked_link_id' => $tracked->id,
+            'visitor_hash'    => 'raw-hash',
+            'created_at'      => now(),
+        ]);
+
+        $response = $this->actingAs($user)->get(route('links.analytics.export-raw', [
+            'link' => $link->id,
+            'days' => 7,
+        ]));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $this->assertStringContainsString('click_id', $response->getContent());
+    }
+
+    #[Test]
+    public function it_forbids_raw_export_for_free_plan(): void
+    {
+        $user = User::factory()->create(['plan' => 'free']);
+
+        $link = Link::factory()->for($user)->create();
+
+        $this->actingAs($user)
+            ->get(route('links.analytics.export-raw', [
+                'link' => $link->id,
+                'days' => 7,
+            ]))
+            ->assertForbidden();
     }
 }

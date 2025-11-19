@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Dashboard;
 
-use Carbon\Carbon;
-use App\Models\Link;
-use Inertia\Inertia;
-use App\Models\Click;
-use App\Models\Source;
-use App\Models\Campaign;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Campaign;
+use App\Models\Click;
+use App\Models\Link;
+use App\Models\Source;
 use App\Support\Analytics\ClickAnalytics;
+use App\Support\Features\FeatureManager;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
@@ -79,29 +80,52 @@ class DashboardController extends Controller
             ];
         }
 
-        $insights = ClickAnalytics::withInsights($clicksQuery, 7, ['heatmap', 'sources', 'links']);
-        $deltas   = $insights['delta'] ?? ['totalClicks' => 0, 'uniqueVisitors' => 0];
+        $featureScope = FeatureManager::for($user);
 
-        $topCampaigns = (clone $clicksQuery)
-            ->join('tracked_links as tl_top', 'tl_top.id', '=', 'clicks.tracked_link_id')
-            ->join('sources as s_top', 's_top.id', '=', 'tl_top.source_id')
-            ->join('campaigns', 'campaigns.id', '=', 's_top.campaign_id')
-            ->select('campaigns.id', 'campaigns.name', 'campaigns.status', \DB::raw('count(*) as total'))
-            ->groupBy('campaigns.id', 'campaigns.name', 'campaigns.status')
-            ->orderByDesc('total')
-            ->limit(5)
-            ->get();
+        $insights = ClickAnalytics::withInsights($clicksQuery, 7, [
+            ...($featureScope->allows('analytics.heatmap') ? ['heatmap'] : []),
+            ...($featureScope->allows('analytics.top_lists') ? ['sources', 'links'] : []),
+        ]);
+        $deltas   = $featureScope->allows('analytics.deltas')
+            ? ($insights['delta'] ?? ['totalClicks' => 0, 'uniqueVisitors' => 0])
+            : ['totalClicks' => 0, 'uniqueVisitors' => 0];
+
+        $topCampaigns = [];
+
+        if ($featureScope->allows('analytics.top_lists')) {
+            $topCampaigns = (clone $clicksQuery)
+                ->join('tracked_links as tl_top', 'tl_top.id', '=', 'clicks.tracked_link_id')
+                ->join('sources as s_top', 's_top.id', '=', 'tl_top.source_id')
+                ->join('campaigns', 'campaigns.id', '=', 's_top.campaign_id')
+                ->select('campaigns.id', 'campaigns.name', 'campaigns.status', \DB::raw('count(*) as total'))
+                ->groupBy('campaigns.id', 'campaigns.name', 'campaigns.status')
+                ->orderByDesc('total')
+                ->limit(5)
+                ->get();
+        }
 
         return Inertia::render('Dashboard', [
             'stats'          => $stats,
             'dailyClicks'    => $dailyClicks,
-            'hourlyHeatmap'  => $insights['hourlyHeatmap'] ?? [],
+            'hourlyHeatmap'  => $featureScope->allows('analytics.heatmap')
+                ? ($insights['hourlyHeatmap'] ?? [])
+                : [],
             'topCampaigns'   => $topCampaigns,
-            'topSources'     => $insights['topSources'] ?? [],
-            'topLinks'       => $insights['topLinks'] ?? [],
+            'topSources'     => $featureScope->allows('analytics.top_lists')
+                ? ($insights['topSources'] ?? [])
+                : [],
+            'topLinks'       => $featureScope->allows('analytics.top_lists')
+                ? ($insights['topLinks'] ?? [])
+                : [],
             'globalDelta'    => [
                 'clicks'          => $deltas['totalClicks'] ?? 0,
                 'unique_visitors' => $deltas['uniqueVisitors'] ?? 0,
+            ],
+            'features' => [
+                'exports'  => $featureScope->allows('analytics.exports'),
+                'heatmap'  => $featureScope->allows('analytics.heatmap'),
+                'topLists' => $featureScope->allows('analytics.top_lists'),
+                'deltas'   => $featureScope->allows('analytics.deltas'),
             ],
         ]);
     }

@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Click;
 use App\Support\Analytics\ClickAnalytics;
+use App\Support\Analytics\RawClicksExporter;
 use App\Support\CsvExporter;
+use App\Support\Features\FeatureManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -41,8 +43,32 @@ class CampaignAnalyticsController extends Controller
                 $query->where('campaign_id', $campaign->id);
             });
 
+        $featureScope = FeatureManager::for($user);
+
+        $insights = ['days'];
+        if ($featureScope->allows('analytics.top_lists')) {
+            $insights[] = 'sources';
+            $insights[] = 'links';
+        }
+        if ($featureScope->allows('analytics.heatmap')) {
+            $insights[] = 'heatmap';
+        }
+
         // Stats génériques + insights campagne (tops sources/liens/jours)
-        $stats = ClickAnalytics::forCampaign($clicksQuery, $days);
+        $stats = ClickAnalytics::forCampaign($clicksQuery, $days, $insights);
+
+        if (! $featureScope->allows('analytics.top_lists')) {
+            unset($stats['topSources'], $stats['topLinks']);
+        }
+        if (! $featureScope->allows('analytics.heatmap')) {
+            unset($stats['hourlyHeatmap']);
+        }
+        if (! $featureScope->allows('analytics.deltas')) {
+            $stats['delta'] = [
+                'totalClicks'    => 0,
+                'uniqueVisitors' => 0,
+            ];
+        }
 
         // Même fenêtre temporelle que forPeriod()
         $since = now()->subDays($days);
@@ -72,6 +98,13 @@ class CampaignAnalyticsController extends Controller
             'filters' => [
                 'days' => $days,
             ],
+            'features' => [
+                'exports'  => $featureScope->allows('analytics.exports'),
+                'heatmap'  => $featureScope->allows('analytics.heatmap'),
+                'topLists' => $featureScope->allows('analytics.top_lists'),
+                'deltas'   => $featureScope->allows('analytics.deltas'),
+                'rawLog'   => $featureScope->allows('analytics.raw_log'),
+            ],
         ]);
     }
 
@@ -80,6 +113,12 @@ class CampaignAnalyticsController extends Controller
         $user = $request->user();
 
         if ($campaign->user_id !== $user->id) {
+            abort(403);
+        }
+
+        $featureScope = FeatureManager::for($user);
+
+        if (! $featureScope->allows('analytics.exports')) {
             abort(403);
         }
 
@@ -170,6 +209,51 @@ class CampaignAnalyticsController extends Controller
 
         $csv = CsvExporter::build($columns, [$row]);
         $filename = sprintf('campaign-%s-analytics.csv', $campaign->id);
+
+        return response($csv, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename={$filename}",
+        ]);
+    }
+
+    public function exportRaw(Request $request, Campaign $campaign)
+    {
+        $user = $request->user();
+
+        if ($campaign->user_id !== $user->id) {
+            abort(403);
+        }
+
+        $featureScope = FeatureManager::for($user);
+        if (! $featureScope->allows('analytics.raw_log')) {
+            abort(403);
+        }
+
+        $days = (int) $request->get('days', 7);
+        if ($days <= 0) {
+            $days = 7;
+        }
+        if ($days > 365) {
+            $days = 365;
+        }
+
+        $clicksQuery = Click::query()
+            ->whereHas('trackedLink.source', function ($query) use ($campaign) {
+                $query->where('campaign_id', $campaign->id);
+            });
+
+        $period = ClickAnalytics::forPeriod($clicksQuery, $days)['period'] ?? [
+            'since' => now()->subDays($days)->toDateString(),
+            'until' => now()->toDateString(),
+        ];
+
+        $since = Carbon::parse($period['since'])->startOfDay();
+        $until = Carbon::parse($period['until'] ?? now()->toDateString())->endOfDay();
+
+        $rows = RawClicksExporter::rows($clicksQuery, $since, $until);
+
+        $csv = CsvExporter::build(RawClicksExporter::columns(), $rows);
+        $filename = sprintf('campaign-%s-raw-clicks.csv', $campaign->id);
 
         return response($csv, 200, [
             'Content-Type'        => 'text/csv; charset=UTF-8',

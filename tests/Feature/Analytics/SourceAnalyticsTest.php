@@ -18,7 +18,7 @@ class SourceAnalyticsTest extends TestCase
 
     public function test_user_can_view_source_analytics(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['plan' => 'pro']);
 
         $campaign = Campaign::factory()->create(['user_id' => $user->id]);
 
@@ -105,7 +105,7 @@ class SourceAnalyticsTest extends TestCase
 
     public function test_user_can_export_source_analytics_csv(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['plan' => 'pro']);
 
         $campaign = Campaign::factory()->for($user)->create();
 
@@ -129,6 +129,45 @@ class SourceAnalyticsTest extends TestCase
         $response->assertOk();
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
         $this->assertStringContainsString('source_id', $response->getContent());
+    }
+
+    public function test_user_can_export_source_raw_clicks(): void
+    {
+        $user = User::factory()->create(['plan' => 'pro']);
+
+        $campaign = Campaign::factory()->for($user)->create();
+        $source   = Source::factory()->for($user)->for($campaign)->create();
+        $link     = Link::factory()->for($user)->create();
+        $tracked  = TrackedLink::factory()->for($user)->for($link)->for($source)->create();
+
+        Click::factory()->create([
+            'tracked_link_id' => $tracked->id,
+            'visitor_hash'    => 'raw-source',
+            'created_at'      => now(),
+        ]);
+
+        $response = $this->actingAs($user)->get(route('sources.analytics.export-raw', [
+            'source' => $source->id,
+            'days'   => 7,
+        ]));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $this->assertStringContainsString('click_id', $response->getContent());
+    }
+
+    public function test_free_plan_cannot_export_source_raw_clicks(): void
+    {
+        $user = User::factory()->create(['plan' => 'free']);
+        $campaign = Campaign::factory()->for($user)->create();
+        $source = Source::factory()->for($user)->for($campaign)->create();
+
+        $this->actingAs($user)
+            ->get(route('sources.analytics.export-raw', [
+                'source' => $source->id,
+                'days'   => 7,
+            ]))
+            ->assertForbidden();
     }
 
     public function test_user_cannot_view_someone_else_source_analytics(): void

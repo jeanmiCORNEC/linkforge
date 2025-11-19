@@ -16,6 +16,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    features: {
+        type: Object,
+        required: true,
+    },
 });
 
 // ---- Période sélectionnée (7 / 30 / perso) ----
@@ -105,6 +109,19 @@ const exportAnalytics = () => {
         days: currentDays.value,
     });
 };
+
+const exportRawAnalytics = () => {
+    window.location = route('sources.analytics.export-raw', {
+        source: props.source.id,
+        days: currentDays.value,
+    });
+};
+
+const canExport = computed(() => props.features?.exports ?? false);
+const showHeatmap = computed(() => props.features?.heatmap ?? false);
+const showTopLists = computed(() => props.features?.topLists ?? false);
+const showDeltas = computed(() => props.features?.deltas ?? false);
+const canExportRaw = computed(() => props.features?.rawLog ?? false);
 
 // ---- Helpers d’affichage ----
 const formatDateFr = (value) => {
@@ -279,11 +296,21 @@ const uniqueDelta = computed(() => props.stats.delta?.unique_visitors ?? 0);
                         </p>
 
                         <button
+                            v-if="canExport"
                             type="button"
                             :class="primaryButtonClass"
                             @click="exportAnalytics"
                         >
                             Exporter CSV
+                        </button>
+
+                        <button
+                            v-if="canExportRaw"
+                            type="button"
+                            :class="primaryButtonClass"
+                            @click="exportRawAnalytics"
+                        >
+                            Exporter clics (raw)
                         </button>
                     </div>
                 </div>
@@ -305,6 +332,7 @@ const uniqueDelta = computed(() => props.stats.delta?.unique_visitors ?? 0);
                         Sur les {{ props.stats.period?.days ?? currentDays }} derniers jours
                     </p>
                     <p
+                        v-if="showDeltas"
                         class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium"
                         :class="deltaClass(totalDelta)"
                     >
@@ -323,6 +351,7 @@ const uniqueDelta = computed(() => props.stats.delta?.unique_visitors ?? 0);
                         Basé sur le hash visiteur (IP + user-agent)
                     </p>
                     <p
+                        v-if="showDeltas"
                         class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium"
                         :class="deltaClass(uniqueDelta)"
                     >
@@ -344,7 +373,7 @@ const uniqueDelta = computed(() => props.stats.delta?.unique_visitors ?? 0);
             </section>
 
             <!-- Tops : liens et jours -->
-            <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <section v-if="showTopLists" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div :class="bigCardClass">
                     <h3 class="text-sm font-semibold">
                         Liens trackés les plus performants
@@ -411,7 +440,7 @@ const uniqueDelta = computed(() => props.stats.delta?.unique_visitors ?? 0);
             </section>
 
             <!-- Graph clics / jour (full width) -->
-            <section :class="bigCardClass">
+            <section v-if="showHeatmap" :class="bigCardClass">
                 <h3 class="text-sm font-semibold mb-1">
                     Clics par jour
                 </h3>
