@@ -46,4 +46,9 @@ class Link extends Model
             'id'             // clé locale sur tracked_links
         );
     }
+
+    public function conversions()
+    {
+        return $this->hasMany(Conversion::class);
+    }
 }

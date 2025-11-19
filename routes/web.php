@@ -3,15 +3,17 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\Dashboard\DashboardController;
-use App\Http\Controllers\Links\LinkController;
-use App\Http\Controllers\Links\LinkAnalyticsController;
-use App\Http\Controllers\Links\SourceTrackedLinkController;
-use App\Http\Controllers\Sources\SourceController;
-use App\Http\Controllers\Sources\SourceAnalyticsController;
-use App\Http\Controllers\Campaigns\CampaignController;
 use App\Http\Controllers\Campaigns\CampaignAnalyticsController;
+use App\Http\Controllers\Campaigns\CampaignController;
+use App\Http\Controllers\Conversions\ConversionController;
+use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Links\LinkAnalyticsController;
+use App\Http\Controllers\Links\LinkController;
+use App\Http\Controllers\Links\SourceTrackedLinkController;
 use App\Http\Controllers\Profile\ProfileController;
+use App\Http\Controllers\Sources\SourceAnalyticsController;
+use App\Http\Controllers\Sources\SourceController;
+use App\Http\Controllers\Integrations\AffiliateIntegrationController;
 
 // Landing publique (Inertia)
 Route::get('/', function () {
@@ -108,6 +110,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('campaigns.analytics.export');
     Route::get('/campaigns/{campaign}/analytics/export-raw', [CampaignAnalyticsController::class, 'exportRaw'])
         ->name('campaigns.analytics.export-raw');
+
+    // Conversions management
+    Route::get('/conversions', [ConversionController::class, 'index'])
+        ->name('conversions.index');
+    Route::patch('/conversions/{conversion}/status', [ConversionController::class, 'updateStatus'])
+        ->name('conversions.status');
+
+    // Affiliate integrations
+    Route::post('/integrations/affiliate', [AffiliateIntegrationController::class, 'store'])
+        ->name('integrations.affiliate.store');
+    Route::delete('/integrations/affiliate/{integration}', [AffiliateIntegrationController::class, 'destroy'])
+        ->name('integrations.affiliate.destroy');
 
     // Profil
     Route::get('/profile', [ProfileController::class, 'edit'])

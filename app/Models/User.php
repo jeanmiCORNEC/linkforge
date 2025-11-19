@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -67,5 +67,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function trackedLinks()
     {
         return $this->hasMany(TrackedLink::class);
+    }
+
+    public function conversions()
+    {
+        return $this->hasMany(Conversion::class);
+    }
+
+    public function affiliateIntegrations()
+    {
+        return $this->hasMany(AffiliateIntegration::class);
     }
 }

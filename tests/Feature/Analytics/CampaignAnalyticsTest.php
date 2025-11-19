@@ -4,6 +4,7 @@ namespace Tests\Feature\Analytics;
 
 use App\Models\Campaign;
 use App\Models\Click;
+use App\Models\Conversion;
 use App\Models\Link;
 use App\Models\Source;
 use App\Models\TrackedLink;
@@ -86,6 +87,19 @@ class CampaignAnalyticsTest extends TestCase
             'created_at'      => now()->subDays(2),
         ]);
 
+        Conversion::factory()->create([
+            'user_id'         => $user->id,
+            'tracked_link_id' => $firstTracked->id,
+            'link_id'         => $firstLink->id,
+            'source_id'       => $firstSource->id,
+            'campaign_id'     => $campaign->id,
+            'visitor_hash'    => 'hash-a1',
+            'revenue'         => 120,
+            'commission'      => 30,
+            'status'          => 'approved',
+            'created_at'      => now()->addHour(),
+        ]);
+
         $this->actingAs($user);
 
         $response = $this->get(route('campaigns.analytics.show', [
@@ -109,6 +123,8 @@ class CampaignAnalyticsTest extends TestCase
             ->has('stats.topDays')
             ->where('stats.topDays.0.total', 3)
             ->has('stats.hourlyHeatmap')
+            ->where('stats.conversions.total', 1)
+            ->where('stats.conversions.revenue', 120)
         );
 
     }
@@ -151,6 +167,19 @@ class CampaignAnalyticsTest extends TestCase
             'created_at'      => now(),
         ]);
 
+        Conversion::factory()->create([
+            'user_id'         => $user->id,
+            'tracked_link_id' => $trackedLink->id,
+            'link_id'         => $link->id,
+            'source_id'       => $source->id,
+            'campaign_id'     => $campaign->id,
+            'visitor_hash'    => 'csv-campaign',
+            'revenue'         => 200,
+            'commission'      => 40,
+            'status'          => 'approved',
+            'created_at'      => now()->addMinutes(20),
+        ]);
+
         $response = $this->actingAs($user)->get(route('campaigns.analytics.export', [
             'campaign' => $campaign->id,
             'days'     => 7,
@@ -158,7 +187,13 @@ class CampaignAnalyticsTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
-        $this->assertStringContainsString('campaign_id', $response->getContent());
+
+        $rows = array_map('str_getcsv', array_filter(explode("\n", trim($response->getContent()))));
+        $headers = array_shift($rows);
+        $data = array_combine($headers, $rows[0]);
+
+        $this->assertSame('1', $data['conversions']);
+        $this->assertSame('200', $data['revenue']);
     }
 
     #[Test]
@@ -177,6 +212,20 @@ class CampaignAnalyticsTest extends TestCase
             'created_at'      => now(),
         ]);
 
+        Conversion::factory()->create([
+            'user_id'         => $user->id,
+            'tracked_link_id' => $tracked->id,
+            'link_id'         => $link->id,
+            'source_id'       => $source->id,
+            'campaign_id'     => $campaign->id,
+            'visitor_hash'    => 'raw-campaign',
+            'order_id'        => 'CAMP-RAW-1',
+            'revenue'         => 90,
+            'commission'      => 18,
+            'status'          => 'approved',
+            'created_at'      => now()->addMinutes(5),
+        ]);
+
         $response = $this->actingAs($user)->get(route('campaigns.analytics.export-raw', [
             'campaign' => $campaign->id,
             'days'     => 7,
@@ -184,7 +233,7 @@ class CampaignAnalyticsTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
-        $this->assertStringContainsString('click_id', $response->getContent());
+        $this->assertStringContainsString('CAMP-RAW-1', $response->getContent());
     }
 
     #[Test]
