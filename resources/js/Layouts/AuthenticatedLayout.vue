@@ -91,6 +91,19 @@ const navLinkClasses = (active) =>
                                     class="pointer-events-none absolute inset-x-2 -bottom-1 h-0.5 rounded-full bg-indigo-500"
                                 />
                             </Link>
+
+                            <!-- Conversions -->
+                            <Link
+                                :href="route('conversions.index')"
+                                :class="navLinkClasses(isActive('conversions.*'))"
+                                :aria-current="isActive('conversions.*') ? 'page' : undefined"
+                            >
+                                <span>Conversions</span>
+                                <span
+                                    v-if="isActive('conversions.*')"
+                                    class="pointer-events-none absolute inset-x-2 -bottom-1 h-0.5 rounded-full bg-indigo-500"
+                                />
+                            </Link>
                         </div>
                     </div>
 
@@ -184,6 +197,9 @@ const navLinkClasses = (active) =>
                     </ResponsiveNavLink>
                     <ResponsiveNavLink :href="route('sources.index')" :active="route().current('sources.*')">
                         Sources
+                    </ResponsiveNavLink>
+                    <ResponsiveNavLink :href="route('conversions.index')" :active="route().current('conversions.*')">
+                        Conversions
                     </ResponsiveNavLink>
                 </div>
 

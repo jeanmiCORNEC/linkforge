@@ -9,6 +9,7 @@ use App\Models\Link;
 use App\Models\Source;
 use App\Support\Analytics\ClickAnalytics;
 use App\Support\Features\FeatureManager;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

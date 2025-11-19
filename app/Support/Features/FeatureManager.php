@@ -16,6 +16,8 @@ class FeatureManager
             'analytics.top_lists'      => false,
             'analytics.exports'        => false,
             'analytics.raw_log'        => false,
+            'conversions.access'       => false,
+            'integrations.manage'      => false,
         ],
         'pro' => [
             'analytics.deltas'         => true,
@@ -23,6 +25,8 @@ class FeatureManager
             'analytics.top_lists'      => true,
             'analytics.exports'        => true,
             'analytics.raw_log'        => true,
+            'conversions.access'       => true,
+            'integrations.manage'      => true,
         ],
         'scale' => [
             'analytics.deltas'         => true,
@@ -30,6 +34,8 @@ class FeatureManager
             'analytics.top_lists'      => true,
             'analytics.exports'        => true,
             'analytics.raw_log'        => true,
+            'conversions.access'       => true,
+            'integrations.manage'      => true,
         ],
     ];
 

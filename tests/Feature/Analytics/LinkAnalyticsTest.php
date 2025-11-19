@@ -8,6 +8,7 @@ use App\Models\Link;
 use App\Models\TrackedLink;
 use App\Models\Source;
 use App\Models\Click;
+use App\Models\Conversion;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\Test;
@@ -59,6 +60,19 @@ class LinkAnalyticsTest extends TestCase
             'created_at'      => now()->setHour(10),
         ]);
 
+        Conversion::factory()->create([
+            'user_id'         => $user->id,
+            'tracked_link_id' => $trackedWithSource->id,
+            'link_id'         => $link->id,
+            'source_id'       => $source->id,
+            'campaign_id'     => null,
+            'revenue'         => 42,
+            'commission'      => 12,
+            'status'          => 'approved',
+            'visitor_hash'    => 'hash-source',
+            'created_at'      => now()->addHour(),
+        ]);
+
         $response = $this
             ->actingAs($user)
             ->get(route('links.analytics.show', [
@@ -69,7 +83,7 @@ class LinkAnalyticsTest extends TestCase
 
         $response->assertOk();
 
-        $response->assertInertia(function (Assert $page) use ($link, $source) {
+        $response->assertInertia(function (Assert $page) use ($link) {
             $page
                 ->component('Links/Analytics')
                 ->where('link.id', $link->id)
@@ -83,6 +97,8 @@ class LinkAnalyticsTest extends TestCase
                 ->has('stats.topSources')
                 ->has('stats.topDays')
                 ->has('stats.hourlyHeatmap')
+                ->where('stats.conversions.total', 1)
+                ->where('stats.conversions.revenue', 42)
 
                 ->where('filters.days', 7)
                 ->etc();
@@ -324,6 +340,18 @@ class LinkAnalyticsTest extends TestCase
 
         $tracked = TrackedLink::factory()->for($user)->for($link)->create();
 
+        Conversion::factory()->create([
+            'user_id'         => $user->id,
+            'tracked_link_id' => $tracked->id,
+            'link_id'         => $link->id,
+            'source_id'       => null,
+            'campaign_id'     => null,
+            'revenue'         => 100,
+            'commission'      => 20,
+            'status'          => 'approved',
+            'created_at'      => now(),
+        ]);
+
         Click::factory()->create([
             'tracked_link_id' => $tracked->id,
             'visitor_hash'    => 'csv-hash',
@@ -337,7 +365,13 @@ class LinkAnalyticsTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
-        $this->assertStringContainsString('link_id', $response->getContent());
+
+        $rows = array_map('str_getcsv', array_filter(explode("\n", trim($response->getContent()))));
+        $headers = array_shift($rows);
+        $data = array_combine($headers, $rows[0]);
+
+        $this->assertSame('1', $data['conversions']);
+        $this->assertSame('100', $data['revenue']);
     }
 
     #[Test]
@@ -354,6 +388,20 @@ class LinkAnalyticsTest extends TestCase
             'created_at'      => now(),
         ]);
 
+        Conversion::factory()->create([
+            'user_id'         => $user->id,
+            'tracked_link_id' => $tracked->id,
+            'link_id'         => $link->id,
+            'source_id'       => null,
+            'campaign_id'     => null,
+            'visitor_hash'    => 'raw-hash',
+            'order_id'        => 'ORDER-123',
+            'revenue'         => 15,
+            'commission'      => 3,
+            'status'          => 'approved',
+            'created_at'      => now()->addMinutes(5),
+        ]);
+
         $response = $this->actingAs($user)->get(route('links.analytics.export-raw', [
             'link' => $link->id,
             'days' => 7,
@@ -361,7 +409,7 @@ class LinkAnalyticsTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
-        $this->assertStringContainsString('click_id', $response->getContent());
+        $this->assertStringContainsString('ORDER-123', $response->getContent());
     }
 
     #[Test]

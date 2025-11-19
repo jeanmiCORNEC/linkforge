@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Sources;
 use App\Http\Controllers\Controller;
 use App\Models\Source;
 use App\Support\Analytics\ClickAnalytics;
+use App\Support\Analytics\ConversionMetrics;
 use App\Support\Analytics\RawClicksExporter;
 use App\Support\Features\FeatureManager;
 use App\Support\CsvExporter;
@@ -50,6 +51,9 @@ class SourceAnalyticsController extends Controller
         }
 
         $rawStats = ClickAnalytics::forSource($clicksQuery, $days, $insights);
+        $since = Carbon::parse($rawStats['period']['since'])->startOfDay();
+        $until = Carbon::parse($rawStats['period']['until'] ?? now()->toDateString())->endOfDay();
+        $conversionSummary = ConversionMetrics::summary($source->conversions(), $since, $until);
 
         if (! $featureScope->allows('analytics.top_lists')) {
             unset($rawStats['topLinks']);
@@ -79,6 +83,7 @@ class SourceAnalyticsController extends Controller
                 'unique_visitors' => $rawStats['delta']['uniqueVisitors'] ?? 0,
             ],
             'period'             => $rawStats['period'],
+            'conversions'        => $conversionSummary,
         ];
 
         return Inertia::render('Sources/Analytics', [
@@ -135,6 +140,8 @@ class SourceAnalyticsController extends Controller
         $desktop = (int) ($devices['desktop'] ?? 0);
         $tablet  = (int) ($devices['tablet'] ?? 0);
         $unknown = max($stats['totalClicks'] - ($mobile + $desktop + $tablet), 0);
+
+        $conversionSummary = ConversionMetrics::summary($source->conversions(), $since, $until);
 
         $topCountry = $source->clicks()
             ->whereBetween('clicks.created_at', [$since, $until])
@@ -198,10 +205,12 @@ class SourceAnalyticsController extends Controller
             'clicks_unknown_device' => $unknown,
             'top_country'           => $topCountry ?? '',
             'top_browser'           => $topBrowser ?? '',
-            'conversions'           => 0,
-            'revenue'               => 0,
-            'commission'            => 0,
-            'epc'                   => 0,
+            'conversions'           => $conversionSummary['total'],
+            'revenue'               => $conversionSummary['revenue'],
+            'commission'            => $conversionSummary['commission'],
+            'epc'                   => $stats['totalClicks'] > 0
+                ? round($conversionSummary['revenue'] / $stats['totalClicks'], 2)
+                : 0,
         ];
 
         $csv = CsvExporter::build($columns, [$row]);

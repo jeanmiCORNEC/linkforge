@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Profile;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Controllers\Controller;
+use App\Support\Features\FeatureManager;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -10,7 +12,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
-use App\Http\Controllers\Controller;
 
 class ProfileController extends Controller
 {
@@ -19,9 +20,27 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $user = $request->user();
+        $featureScope = FeatureManager::for($user);
+
+        $integrations = $user->affiliateIntegrations()
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn ($integration) => [
+                'id'           => $integration->id,
+                'platform'     => $integration->platform,
+                'label'        => $integration->label,
+                'status'       => $integration->status,
+                'statusLabel'  => ucfirst($integration->status),
+            ]);
+
         return Inertia::render('Profile/Edit', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
-            'status' => session('status'),
+            'mustVerifyEmail'       => $user instanceof MustVerifyEmail,
+            'status'                => session('status'),
+            'plan'                  => $user->plan,
+            'integrations'          => $integrations,
+            'platforms'             => config('affiliate.platforms'),
+            'canManageIntegrations' => $featureScope->allows('integrations.manage'),
         ]);
     }
 

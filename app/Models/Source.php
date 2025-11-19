@@ -48,4 +48,9 @@ class Source extends Model
             'id'                // PK local sur tracked_links
         );
     }
+
+    public function conversions()
+    {
+        return $this->hasMany(Conversion::class);
+    }
 }
