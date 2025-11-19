@@ -35,8 +35,8 @@ class CampaignAnalyticsController extends Controller
                 $query->where('campaign_id', $campaign->id);
             });
 
-        // Stats génériques (total, uniques, clics/jour, période…)
-        $stats = ClickAnalytics::forPeriod($clicksQuery, $days);
+        // Stats génériques + insights campagne (tops sources/liens/jours)
+        $stats = ClickAnalytics::forCampaign($clicksQuery, $days);
 
         // Même fenêtre temporelle que forPeriod()
         $since = now()->subDays($days);
