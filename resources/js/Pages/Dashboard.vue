@@ -20,6 +20,18 @@ const props = defineProps({
         type: Array,
         required: true,
     },
+    topSources: {
+        type: Array,
+        required: true,
+    },
+    topLinks: {
+        type: Array,
+        required: true,
+    },
+    globalDelta: {
+        type: Object,
+        required: true,
+    },
 });
 
 const deviceLabel = (key) => {
@@ -33,6 +45,21 @@ const deviceLabel = (key) => {
 const browserLabel = (key) => {
     if (key === 'unknown') return 'Inconnu';
     return key;
+};
+
+const deltaLabel = (value) => {
+    if (value === 0) return 'Stable vs période précédente';
+    return `${value > 0 ? '+' : ''}${value}% vs période précédente`;
+};
+
+const deltaClass = (value) => {
+    if (value > 0) {
+        return 'text-emerald-300 bg-emerald-900/30 border border-emerald-500/30';
+    }
+    if (value < 0) {
+        return 'text-rose-300 bg-rose-900/30 border border-rose-500/30';
+    }
+    return 'text-slate-300 bg-slate-800/60 border border-slate-700';
 };
 
 /* ---------- Styles DA LinkForge ---------- */
@@ -49,6 +76,11 @@ const clickableCardClass =
     ' cursor-pointer hover:border-indigo-500/70 hover:bg-slate-900/90 hover:shadow-indigo-900/40 transition';
 
 const primaryLinkCardClass = 'block ' + clickableCardClass;
+
+const formatPercentage = (value) => `${value ?? 0}%`;
+
+const analyticsButtonClass =
+    'inline-flex items-center gap-1 rounded-md border border-indigo-500 px-3 py-1 text-[11px] font-semibold text-indigo-200 hover:bg-indigo-900/30 transition';
 
 const heatmapHours = Array.from({ length: 24 }, (_, index) => index);
 const weekdayLabels = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
@@ -132,6 +164,12 @@ const heatmapCellClass = (value) => {
                         <p class="mt-1 text-xs text-slate-400">
                             {{ stats.unique_visitors }} visiteurs uniques
                         </p>
+                        <p
+                            class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium"
+                            :class="deltaClass(props.globalDelta.clicks || 0)"
+                        >
+                            {{ deltaLabel(props.globalDelta.clicks || 0) }}
+                        </p>
                     </div>
 
                     <!-- Campagnes -->
@@ -145,6 +183,12 @@ const heatmapCellClass = (value) => {
                         <p class="mt-2 text-xs text-slate-400">
                             Campagnes actives ou archivées
                         </p>
+                        <p
+                            class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium"
+                            :class="deltaClass(props.globalDelta.clicks || 0)"
+                        >
+                            {{ deltaLabel(props.globalDelta.clicks || 0) }}
+                        </p>
                     </div>
 
                     <!-- Sources -->
@@ -157,6 +201,12 @@ const heatmapCellClass = (value) => {
                         </div>
                         <p class="mt-1 text-xs text-slate-400">
                             {{ stats.countries_count }} pays touchés
+                        </p>
+                        <p
+                            class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium"
+                            :class="deltaClass(props.globalDelta.unique_visitors || 0)"
+                        >
+                            {{ deltaLabel(props.globalDelta.unique_visitors || 0) }}
                         </p>
                     </div>
                 </section>
@@ -258,7 +308,7 @@ const heatmapCellClass = (value) => {
                         <li
                             v-for="campaign in topCampaigns"
                             :key="campaign.id"
-                            class="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-xs md:text-sm text-slate-100 flex items-center justify-between gap-3"
+                            class="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-xs md:text-sm text-slate-100 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
                         >
                             <div class="min-w-0">
                                 <p class="font-semibold truncate">
@@ -268,14 +318,105 @@ const heatmapCellClass = (value) => {
                                     {{ campaign.status === 'archived' ? 'Archivée' : 'Active' }}
                                 </p>
                             </div>
-                            <span class="text-xl font-bold">
-                                {{ campaign.total }}
-                            </span>
+                            <div class="flex items-center gap-3">
+                                <span class="text-xl font-bold">
+                                    {{ campaign.total }}
+                                </span>
+                                <InertiaLink
+                                    :href="route('campaigns.analytics.show', campaign.id)"
+                                    :class="analyticsButtonClass"
+                                >
+                                    Voir les analytics
+                                </InertiaLink>
+                            </div>
                         </li>
                         <li v-if="!topCampaigns.length" class="text-xs text-slate-500">
                             Aucune campagne n’a encore généré de clics mesurés.
                         </li>
                     </ul>
+                </section>
+
+                <!-- Top sources / liens -->
+                <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div :class="bigCardClass">
+                        <h3 class="text-sm font-semibold text-slate-50 mb-2">
+                            Top sources globales
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-4">
+                            Vos emplacements (bio, newsletter…) qui performent le plus toutes campagnes confondues.
+                        </p>
+                        <ul class="space-y-3">
+                            <li
+                                v-for="source in topSources"
+                                :key="source.id"
+                                class="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-xs md:text-sm text-slate-100 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+                            >
+                                <div class="min-w-0">
+                                    <p class="font-semibold truncate">
+                                        {{ source.name }}
+                                    </p>
+                                    <p class="text-[11px] text-slate-400">
+                                        {{ formatPercentage(source.percentage) }} des clics
+                                    </p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xl font-bold">
+                                        {{ source.total }}
+                                    </span>
+                                    <InertiaLink
+                                        :href="route('sources.analytics.show', source.id)"
+                                        :class="analyticsButtonClass"
+                                    >
+                                        Voir les analytics
+                                    </InertiaLink>
+                                </div>
+                            </li>
+                            <li v-if="!topSources.length" class="text-xs text-slate-500">
+                                Attachez vos liens aux sources pour visualiser ce classement.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div :class="bigCardClass">
+                        <h3 class="text-sm font-semibold text-slate-50 mb-2">
+                            Top liens trackés
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-4">
+                            Les liens courts qui génèrent le plus de trafic sur 7 jours.
+                        </p>
+                        <ul class="space-y-3">
+                            <li
+                                v-for="link in topLinks"
+                                :key="link.id"
+                                class="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-xs md:text-sm text-slate-100 flex flex-col gap-3"
+                            >
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <p class="font-semibold truncate">
+                                            {{ link.title }}
+                                        </p>
+                                        <p class="text-[11px] text-slate-400 truncate">
+                                            {{ formatPercentage(link.percentage) }} • {{ link.destination }}
+                                        </p>
+                                    </div>
+                                    <span class="text-xl font-bold">
+                                        {{ link.total }}
+                                    </span>
+                                </div>
+                                <div class="flex justify-end">
+                                    <InertiaLink
+                                        :href="route('links.analytics.show', link.id)"
+                                        :class="analyticsButtonClass"
+                                    >
+                                        Voir les analytics
+                                    </InertiaLink>
+                                </div>
+                            </li>
+                            <li v-if="!topLinks.length" class="text-xs text-slate-500">
+                                Aucune donnée disponible pour le moment.
+                            </li>
+                        </ul>
+                    </div>
                 </section>
 
                 <!-- Résumé devices + navigateurs -->

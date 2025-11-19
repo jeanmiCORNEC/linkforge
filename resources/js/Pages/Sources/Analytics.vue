@@ -150,6 +150,24 @@ const periodPillGroupClass =
 
 const periodPillBaseClass =
     'px-3 py-1 rounded-full text-xs md:text-sm font-medium transition';
+
+const deltaLabel = (value) => {
+    if (value === 0) return 'Stable vs période précédente';
+    return `${value > 0 ? '+' : ''}${value}% vs période précédente`;
+};
+
+const deltaClass = (value) => {
+    if (value > 0) {
+        return 'text-emerald-300 bg-emerald-900/30 border border-emerald-500/30';
+    }
+    if (value < 0) {
+        return 'text-rose-300 bg-rose-900/30 border border-rose-500/30';
+    }
+    return 'text-slate-300 bg-slate-800/60 border border-slate-700';
+};
+
+const totalDelta = computed(() => props.stats.delta?.total_clicks ?? 0);
+const uniqueDelta = computed(() => props.stats.delta?.unique_visitors ?? 0);
 </script>
 
 <template>
@@ -271,6 +289,12 @@ const periodPillBaseClass =
                     <p class="mt-1 text-xs md:text-sm text-slate-400">
                         Sur les {{ props.stats.period?.days ?? currentDays }} derniers jours
                     </p>
+                    <p
+                        class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium"
+                        :class="deltaClass(totalDelta)"
+                    >
+                        {{ deltaLabel(totalDelta) }}
+                    </p>
                 </div>
 
                 <div :class="cardClass">
@@ -282,6 +306,12 @@ const periodPillBaseClass =
                     </p>
                     <p class="mt-1 text-xs md:text-sm text-slate-400">
                         Basé sur le hash visiteur (IP + user-agent)
+                    </p>
+                    <p
+                        class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium"
+                        :class="deltaClass(uniqueDelta)"
+                    >
+                        {{ deltaLabel(uniqueDelta) }}
                     </p>
                 </div>
 
