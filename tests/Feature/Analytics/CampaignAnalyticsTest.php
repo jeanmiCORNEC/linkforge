@@ -127,4 +127,37 @@ class CampaignAnalyticsTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    #[Test]
+    public function user_can_export_campaign_analytics_csv(): void
+    {
+        $user = User::factory()->create();
+
+        $campaign = Campaign::factory()->for($user)->create();
+
+        $source = Source::factory()->for($user)->for($campaign)->create();
+
+        $link = Link::factory()->for($user)->create();
+
+        $trackedLink = TrackedLink::factory()
+            ->for($user)
+            ->for($source)
+            ->for($link)
+            ->create();
+
+        Click::factory()->create([
+            'tracked_link_id' => $trackedLink->id,
+            'visitor_hash'    => 'csv-campaign',
+            'created_at'      => now(),
+        ]);
+
+        $response = $this->actingAs($user)->get(route('campaigns.analytics.export', [
+            'campaign' => $campaign->id,
+            'days'     => 7,
+        ]));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $this->assertStringContainsString('campaign_id', $response->getContent());
+    }
 }

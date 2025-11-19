@@ -103,6 +103,34 @@ class SourceAnalyticsTest extends TestCase
         });
     }
 
+    public function test_user_can_export_source_analytics_csv(): void
+    {
+        $user = User::factory()->create();
+
+        $campaign = Campaign::factory()->for($user)->create();
+
+        $source = Source::factory()->for($user)->for($campaign)->create();
+
+        $link = Link::factory()->for($user)->create();
+
+        $tracked = TrackedLink::factory()->for($user)->for($link)->for($source)->create();
+
+        Click::factory()->create([
+            'tracked_link_id' => $tracked->id,
+            'visitor_hash'    => 'csv-source',
+            'created_at'      => now(),
+        ]);
+
+        $response = $this->actingAs($user)->get(route('sources.analytics.export', [
+            'source' => $source->id,
+            'days'   => 7,
+        ]));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $this->assertStringContainsString('source_id', $response->getContent());
+    }
+
     public function test_user_cannot_view_someone_else_source_analytics(): void
     {
         $owner = User::factory()->create();

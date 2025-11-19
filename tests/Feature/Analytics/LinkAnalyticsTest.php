@@ -314,4 +314,29 @@ class LinkAnalyticsTest extends TestCase
                 ->etc();
         });
     }
+
+    #[Test]
+    public function it_exports_link_analytics_csv(): void
+    {
+        $user = User::factory()->create();
+
+        $link = Link::factory()->for($user)->create();
+
+        $tracked = TrackedLink::factory()->for($user)->for($link)->create();
+
+        Click::factory()->create([
+            'tracked_link_id' => $tracked->id,
+            'visitor_hash'    => 'csv-hash',
+            'created_at'      => now(),
+        ]);
+
+        $response = $this->actingAs($user)->get(route('links.analytics.export', [
+            'link' => $link->id,
+            'days' => 7,
+        ]));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $this->assertStringContainsString('link_id', $response->getContent());
+    }
 }

@@ -121,6 +121,13 @@ const applyCustomPeriod = () => {
     changePeriod(val);
 };
 
+const exportAnalytics = () => {
+    window.location = route('links.analytics.export', {
+        link: props.link.id,
+        days: currentDays.value,
+    });
+};
+
 /* ---------- Styles DA LinkForge ---------- */
 
 const shellCardClass =
@@ -248,6 +255,14 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                             Analyse des {{ stats.period.days }} derniers jours
                             • Depuis le {{ formatDateFr(stats.period.since) }}
                         </p>
+
+                        <button
+                            type="button"
+                            :class="primaryButtonClass"
+                            @click="exportAnalytics"
+                        >
+                            Exporter CSV
+                        </button>
                     </div>
                 </div>
             </div>

@@ -99,6 +99,13 @@ const heatmapCellClass = (value) => {
     return 'bg-indigo-500 text-white';
 };
 
+const exportAnalytics = () => {
+    window.location = route('sources.analytics.export', {
+        source: props.source.id,
+        days: currentDays.value,
+    });
+};
+
 // ---- Helpers d’affichage ----
 const formatDateFr = (value) => {
     if (!value) return '';
@@ -270,6 +277,14 @@ const uniqueDelta = computed(() => props.stats.delta?.unique_visitors ?? 0);
                             Analyse des {{ props.stats.period?.days ?? currentDays }} derniers jours
                             • Depuis le {{ formatDateFr(props.stats.period?.since) }}
                         </p>
+
+                        <button
+                            type="button"
+                            :class="primaryButtonClass"
+                            @click="exportAnalytics"
+                        >
+                            Exporter CSV
+                        </button>
                     </div>
                 </div>
             </div>
