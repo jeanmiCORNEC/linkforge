@@ -18,4 +18,9 @@ class FeatureScope
     {
         return (bool) ($this->features[$feature] ?? false);
     }
+
+    public function toArray(): array
+    {
+        return $this->features;
+    }
 }

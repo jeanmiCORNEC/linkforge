@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Campaigns\CampaignAnalyticsController;
 use App\Http\Controllers\Campaigns\CampaignController;
-use App\Http\Controllers\Conversions\ConversionController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Links\LinkAnalyticsController;
 use App\Http\Controllers\Links\LinkController;
@@ -14,6 +13,7 @@ use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\Sources\SourceAnalyticsController;
 use App\Http\Controllers\Sources\SourceController;
 use App\Http\Controllers\Integrations\AffiliateIntegrationController;
+use App\Http\Controllers\Exports\TrafficExportController;
 
 // Landing publique (Inertia)
 Route::get('/', function () {
@@ -111,11 +111,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/campaigns/{campaign}/analytics/export-raw', [CampaignAnalyticsController::class, 'exportRaw'])
         ->name('campaigns.analytics.export-raw');
 
-    // Conversions management
-    Route::get('/conversions', [ConversionController::class, 'index'])
-        ->name('conversions.index');
-    Route::patch('/conversions/{conversion}/status', [ConversionController::class, 'updateStatus'])
-        ->name('conversions.status');
+    Route::get('/exports/traffic/monthly', [TrafficExportController::class, 'monthly'])
+        ->name('exports.traffic.monthly');
 
     // Affiliate integrations
     Route::post('/integrations/affiliate', [AffiliateIntegrationController::class, 'store'])

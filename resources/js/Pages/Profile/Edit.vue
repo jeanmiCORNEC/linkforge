@@ -166,11 +166,20 @@ const removeIntegration = (id) => {
                                         <p class="font-semibold text-gray-900">
                                             {{ integration.label }}
                                             <span class="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs uppercase text-gray-600">
-                                                {{ integration.platform }}
+                                                {{ integration.platform_label }}
                                             </span>
                                         </p>
                                         <p class="text-xs text-gray-500">
                                             Statut : {{ integration.statusLabel }}
+                                            <template v-if="integration.last_synced_at">
+                                                • Sync {{ integration.last_synced_at }}
+                                            </template>
+                                        </p>
+                                        <p
+                                            v-if="integration.last_error"
+                                            class="text-xs text-rose-600"
+                                        >
+                                            Erreur : {{ integration.last_error }}
                                         </p>
                                     </div>
                                     <button

@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link as InertiaLink } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     stats: {
@@ -42,11 +42,6 @@ const deviceLabel = (key) => {
     if (key === 'mobile') return 'Mobile';
     if (key === 'desktop') return 'Desktop';
     if (key === 'tablet') return 'Tablette';
-    if (key === 'unknown') return 'Inconnu';
-    return key;
-};
-
-const browserLabel = (key) => {
     if (key === 'unknown') return 'Inconnu';
     return key;
 };
@@ -127,6 +122,37 @@ const heatmapCellClass = (value) => {
     if (ratio < 0.33) return 'bg-indigo-900 text-slate-200';
     if (ratio < 0.66) return 'bg-indigo-700 text-white';
     return 'bg-indigo-500 text-white';
+};
+
+const deviceSegments = computed(() => {
+    const raw = props.stats.devices_breakdown || {};
+    const total = Object.values(raw).reduce((sum, value) => sum + Number(value || 0), 0);
+    const order = ['mobile', 'desktop', 'tablet', 'unknown'];
+
+    return order.map((key) => {
+        const count = Number(raw[key] ?? 0);
+        const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+
+        return {
+            key,
+            label: deviceLabel(key),
+            count,
+            percentage,
+        };
+    });
+});
+
+const topCountries = computed(() => props.stats.top_countries ?? []);
+
+const exportMonth = ref(new Date().toISOString().slice(0, 7));
+const exportMonthlyTraffic = () => {
+    if (! exportMonth.value) {
+        return;
+    }
+
+    window.location = route('exports.traffic.monthly', {
+        month: exportMonth.value,
+    });
 };
 </script>
 
@@ -426,54 +452,67 @@ const heatmapCellClass = (value) => {
                     </div>
                 </section>
 
-                <!-- Résumé devices + navigateurs -->
-                <section :class="bigCardClass">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
-                        <!-- Appareils -->
-                        <section>
-                            <h3 class="text-sm font-semibold text-slate-50 mb-2">
-                                Appareils
-                            </h3>
-                            <ul class="space-y-1 text-xs text-slate-200">
-                                <li
-                                    v-for="(count, key) in stats.devices_breakdown"
-                                    :key="key"
-                                    class="flex justify-between"
-                                >
-                                    <span>{{ deviceLabel(key) }}</span>
-                                    <span class="font-semibold">{{ count }}</span>
-                                </li>
-                                <li
-                                    v-if="!Object.keys(stats.devices_breakdown || {}).length"
-                                    class="text-slate-500"
-                                >
-                                    Pas encore de données.
-                                </li>
-                            </ul>
-                        </section>
+                <!-- Résumé devices + pays -->
+                <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div :class="bigCardClass">
+                        <h3 class="text-sm font-semibold text-slate-50">
+                            Mobile vs Desktop
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-4">
+                            Visualisez comment se répartissent vos clics selon le type d’appareil.
+                        </p>
+                        <div class="space-y-4">
+                            <div
+                                v-for="segment in deviceSegments"
+                                :key="segment.key"
+                                class="space-y-1"
+                            >
+                                <div class="flex items-center justify-between text-xs text-slate-300">
+                                    <span>{{ segment.label }}</span>
+                                    <span class="font-semibold text-slate-100">
+                                        {{ segment.percentage }}% • {{ segment.count }}
+                                    </span>
+                                </div>
+                                <div class="h-2 rounded-full bg-slate-800 overflow-hidden">
+                                    <div
+                                        class="h-full rounded-full bg-indigo-500 transition-all duration-300"
+                                        :style="{ width: `${segment.percentage}%` }"
+                                    ></div>
+                                </div>
+                            </div>
+                            <p
+                                v-if="!Object.values(props.stats.devices_breakdown || {}).some((value) => Number(value) > 0)"
+                                class="text-xs text-slate-500"
+                            >
+                                Pas encore assez de clics pour segmenter les appareils.
+                            </p>
+                        </div>
+                    </div>
 
-                        <!-- Navigateurs -->
-                        <section class="md:border-l md:border-slate-800 md:pl-6">
-                            <h3 class="text-sm font-semibold text-slate-50 mb-2">
-                                Navigateurs
-                            </h3>
-                            <ul class="space-y-1 text-xs text-slate-200">
-                                <li
-                                    v-for="(count, key) in stats.browsers_breakdown"
-                                    :key="key"
-                                    class="flex justify-between"
-                                >
-                                    <span>{{ browserLabel(key) }}</span>
-                                    <span class="font-semibold">{{ count }}</span>
-                                </li>
-                                <li
-                                    v-if="!Object.keys(stats.browsers_breakdown || {}).length"
-                                    class="text-slate-500"
-                                >
-                                    Pas encore de données.
-                                </li>
-                            </ul>
-                        </section>
+                    <div :class="bigCardClass">
+                        <h3 class="text-sm font-semibold text-slate-50">
+                            Top pays
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-4">
+                            Les zones géographiques qui génèrent le plus de trafic sur 7 jours.
+                        </p>
+                        <ul class="space-y-2 text-xs text-slate-200">
+                            <li
+                                v-for="country in topCountries"
+                                :key="country.country"
+                                class="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2"
+                            >
+                                <span class="font-medium">
+                                    {{ country.country || 'Inconnu' }}
+                                </span>
+                                <span class="text-sm font-semibold text-slate-100">
+                                    {{ country.percentage }}% • {{ country.total }}
+                                </span>
+                            </li>
+                            <li v-if="!topCountries.length" class="text-slate-500">
+                                Pas encore de données pays.
+                            </li>
+                        </ul>
                     </div>
                 </section>
 
@@ -520,6 +559,35 @@ const heatmapCellClass = (value) => {
                             </p>
                         </div>
                     </InertiaLink>
+                </section>
+
+                <!-- Export mensuel -->
+                <section :class="bigCardClass">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div>
+                            <h3 class="text-sm font-semibold text-slate-50">
+                                Export mensuel CSV
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-1">
+                                Téléchargez un rapport consolidé (clics, devices, pays, referers) pour le mois choisi.
+                            </p>
+                        </div>
+                        <div class="flex flex-col md:flex-row items-start md:items-center gap-3">
+                            <input
+                                v-model="exportMonth"
+                                type="month"
+                                class="rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-xs text-slate-100 focus:border-indigo-500 focus:ring-indigo-500"
+                            >
+                            <button
+                                type="button"
+                                class="inline-flex items-center rounded-md bg-indigo-500 px-4 py-2 text-xs font-semibold text-white shadow-xl shadow-indigo-900/30 hover:bg-indigo-400 transition"
+                                @click="exportMonthlyTraffic"
+                                :disabled="!exportMonth"
+                            >
+                                Exporter le mois
+                            </button>
+                        </div>
+                    </div>
                 </section>
             </main>
         </div>

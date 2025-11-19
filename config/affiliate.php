@@ -27,4 +27,8 @@ return [
             ],
         ],
     ],
+    'connectors' => [
+        'impact' => \App\Support\Affiliations\ImpactConnector::class,
+    ],
+    'sync_window_days' => 7,
 ];

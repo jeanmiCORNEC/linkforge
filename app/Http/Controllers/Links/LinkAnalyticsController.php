@@ -189,12 +189,30 @@ class LinkAnalyticsController extends Controller
             'clicks_desktop',
             'clicks_tablet',
             'clicks_unknown_device',
+            'top_country',
+            'top_referrer',
             'last_click_at',
             'conversions',
             'revenue',
             'commission',
             'epc',
         ];
+
+        $topCountry = $link->clicks()
+            ->whereBetween('clicks.created_at', [$since, $until])
+            ->whereNotNull('country')
+            ->select('country', DB::raw('count(*) as total'))
+            ->groupBy('country')
+            ->orderByDesc('total')
+            ->value('country');
+
+        $topReferer = $link->clicks()
+            ->whereBetween('clicks.created_at', [$since, $until])
+            ->whereNotNull('referrer')
+            ->select('referrer', DB::raw('count(*) as total'))
+            ->groupBy('referrer')
+            ->orderByDesc('total')
+            ->value('referrer');
 
         $row = [
             'link_id'              => $link->id,
@@ -220,6 +238,8 @@ class LinkAnalyticsController extends Controller
             'clicks_desktop'       => $desktop,
             'clicks_tablet'        => $tablet,
             'clicks_unknown_device'=> $unknown,
+            'top_country'          => $topCountry ?? '',
+            'top_referrer'         => $topReferer ?? '',
             'last_click_at'        => $lastClickAt ? Carbon::parse($lastClickAt)->toDateTimeString() : '',
             'conversions'          => $conversionSummary['total'],
             'revenue'              => $conversionSummary['revenue'],

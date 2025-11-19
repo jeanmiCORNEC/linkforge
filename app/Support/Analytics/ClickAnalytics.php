@@ -50,17 +50,23 @@ class ClickAnalytics
             ->distinct('visitor_hash')
             ->count('visitor_hash');
 
-        // Breakdown devices
-        $devices = (clone $base)
-            ->select('device', DB::raw('count(*) as total'))
+        // Breakdown devices (simplifié mobile/desktop/tablet/unknown)
+        $rawDevices = (clone $base)
+            ->select(DB::raw("LOWER(COALESCE(device, 'unknown')) as device"), DB::raw('count(*) as total'))
             ->groupBy('device')
-            ->pluck('total', 'device');
+            ->pluck('total', 'device')
+            ->toArray();
+        $devices = self::aggregateDevices($rawDevices);
 
         // Breakdown browsers
         $browsers = (clone $base)
-            ->select('browser', DB::raw('count(*) as total'))
+            ->select(DB::raw("COALESCE(browser, 'Unknown') as browser"), DB::raw('count(*) as total'))
             ->groupBy('browser')
-            ->pluck('total', 'browser');
+            ->orderByDesc('total')
+            ->pluck('total', 'browser')
+            ->toArray();
+
+        $topCountries = self::topCountries($base, $currentClicks);
 
         // Clics par jour
         $clicksPerDay = (clone $base)
@@ -82,6 +88,7 @@ class ClickAnalytics
             'uniqueVisitors' => $uniqueVisitors,
             'devices'        => $devices,
             'browsers'       => $browsers,
+            'topCountries'   => $topCountries,
             'clicksPerDay'   => $clicksPerDay,
             'period'         => [
                 'days'  => $days,
@@ -255,5 +262,56 @@ class ClickAnalytics
         }
 
         return (int) round((($current - $previous) / $previous) * 100);
+    }
+
+    protected static function aggregateDevices(array $raw): array
+    {
+        $summary = [
+            'mobile'  => 0,
+            'desktop' => 0,
+            'tablet'  => 0,
+            'unknown' => 0,
+        ];
+
+        foreach ($raw as $device => $count) {
+            $label = strtolower((string) $device);
+
+            $normalized = match (true) {
+                str_contains($label, 'mobile') => 'mobile',
+                str_contains($label, 'android') => 'mobile',
+                str_contains($label, 'iphone') => 'mobile',
+                str_contains($label, 'phone') => 'mobile',
+                str_contains($label, 'tablet') => 'tablet',
+                str_contains($label, 'ipad') => 'tablet',
+                str_contains($label, 'desktop') => 'desktop',
+                str_contains($label, 'windows') => 'desktop',
+                str_contains($label, 'mac') => 'desktop',
+                default => 'unknown',
+            };
+
+            if (! array_key_exists($normalized, $summary)) {
+                $normalized = 'unknown';
+            }
+
+            $summary[$normalized] += (int) $count;
+        }
+
+        return $summary;
+    }
+
+    protected static function topCountries(Builder $windowQuery, int $total, int $limit = 5): array
+    {
+        $results = (clone $windowQuery)
+            ->select(DB::raw("COALESCE(country, 'Unknown') as country"), DB::raw('count(*) as total'))
+            ->groupBy('country')
+            ->orderByDesc('total')
+            ->limit($limit)
+            ->get();
+
+        return $results->map(fn ($row) => [
+            'country'     => $row->country ?? 'Unknown',
+            'total'       => (int) $row->total,
+            'percentage'  => $total > 0 ? round(($row->total / $total) * 100) : 0,
+        ])->toArray();
     }
 }

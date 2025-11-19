@@ -17,10 +17,13 @@ class AffiliateIntegration extends Model
         'label',
         'status',
         'credentials',
+        'last_synced_at',
+        'last_error',
     ];
 
     protected $casts = [
-        'credentials' => 'array',
+        'credentials'    => 'array',
+        'last_synced_at' => 'datetime',
     ];
 
     public function user()

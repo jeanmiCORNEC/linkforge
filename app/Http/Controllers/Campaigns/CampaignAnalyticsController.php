@@ -74,22 +74,6 @@ class CampaignAnalyticsController extends Controller
         // Même fenêtre temporelle que forPeriod()
         $since = now()->subDays($days);
 
-        // Répartition par device
-        $stats['devices'] = (clone $clicksQuery)
-            ->where('created_at', '>=', $since)
-            ->selectRaw("COALESCE(device, 'Unknown') as device, COUNT(*) as total")
-            ->groupBy('device')
-            ->pluck('total', 'device')
-            ->toArray();
-
-        // Répartition par navigateur
-        $stats['browsers'] = (clone $clicksQuery)
-            ->where('created_at', '>=', $since)
-            ->selectRaw("COALESCE(browser, 'Unknown') as browser, COUNT(*) as total")
-            ->groupBy('browser')
-            ->pluck('total', 'browser')
-            ->toArray();
-
         $periodSince = Carbon::parse($stats['period']['since'])->startOfDay();
         $periodUntil = Carbon::parse($stats['period']['until'] ?? now()->toDateString())->endOfDay();
         $stats['conversions'] = ConversionMetrics::summary($campaign->conversions(), $periodSince, $periodUntil);
@@ -162,6 +146,22 @@ class CampaignAnalyticsController extends Controller
             ->distinct('tracked_links.link_id')
             ->count('tracked_links.link_id');
 
+        $topCountry = (clone $clicksQuery)
+            ->whereBetween('clicks.created_at', [$since, $until])
+            ->whereNotNull('country')
+            ->select('country', DB::raw('count(*) as total'))
+            ->groupBy('country')
+            ->orderByDesc('total')
+            ->value('country');
+
+        $topReferer = (clone $clicksQuery)
+            ->whereBetween('clicks.created_at', [$since, $until])
+            ->whereNotNull('referrer')
+            ->select('referrer', DB::raw('count(*) as total'))
+            ->groupBy('referrer')
+            ->orderByDesc('total')
+            ->value('referrer');
+
         $columns = [
             'campaign_id',
             'campaign_name',
@@ -181,6 +181,8 @@ class CampaignAnalyticsController extends Controller
             'clicks_desktop',
             'clicks_tablet',
             'clicks_unknown_device',
+            'top_country',
+            'top_referrer',
             'conversions',
             'approved_conversions',
             'pending_conversions',
@@ -208,6 +210,8 @@ class CampaignAnalyticsController extends Controller
             'clicks_desktop'        => $desktop,
             'clicks_tablet'         => $tablet,
             'clicks_unknown_device' => $unknown,
+            'top_country'           => $topCountry ?? '',
+            'top_referrer'          => $topReferer ?? '',
             'conversions'           => $conversionSummary['total'],
             'approved_conversions'  => $approved,
             'pending_conversions'   => $pending,

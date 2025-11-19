@@ -10,7 +10,7 @@ use App\Models\Source;
 use App\Support\Analytics\ClickAnalytics;
 use App\Support\Features\FeatureManager;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -43,18 +43,6 @@ class DashboardController extends Controller
                 ->whereNotNull('country')
                 ->distinct('country')
                 ->count('country'),
-
-            // breakdown devices
-            'devices_breakdown' => (clone $clicksQuery)
-                ->selectRaw('COALESCE(device, "unknown") as label, COUNT(*) as count')
-                ->groupBy('label')
-                ->pluck('count', 'label'),
-
-            // breakdown navigateurs
-            'browsers_breakdown' => (clone $clicksQuery)
-                ->selectRaw('COALESCE(browser, "unknown") as label, COUNT(*) as count')
-                ->groupBy('label')
-                ->pluck('count', 'label'),
         ];
 
         // --- Clics des 7 derniers jours (aujourd'hui inclus) ---
@@ -83,7 +71,8 @@ class DashboardController extends Controller
 
         $featureScope = FeatureManager::for($user);
 
-        $insights = ClickAnalytics::withInsights($clicksQuery, 7, [
+        $rangeDays = 7;
+        $insights = ClickAnalytics::withInsights($clicksQuery, $rangeDays, [
             ...($featureScope->allows('analytics.heatmap') ? ['heatmap'] : []),
             ...($featureScope->allows('analytics.top_lists') ? ['sources', 'links'] : []),
         ]);
@@ -104,6 +93,10 @@ class DashboardController extends Controller
                 ->limit(5)
                 ->get();
         }
+
+        $stats['devices_breakdown'] = $insights['devices'] ?? [];
+        $stats['browsers_breakdown'] = $insights['browsers'] ?? [];
+        $stats['top_countries'] = $insights['topCountries'] ?? [];
 
         return Inertia::render('Dashboard', [
             'stats'          => $stats,

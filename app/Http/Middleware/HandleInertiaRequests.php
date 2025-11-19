@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Features\FeatureManager;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
@@ -30,15 +31,18 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
         return array_merge(parent::share($request), [
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
             ],
             'flash' => [
                 'status'  => session('status'),
                 'success' => session('success'),
                 'error'   => session('error'),
             ],
+            'features' => $user ? FeatureManager::for($user)->toArray() : [],
         ]);
     }
 }

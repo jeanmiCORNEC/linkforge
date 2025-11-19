@@ -3,15 +3,21 @@
 namespace App\Http\Controllers\Links;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use App\Models\Link;
 use App\Models\TrackedLink;
 use App\Models\Click;
+use App\Support\Geo\GeoLocator;
 use Inertia\Inertia;
 use App\Http\Controllers\Controller;
 
 class LinkController extends Controller
 {
+    public function __construct(
+        protected readonly GeoLocator $geoLocator,
+    ) {
+    }
     /**
      * Vérifie que le lien appartient bien à l'utilisateur connecté.
      */
@@ -166,9 +172,10 @@ class LinkController extends Controller
         $ip  = $request->ip() ?? '0.0.0.0';
         $ua  = (string) $request->userAgent();
 
-        $device       = $this->guessDeviceFromUserAgent($ua);
-        $browser      = $this->guessBrowserFromUserAgent($ua);
-        $visitorHash  = hash('sha256', $ip . '|' . $ua);
+        $device      = $this->guessDeviceFromUserAgent($ua);
+        $browser     = $this->guessBrowserFromUserAgent($ua);
+        $visitorHash = hash('sha256', $ip . '|' . $ua);
+        $geoLocation = $this->geoLocator->lookup($ip);
 
         // 5. Log du clic
         Click::create([
@@ -182,12 +189,17 @@ class LinkController extends Controller
             'browser'      => $browser,
             'os'           => null,          // on pourra décider plus tard si on parse l'OS
             'visitor_hash' => $visitorHash,
-            'country'      => null,
-            'city'         => null,
+            'country'      => $geoLocation->countryCode ?? $geoLocation->countryName,
+            'city'         => $geoLocation->city,
         ]);
 
-        // 6. Redirection finale
-        return redirect()->away($tracked->link->destination_url);
+        // 6. Redirection finale avec propagation des paramètres GET
+        $destination = $tracked->link->destination_url;
+        if ($request->query()) {
+            $destination = $this->appendQueryParameters($destination, $request->query());
+        }
+
+        return redirect()->away($destination);
     }
 
     /**
@@ -295,5 +307,38 @@ class LinkController extends Controller
         }
 
         return 'Other';
+    }
+
+    protected function appendQueryParameters(string $url, array $params): string
+    {
+        if (empty($params)) {
+            return $url;
+        }
+
+        $fragment = null;
+        if (str_contains($url, '#')) {
+            [$url, $fragment] = explode('#', $url, 2);
+        }
+
+        $existingQuery = [];
+        if (str_contains($url, '?')) {
+            [$base, $queryString] = explode('?', $url, 2);
+            $url = $base;
+            parse_str($queryString, $existingQuery);
+        }
+
+        $merged = array_merge($existingQuery, $params);
+        $query  = Arr::query($merged);
+
+        $rebuilt = $url;
+        if ($query) {
+            $rebuilt .= '?' . $query;
+        }
+
+        if ($fragment !== null) {
+            $rebuilt .= '#' . $fragment;
+        }
+
+        return $rebuilt;
     }
 }

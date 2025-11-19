@@ -34,8 +34,6 @@ const deviceLabel = (key) => {
     return key;
 };
 
-const browserLabel = (key) => key || 'Inconnu';
-
 const formatDateFr = (value) => {
     if (!value) return '';
     const d = new Date(value);
@@ -181,6 +179,39 @@ const canExportRaw = computed(() => props.features?.rawLog ?? false);
 const showHeatmap = computed(() => props.features?.heatmap ?? false);
 const showTopLists = computed(() => props.features?.topLists ?? false);
 const showDeltas = computed(() => props.features?.deltas ?? false);
+
+const exportMonth = ref(new Date().toISOString().slice(0, 7));
+const exportMonthlyTraffic = () => {
+    if (!exportMonth.value) {
+        return;
+    }
+
+    window.location = route('exports.traffic.monthly', {
+        month: exportMonth.value,
+        type: 'link',
+        id: props.link.id,
+    });
+};
+
+const deviceSegments = computed(() => {
+    const raw = props.stats.devices || {};
+    const total = Object.values(raw).reduce((sum, value) => sum + Number(value || 0), 0);
+    const order = ['mobile', 'desktop', 'tablet', 'unknown'];
+
+    return order.map((key) => {
+        const count = Number(raw[key] ?? 0);
+        const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+
+        return {
+            key,
+            label: deviceLabel(key),
+            count,
+            percentage,
+        };
+    });
+});
+
+const topCountries = computed(() => props.stats.topCountries ?? []);
 </script>
 
 <template>
@@ -189,10 +220,8 @@ const showDeltas = computed(() => props.features?.deltas ?? false);
     <AuthenticatedLayout>
         <!-- HEADER ANALYTICS -->
         <section class="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
-            <!-- même largeur que le contenu -->
             <div class="w-[95%] mx-auto pt-8 pb-10">
-                <div :class="shellCardClass + ' flex flex-col md:flex-row md:items-center md:justify-between gap-6'">
-                    <!-- Bloc gauche : titre lien -->
+                <div :class="shellCardClass + ' flex flex-col gap-6'">
                     <div class="space-y-3">
                         <p
                             class="inline-flex items-center rounded-full border border-indigo-500/40 bg-indigo-500/10 px-3 py-1 text-xs md:text-sm font-medium text-indigo-200 uppercase tracking-[0.15em]"
@@ -215,80 +244,105 @@ const showDeltas = computed(() => props.features?.deltas ?? false);
                         </InertiaLink>
                     </div>
 
-                    <!-- Bloc droite : période -->
-                    <div class="flex flex-col items-start md:items-end gap-3 text-xs">
-                        <div class="flex items-center gap-2">
-                            <span class="uppercase tracking-[0.15em] text-slate-400 text-[10px]">
-                                Période
-                            </span>
+                    <div class="grid gap-6 md:grid-cols-2">
+                        <div class="space-y-4 text-xs md:text-sm text-slate-200">
+                            <div class="space-y-2">
+                                <p class="uppercase tracking-[0.15em] text-slate-500 text-[10px]">
+                                    Période
+                                </p>
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <div :class="periodPillGroupClass">
+                                        <button
+                                            type="button"
+                                            :class="[
+                                                periodPillBaseClass,
+                                                currentDays === 7
+                                                    ? 'bg-indigo-500 text-white shadow shadow-indigo-500/40'
+                                                    : 'text-slate-300 hover:text-white',
+                                            ]"
+                                            @click="changePeriod(7)"
+                                        >
+                                            7 jours
+                                        </button>
+                                        <button
+                                            type="button"
+                                            :class="[
+                                                periodPillBaseClass,
+                                                currentDays === 30
+                                                    ? 'bg-indigo-500 text-white shadow shadow-indigo-500/40'
+                                                    : 'text-slate-300 hover:text-white',
+                                            ]"
+                                            @click="changePeriod(30)"
+                                        >
+                                            30 jours
+                                        </button>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-slate-400">Perso :</span>
+                                        <input
+                                            v-model="customDays"
+                                            type="number"
+                                            min="1"
+                                            class="w-16 rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                        />
+                                        <button
+                                            type="button"
+                                            :class="primaryButtonClass"
+                                            @click="applyCustomPeriod"
+                                        >
+                                            OK
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-slate-400">
+                                Analyse des {{ stats.period.days }} derniers jours • Depuis le {{ formatDateFr(stats.period.since) }}
+                            </p>
+                        </div>
 
-                            <div :class="periodPillGroupClass">
+                        <div class="space-y-3 text-xs md:text-sm text-slate-200">
+                            <div class="flex flex-wrap items-start gap-3">
                                 <button
+                                    v-if="canExport"
                                     type="button"
-                                    :class="[
-                                        periodPillBaseClass,
-                                        currentDays === 7
-                                            ? 'bg-indigo-500 text-white shadow shadow-indigo-500/40'
-                                            : 'text-slate-300 hover:text-white',
-                                    ]"
-                                    @click="changePeriod(7)"
+                                    :class="primaryButtonClass"
+                                    @click="exportAnalytics"
                                 >
-                                    7 jours
+                                    Exporter CSV
                                 </button>
+
+                                <div v-if="canExportRaw" class="flex flex-col gap-1">
+                                    <button
+                                        type="button"
+                                        :class="primaryButtonClass"
+                                        @click="exportRawAnalytics"
+                                    >
+                                        Exporter clics (raw)
+                                    </button>
+                                    <p class="text-[11px] text-slate-400 max-w-[220px] leading-snug">
+                                        Log brut clic par clic (horodatage, device, pays) pour audit ou BI.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex flex-col md:flex-row items-start md:items-center gap-2 text-slate-300">
+                                <label class="flex items-center gap-2">
+                                    Mois
+                                    <input
+                                        v-model="exportMonth"
+                                        type="month"
+                                        class="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                    />
+                                </label>
                                 <button
                                     type="button"
-                                    :class="[
-                                        periodPillBaseClass,
-                                        currentDays === 30
-                                            ? 'bg-indigo-500 text-white shadow shadow-indigo-500/40'
-                                            : 'text-slate-300 hover:text-white',
-                                    ]"
-                                    @click="changePeriod(30)"
+                                    :class="primaryButtonClass"
+                                    @click="exportMonthlyTraffic"
+                                    :disabled="!exportMonth"
                                 >
-                                    30 jours
+                                    Exporter le mois
                                 </button>
                             </div>
                         </div>
-
-                        <div class="flex items-center gap-2 text-xs md:text-sm">
-                            <span class="text-slate-400">Perso (jours) :</span>
-                            <input
-                                v-model="customDays"
-                                type="number"
-                                min="1"
-                                class="w-16 rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-xs md:text-sm text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                            />
-                            <button
-                                type="button"
-                                :class="primaryButtonClass"
-                                @click="applyCustomPeriod"
-                            >
-                                Appliquer
-                            </button>
-                        </div>
-
-                        <p class="text-xs md:text-sm text-slate-400">
-                            Analyse des {{ stats.period.days }} derniers jours
-                            • Depuis le {{ formatDateFr(stats.period.since) }}
-                        </p>
-
-                        <button
-                            v-if="canExport"
-                            type="button"
-                            :class="primaryButtonClass"
-                            @click="exportAnalytics"
-                        >
-                            Exporter CSV
-                        </button>
-
-                        <button
-                            v-if="canExportRaw"
-                            type="button"
-                            :class="primaryButtonClass"
-                            @click="exportRawAnalytics"
-                        >
-                            Exporter clics (raw)
-                        </button>
                     </div>
                 </div>
             </div>
@@ -451,56 +505,65 @@ const showDeltas = computed(() => props.features?.deltas ?? false);
                 </div>
             </section>
 
-            <!-- Devices & navigateurs : même largeur globale, 2 colonnes -->
+            <!-- Devices & top pays -->
             <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div :class="bigCardClass">
                     <h3 class="text-sm font-semibold mb-2">
-                        Appareils
+                        Mobile vs Desktop
                     </h3>
-                    <ul class="space-y-1 text-xs text-slate-200">
-                        <li
-                            v-for="(count, key) in stats.devices"
-                            :key="key"
-                            class="flex justify-between"
+                    <p class="text-xs text-slate-400 mb-4">
+                        Comprenez si ce lien performe mieux sur mobile ou desktop.
+                    </p>
+                    <div class="space-y-4">
+                        <div
+                            v-for="segment in deviceSegments"
+                            :key="segment.key"
+                            class="space-y-1"
                         >
-                            <span class="text-slate-300">
-                                {{ deviceLabel(key) }}
-                            </span>
-                            <span class="font-semibold">
-                                {{ count }}
-                            </span>
-                        </li>
-                        <li
-                            v-if="!Object.keys(stats.devices || {}).length"
-                            class="text-slate-500"
+                            <div class="flex items-center justify-between text-xs text-slate-300">
+                                <span>{{ segment.label }}</span>
+                                <span class="font-semibold text-slate-100">
+                                    {{ segment.percentage }}% • {{ segment.count }}
+                                </span>
+                            </div>
+                            <div class="h-2 rounded-full bg-slate-800 overflow-hidden">
+                                <div
+                                    class="h-full rounded-full bg-indigo-500 transition-all duration-300"
+                                    :style="{ width: `${segment.percentage}%` }"
+                                ></div>
+                            </div>
+                        </div>
+                        <p
+                            v-if="!Object.values(props.stats.devices || {}).some((value) => Number(value) > 0)"
+                            class="text-xs text-slate-500"
                         >
-                            Pas encore de données.
-                        </li>
-                    </ul>
+                            Pas encore de données d’appareil sur cette période.
+                        </p>
+                    </div>
                 </div>
 
                 <div :class="bigCardClass">
                     <h3 class="text-sm font-semibold mb-2">
-                        Navigateurs
+                        Top pays
                     </h3>
-                    <ul class="space-y-1 text-xs text-slate-200">
+                    <p class="text-xs text-slate-400 mb-4">
+                        Les pays qui génèrent le plus de clics vers ce lien.
+                    </p>
+                    <ul class="space-y-2 text-xs text-slate-200">
                         <li
-                            v-for="(count, key) in stats.browsers"
-                            :key="key"
-                            class="flex justify-between"
+                            v-for="country in topCountries"
+                            :key="country.country"
+                            class="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2"
                         >
-                            <span class="text-slate-300">
-                                {{ browserLabel(key) }}
+                            <span class="font-medium">
+                                {{ country.country || 'Inconnu' }}
                             </span>
-                            <span class="font-semibold">
-                                {{ count }}
+                            <span class="text-sm font-semibold text-slate-100">
+                                {{ country.percentage }}% • {{ country.total }}
                             </span>
                         </li>
-                        <li
-                            v-if="!Object.keys(stats.browsers || {}).length"
-                            class="text-slate-500"
-                        >
-                            Pas encore de données.
+                        <li v-if="!topCountries.length" class="text-slate-500">
+                            Pas encore de données pays sur cette période.
                         </li>
                     </ul>
                 </div>
