@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers\Dashboard;
 
-use App\Http\Controllers\Controller;
-use App\Models\Campaign;
-use App\Models\Click;
+use DB;
 use App\Models\Link;
-use App\Models\Source;
-use App\Support\Analytics\ClickAnalytics;
-use App\Support\Features\FeatureManager;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Carbon;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\Click;
+use App\Models\Source;
+use App\Models\Campaign;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use App\Http\Controllers\Controller;
+use App\Support\Features\FeatureManager;
+use App\Support\Analytics\ClickAnalytics;
 
 class DashboardController extends Controller
 {

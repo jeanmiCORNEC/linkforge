@@ -21,6 +21,26 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
+## GeoLite2 / Géolocalisation des clics
+
+LinkForge utilise la base GeoLite2 City de MaxMind pour enrichir les clics (pays / ville).  
+Pour maintenir cette base à jour :
+
+1. Créez un compte MaxMind (gratuit) et renseignez votre `MAXMIND_LICENSE_KEY` dans `.env`.
+2. Téléchargez la base en local via la commande artisan :
+
+```bash
+php artisan geo:maxmind-update
+```
+
+3. Laravel déclenche automatiquement la commande le 1ᵉʳ de chaque mois à 03:00 UTC via le scheduler (`bootstrap/app.php`). Il suffit d’avoir le cron suivant sur votre serveur :
+
+```bash
+* * * * * cd /path/to/project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Vous pouvez également fournir un fichier `.mmdb` ou `.tar.gz` local avec `--local=/chemin/vers/GeoLite2-City.mmdb` pour installer manuellement une version spécifique.
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
