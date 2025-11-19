@@ -114,6 +114,33 @@ const attachLinkToSource = (source) => {
     });
 };
 
+// --- Helpers : copie de tracking links ---
+const trackingUrl = (trackedLink) =>
+    route('links.redirect', { tracking_key: trackedLink.tracking_key });
+
+const showToast = ref(false);
+const toastMessage = ref('');
+
+const triggerToast = (message = 'Lien copié dans le presse-papier') => {
+    toastMessage.value = message;
+    showToast.value = true;
+
+    setTimeout(() => {
+        showToast.value = false;
+    }, 2000);
+};
+
+const copyTrackedLink = async (trackedLink) => {
+    if (!trackedLink) return;
+
+    try {
+        await navigator.clipboard.writeText(trackingUrl(trackedLink));
+        triggerToast();
+    } catch (error) {
+        triggerToast("Impossible de copier l'URL");
+    }
+};
+
 /* ---------- Styles DA LinkForge (alignés sur liens / campagnes / analytics) ---------- */
 
 const shellCardClass =
@@ -315,17 +342,34 @@ const badgePlatformClass =
                                             </div>
 
                                             <!-- Liste des tracked links -->
-                                            <div v-if="source.tracked_links && source.tracked_links.length"
-                                                class="mt-2 space-y-1">
-                                                <div v-for="tracked in source.tracked_links" :key="tracked.id"
-                                                    class="inline-flex items-center text-[11px] bg-slate-900 rounded px-2 py-1 max-w-xs sm:max-w-sm lg:max-w-md">
-                                                    <div class="truncate">
-                                                        <span class="font-medium">
-                                                            {{ tracked.link?.title || 'Lien' }}
-                                                        </span>
-                                                        <span class="text-slate-400 ml-1">
-                                                            ({{ tracked.tracking_key }})
-                                                        </span>
+                                            <div
+                                                v-if="source.tracked_links && source.tracked_links.length"
+                                                class="mt-2 space-y-2"
+                                            >
+                                                <div
+                                                    v-for="tracked in source.tracked_links"
+                                                    :key="tracked.id"
+                                                    class="rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-3 text-xs text-slate-100 space-y-2 w-full sm:max-w-2xl"
+                                                >
+                                                    <div class="flex flex-col gap-1">
+                                                        <p class="text-[11px] font-semibold text-slate-300 uppercase tracking-[0.2em]">
+                                                            Lien à coller pour {{ source.name }}
+                                                        </p>
+                                                        <p class="font-mono text-slate-50 text-sm truncate">
+                                                            {{ trackingUrl(tracked) }}
+                                                        </p>
+                                                        <p class="text-[11px] text-slate-400">
+                                                            Utilise exactement ce lien pour suivre les clics de cette source.
+                                                        </p>
+                                                    </div>
+                                                    <div class="flex justify-end">
+                                                        <button
+                                                            type="button"
+                                                            class="inline-flex items-center gap-2 rounded-md border border-indigo-500 px-3 py-1 text-[11px] font-semibold text-indigo-200 hover:bg-indigo-900/30 transition"
+                                                            @click="copyTrackedLink(tracked)"
+                                                        >
+                                                            Copier le lien
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -391,6 +435,16 @@ const badgePlatformClass =
             </main>
         </div>
 
+        <!-- Toast copie -->
+        <transition name="fade">
+            <div
+                v-if="showToast"
+                class="fixed bottom-4 right-4 z-50 px-4 py-2 rounded-md shadow-lg bg-slate-950 border border-slate-700 text-white text-xs flex items-center gap-2"
+            >
+                <span>{{ toastMessage }}</span>
+            </div>
+        </transition>
+
         <!-- Modale d'édition -->
         <div v-if="isEditOpen && editingSource" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
             <div class="bg-slate-950 border border-slate-800 rounded-xl shadow-xl shadow-slate-950/60 w-full max-w-lg">
@@ -451,3 +505,16 @@ const badgePlatformClass =
         </div>
     </AuthenticatedLayout>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(4px);
+}
+</style>
