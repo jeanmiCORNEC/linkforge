@@ -69,10 +69,6 @@ const canExportRaw = computed(() => props.features?.rawLog ?? false);
 const showHeatmap = computed(() => props.features?.heatmap ?? false);
 const showTopLists = computed(() => props.features?.topLists ?? false);
 const showDeltas = computed(() => props.features?.deltas ?? false);
-const canExport = computed(() => props.features?.exports ?? false);
-const showHeatmap = computed(() => props.features?.heatmap ?? false);
-const showTopLists = computed(() => props.features?.topLists ?? false);
-const showDeltas = computed(() => props.features?.deltas ?? false);
 
 const heatmapMatrix = computed(() => {
     const data = hourlyHeatmap.value;

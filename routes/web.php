@@ -15,11 +15,30 @@ use App\Http\Controllers\Profile\ProfileController;
 
 // Landing publique (Inertia)
 Route::get('/', function () {
+    $canRegister = Route::has('register');
+
+    $plans = collect(config('plans.tiers'))
+        ->map(function (array $plan) use ($canRegister) {
+            $ctaUrl = null;
+
+            if ($plan['cta_action'] === 'register' && $canRegister) {
+                $ctaUrl = route('register', ['plan' => $plan['id']]);
+            } elseif ($plan['cta_action'] === 'contact') {
+                $ctaUrl = 'mailto:hello@linkforge.app';
+            }
+
+            $plan['cta_url'] = $ctaUrl;
+
+            return $plan;
+        })
+        ->values();
+
     return Inertia::render('Welcome', [
         'canLogin'       => Route::has('login'),
-        'canRegister'    => Route::has('register'),
+        'canRegister'    => $canRegister,
         'laravelVersion' => Application::VERSION,
         'phpVersion'     => PHP_VERSION,
+        'plans'          => $plans,
     ]);
 })->name('welcome');
 
