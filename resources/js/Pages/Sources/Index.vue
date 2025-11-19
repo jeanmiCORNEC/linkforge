@@ -355,6 +355,9 @@ const badgePlatformClass =
                                                         <p class="text-[11px] font-semibold text-slate-300 uppercase tracking-[0.2em]">
                                                             Lien à coller pour {{ source.name }}
                                                         </p>
+                                                        <p class="text-xs font-medium text-slate-200">
+                                                            {{ tracked.link?.title ?? 'Lien sans titre' }}
+                                                        </p>
                                                         <p class="font-mono text-slate-50 text-sm truncate">
                                                             {{ trackingUrl(tracked) }}
                                                         </p>

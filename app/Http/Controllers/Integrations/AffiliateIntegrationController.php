@@ -19,21 +19,33 @@ class AffiliateIntegrationController extends Controller
             abort(403);
         }
 
-        $platformIds = collect(config('affiliate.platforms'))
-            ->pluck('id')
-            ->all();
+        $platforms = collect(config('affiliate.platforms', []));
+        $platformIds = $platforms->pluck('id')->all();
 
         $data = $request->validate([
             'platform' => ['required', Rule::in($platformIds)],
             'label'    => ['required', 'string', 'max:190'],
-            'credentials' => ['required', 'array'],
         ]);
+
+        $platformConfig = $platforms->firstWhere('id', $data['platform']);
+        $fields = collect($platformConfig['fields'] ?? []);
+        $credentialRules = $fields
+            ->mapWithKeys(fn ($field) => [
+                "credentials.{$field['key']}" => ['required', 'string'],
+            ])
+            ->toArray();
+
+        $request->validate($credentialRules);
+
+        $credentials = collect($request->input('credentials', []))
+            ->only($fields->pluck('key'))
+            ->toArray();
 
         $user->affiliateIntegrations()->create([
             'platform'    => $data['platform'],
             'label'       => $data['label'],
             'status'      => 'pending',
-            'credentials' => $data['credentials'],
+            'credentials' => $credentials,
         ]);
 
         return back()->with('status', 'integration-added');
@@ -42,6 +54,10 @@ class AffiliateIntegrationController extends Controller
     public function destroy(Request $request, AffiliateIntegration $integration): RedirectResponse
     {
         $user = $request->user();
+
+        if (! FeatureManager::for($user)->allows('integrations.manage')) {
+            abort(403);
+        }
 
         if ($integration->user_id !== $user->id) {
             abort(403);

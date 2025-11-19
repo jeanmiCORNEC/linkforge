@@ -74,6 +74,7 @@ class SourceAnalyticsController extends Controller
             'unique_visitors'    => $rawStats['uniqueVisitors'],
             'devices_breakdown'  => $rawStats['devices'],
             'browsers_breakdown' => $rawStats['browsers'],
+            'top_countries'      => $rawStats['topCountries'] ?? [],
             'clicks_per_day'     => $rawStats['clicksPerDay'],
             'top_links'          => $rawStats['topLinks'] ?? [],
             'top_days'           => $rawStats['topDays'] ?? [],
@@ -151,6 +152,14 @@ class SourceAnalyticsController extends Controller
             ->orderByDesc('total')
             ->value('country');
 
+        $topReferer = $source->clicks()
+            ->whereBetween('clicks.created_at', [$since, $until])
+            ->whereNotNull('referrer')
+            ->select('referrer', DB::raw('count(*) as total'))
+            ->groupBy('referrer')
+            ->orderByDesc('total')
+            ->value('referrer');
+
         $topBrowser = $source->clicks()
             ->whereBetween('clicks.created_at', [$since, $until])
             ->whereNotNull('browser')
@@ -179,6 +188,7 @@ class SourceAnalyticsController extends Controller
             'clicks_unknown_device',
             'top_country',
             'top_browser',
+            'top_referrer',
             'conversions',
             'revenue',
             'commission',
@@ -205,6 +215,7 @@ class SourceAnalyticsController extends Controller
             'clicks_unknown_device' => $unknown,
             'top_country'           => $topCountry ?? '',
             'top_browser'           => $topBrowser ?? '',
+            'top_referrer'          => $topReferer ?? '',
             'conversions'           => $conversionSummary['total'],
             'revenue'               => $conversionSummary['revenue'],
             'commission'            => $conversionSummary['commission'],

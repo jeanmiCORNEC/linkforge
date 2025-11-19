@@ -106,31 +106,6 @@ const applyFilter = (status) => {
     );
 };
 
-// --- Copy to clipboard + toast ---
-const showToast = ref(false);
-const toastMessage = ref('');
-
-const showCopyToast = (message = 'Lien copié dans le presse-papier') => {
-    toastMessage.value = message;
-    showToast.value = true;
-
-    setTimeout(() => {
-        showToast.value = false;
-    }, 2000);
-};
-
-const copyToClipboard = async (text) => {
-    if (!text) return;
-
-    try {
-        await navigator.clipboard.writeText(text);
-        showCopyToast();
-    } catch (e) {
-        console.error('Erreur copy clipboard', e);
-        showCopyToast('Impossible de copier le lien');
-    }
-};
-
 /* ---------- Styles DA LinkForge (harmonisés avec les pages Analytics) ---------- */
 
 const shellCardClass =
@@ -360,22 +335,11 @@ const pillClasses = (value) => {
                                             </div>
                                         </td>
 
-                                        <!-- Lien court + bouton Copier -->
+                                        <!-- Lien court (affichage uniquement) -->
                                         <td class="px-4 py-3 text-xs text-slate-200">
-                                            <div class="flex items-center gap-2">
-                                                <span class="truncate max-w-[220px]">
-                                                    {{ getShortUrlForLink(link) || 'Aucun tracking key' }}
-                                                </span>
-
-                                                <button
-                                                    v-if="getShortUrlForLink(link)"
-                                                    type="button"
-                                                    class="inline-flex items-center px-2 py-1 text-[11px] rounded-md border border-indigo-500 text-indigo-300 hover:bg-indigo-900/30 transition"
-                                                    @click="copyToClipboard(getShortUrlForLink(link))"
-                                                >
-                                                    Copier
-                                                </button>
-                                            </div>
+                                            <span class="truncate max-w-[240px] inline-block">
+                                                {{ getShortUrlForLink(link) || 'Aucun tracking key' }}
+                                            </span>
                                         </td>
 
                                         <td class="px-4 py-3">
@@ -507,27 +471,5 @@ const pillClasses = (value) => {
             </div>
         </div>
 
-        <!-- Toast copie -->
-        <transition name="fade">
-            <div
-                v-if="showToast"
-                class="fixed bottom-4 right-4 z-50 px-4 py-2 rounded-md shadow-lg bg-slate-950 border border-slate-700 text-white text-xs flex items-center gap-2"
-            >
-                <span>{{ toastMessage }}</span>
-            </div>
-        </transition>
     </AuthenticatedLayout>
 </template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-    transform: translateY(4px);
-}
-</style>

@@ -6,6 +6,8 @@ use App\Models\Click;
 use App\Models\Link;
 use App\Models\TrackedLink;
 use App\Models\User;
+use App\Support\Geo\GeoLocator;
+use App\Support\Geo\GeoLookupResult;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -31,6 +33,14 @@ class ClickTrackingTest extends TestCase
         $ip        = '1.2.3.4';
         $userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/120.0';
 
+        // On force ici notre GeoLocator pour contrôler la réponse MaxMind.
+        $this->app->singleton(GeoLocator::class, fn () => new class extends GeoLocator {
+            public function lookup(?string $ip): GeoLookupResult
+            {
+                return new GeoLookupResult('FR', 'France', 'Paris');
+            }
+        });
+
         $response = $this
             ->withServerVariables([
                 'REMOTE_ADDR'      => $ip,
@@ -51,5 +61,7 @@ class ClickTrackingTest extends TestCase
         $this->assertNotNull($click->device);
         $this->assertNotNull($click->browser);
         $this->assertNotNull($click->visitor_hash);
+        $this->assertEquals('FR', $click->country);
+        $this->assertEquals('Paris', $click->city);
     }
 }

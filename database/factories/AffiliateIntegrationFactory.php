@@ -14,13 +14,15 @@ class AffiliateIntegrationFactory extends Factory
     {
         return [
             'user_id'    => User::factory(),
-            'platform'   => fake()->randomElement(['impact', 'awin', 'hotmart']),
+            'platform'   => 'impact',
             'label'      => fake()->company(),
             'status'     => fake()->randomElement(AffiliateIntegration::STATUSES),
             'credentials'=> [
-                'api_key' => fake()->sha1(),
-                'account_id' => fake()->bothify('AFF-####'),
+                'api_key'     => fake()->sha1(),
+                'account_sid' => fake()->bothify('MP########'),
             ],
+            'last_synced_at' => null,
+            'last_error'     => null,
         ];
     }
 }
