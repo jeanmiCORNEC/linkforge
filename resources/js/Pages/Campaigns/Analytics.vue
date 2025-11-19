@@ -55,6 +55,10 @@ const deviceLabel = (key) => {
 const browserLabel = (key) => key || 'Inconnu';
 
 const clicksPerDay = computed(() => props.stats?.clicksPerDay ?? []);
+const topSources = computed(() => props.stats?.topSources ?? []);
+const topLinks = computed(() => props.stats?.topLinks ?? []);
+const topDays = computed(() => props.stats?.topDays ?? []);
+const formatPercentage = (value) => `${value ?? 0}%`;
 
 // --- Changement de période (7 / 30 / perso) ---
 const changePeriod = (days) => {
@@ -234,6 +238,106 @@ const periodPillBaseClass =
                 </div>
             </section>
 
+            <!-- Tops : sources / liens / meilleurs jours -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div :class="bigCardClass">
+                    <h3 class="text-sm font-semibold">
+                        Top sources
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4">
+                        Les emplacements de cette campagne qui génèrent le plus de clics.
+                    </p>
+                    <ul class="space-y-3">
+                        <li
+                            v-for="source in topSources"
+                            :key="source.id"
+                            class="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-xs md:text-sm text-slate-100"
+                        >
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="min-w-0">
+                                    <p class="font-semibold truncate">
+                                        {{ source.name }}
+                                    </p>
+                                    <p class="text-[11px] text-slate-400">
+                                        {{ formatPercentage(source.percentage) }} des clics
+                                    </p>
+                                </div>
+                                <span class="text-xl font-bold">
+                                    {{ source.total }}
+                                </span>
+                            </div>
+                        </li>
+                        <li v-if="!topSources.length" class="text-xs text-slate-500">
+                            Pas encore de sources actives sur cette période.
+                        </li>
+                    </ul>
+                </div>
+
+                <div :class="bigCardClass">
+                    <h3 class="text-sm font-semibold">
+                        Top liens trackés
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4">
+                        Copiez ces liens courts dans vos placements pour garder le tracking précis.
+                    </p>
+                    <ul class="space-y-3">
+                        <li
+                            v-for="link in topLinks"
+                            :key="link.id"
+                            class="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-xs md:text-sm text-slate-100"
+                        >
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="min-w-0">
+                                    <p class="font-semibold truncate">
+                                        {{ link.title }}
+                                    </p>
+                                    <p class="text-[11px] text-slate-400">
+                                        {{ formatPercentage(link.percentage) }} des clics
+                                    </p>
+                                </div>
+                                <span class="text-xl font-bold">
+                                    {{ link.total }}
+                                </span>
+                            </div>
+                        </li>
+                        <li v-if="!topLinks.length" class="text-xs text-slate-500">
+                            Aucun lien tracké n'a encore généré de clics.
+                        </li>
+                    </ul>
+                </div>
+
+                <div :class="bigCardClass">
+                    <h3 class="text-sm font-semibold">
+                        Jours les plus performants
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4">
+                        Identifiez les dates à fort engagement pour caler vos prochains contenus.
+                    </p>
+                    <ul class="space-y-3">
+                        <li
+                            v-for="day in topDays"
+                            :key="day.date"
+                            class="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-xs md:text-sm text-slate-100 flex items-center justify-between gap-3"
+                        >
+                            <div>
+                                <p class="font-semibold">
+                                    {{ formatDateFr(day.date) }}
+                                </p>
+                                <p class="text-[11px] text-slate-400">
+                                    {{ formatPercentage(day.percentage) }} des clics
+                                </p>
+                            </div>
+                            <span class="text-xl font-bold">
+                                {{ day.total }}
+                            </span>
+                        </li>
+                        <li v-if="!topDays.length" class="text-xs text-slate-500">
+                            Pas encore assez de clics pour dégager une tendance.
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
             <!-- Graph clics / jour (full width) -->
             <section :class="bigCardClass">
                 <h3 class="text-sm font-semibold mb-1">
@@ -323,6 +427,7 @@ const periodPillBaseClass =
                     </ul>
                 </div>
             </section>
+
         </main>
     </AuthenticatedLayout>
 </template>

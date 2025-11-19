@@ -24,30 +24,66 @@ class CampaignAnalyticsTest extends TestCase
 
         $campaign = Campaign::factory()->for($user)->create();
 
-        $source = Source::factory()
+        $firstSource = Source::factory()
             ->for($user)
             ->for($campaign)
-            ->create();
+            ->create(['name' => 'Bio TikTok']);
 
-        $link = Link::factory()
+        $secondSource = Source::factory()
             ->for($user)
-            ->create();
+            ->for($campaign)
+            ->create(['name' => 'Newsletter']);
 
-        $trackedLink = TrackedLink::factory()
+        $firstLink = Link::factory()
             ->for($user)
-            ->for($source)
-            ->for($link)
+            ->create(['title' => 'Lien TikTok']);
+
+        $secondLink = Link::factory()
+            ->for($user)
+            ->create(['title' => 'Lien Newsletter']);
+
+        $firstTracked = TrackedLink::factory()
+            ->for($user)
+            ->for($firstSource)
+            ->for($firstLink)
             ->create();
 
-        // 2 clics dont 1 visiteur unique
+        $secondTracked = TrackedLink::factory()
+            ->for($user)
+            ->for($secondSource)
+            ->for($secondLink)
+            ->create();
+
+        // Source 1 : 2 clics sur 2 jours différents
         Click::factory()->create([
-            'tracked_link_id' => $trackedLink->id,
-            'visitor_hash'    => 'abc',
+            'tracked_link_id' => $firstTracked->id,
+            'visitor_hash'    => 'hash-a1',
+            'created_at'      => now(),
         ]);
 
         Click::factory()->create([
-            'tracked_link_id' => $trackedLink->id,
-            'visitor_hash'    => 'abc', // même visiteur
+            'tracked_link_id' => $firstTracked->id,
+            'visitor_hash'    => 'hash-a2',
+            'created_at'      => now()->subDay(),
+        ]);
+
+        // Source 2 : 3 clics -> doit être en tête
+        Click::factory()->create([
+            'tracked_link_id' => $secondTracked->id,
+            'visitor_hash'    => 'hash-b1',
+            'created_at'      => now(),
+        ]);
+
+        Click::factory()->create([
+            'tracked_link_id' => $secondTracked->id,
+            'visitor_hash'    => 'hash-b2',
+            'created_at'      => now(),
+        ]);
+
+        Click::factory()->create([
+            'tracked_link_id' => $secondTracked->id,
+            'visitor_hash'    => 'hash-b3',
+            'created_at'      => now()->subDays(2),
         ]);
 
         $this->actingAs($user);
@@ -59,11 +95,18 @@ class CampaignAnalyticsTest extends TestCase
 
         $response->assertOk();
 
-                $response->assertInertia(fn (Assert $page) => $page
+        $response->assertInertia(fn (Assert $page) => $page
             ->component('Campaigns/Analytics')
             ->where('campaign.id', $campaign->id)
-            ->where('stats.totalClicks', 2)
-            ->where('stats.uniqueVisitors', 1)
+            ->where('stats.totalClicks', 5)
+            ->where('stats.uniqueVisitors', 5)
+            ->has('stats.topSources')
+            ->where('stats.topSources.0.name', $secondSource->name)
+            ->where('stats.topSources.0.total', 3)
+            ->has('stats.topLinks')
+            ->where('stats.topLinks.0.title', $secondLink->title)
+            ->has('stats.topDays')
+            ->where('stats.topDays.0.total', 3)
         );
 
     }

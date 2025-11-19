@@ -37,7 +37,7 @@ class LinkAnalyticsController extends Controller
         // On part de la relation hasManyThrough déjà définie sur Link
         $clicksQuery = $link->clicks();
 
-        $stats = ClickAnalytics::forPeriod($clicksQuery, $days);
+        $stats = ClickAnalytics::forLink($clicksQuery, $days);
 
         return Inertia::render('Links/Analytics', [
             'link' => [

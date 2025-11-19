@@ -6,6 +6,7 @@ use Tests\TestCase;
 use App\Models\User;
 use App\Models\Link;
 use App\Models\TrackedLink;
+use App\Models\Source;
 use App\Models\Click;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -29,6 +30,16 @@ class LinkAnalyticsTest extends TestCase
             'link_id' => $link->id,
         ]);
 
+        $source = Source::factory()->create([
+            'user_id' => $user->id,
+        ]);
+
+        $trackedWithSource = TrackedLink::factory()->create([
+            'user_id'   => $user->id,
+            'link_id'   => $link->id,
+            'source_id' => $source->id,
+        ]);
+
         // Quelques clics pour remplir les stats
         Click::factory()->count(3)->create([
             'tracked_link_id' => $trackedLink->id,
@@ -42,6 +53,12 @@ class LinkAnalyticsTest extends TestCase
             'created_at'      => now()->subDays(2),
         ]);
 
+        Click::factory()->create([
+            'tracked_link_id' => $trackedWithSource->id,
+            'visitor_hash'    => 'hash-source',
+            'created_at'      => now()->setHour(10),
+        ]);
+
         $response = $this
             ->actingAs($user)
             ->get(route('links.analytics.show', [
@@ -52,7 +69,7 @@ class LinkAnalyticsTest extends TestCase
 
         $response->assertOk();
 
-        $response->assertInertia(function (Assert $page) use ($link) {
+        $response->assertInertia(function (Assert $page) use ($link, $source) {
             $page
                 ->component('Links/Analytics')
                 ->where('link.id', $link->id)
@@ -63,6 +80,9 @@ class LinkAnalyticsTest extends TestCase
                 ->has('stats.devices')
                 ->has('stats.browsers')
                 ->has('stats.clicksPerDay')
+                ->has('stats.topSources')
+                ->has('stats.topDays')
+                ->has('stats.hourlyHeatmap')
 
                 ->where('filters.days', 7)
                 ->etc();

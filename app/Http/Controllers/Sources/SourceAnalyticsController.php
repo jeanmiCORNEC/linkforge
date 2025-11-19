@@ -33,17 +33,20 @@ class SourceAnalyticsController extends Controller
         // On part de la relation clicks() définie sur Source
         $clicksQuery = $source->clicks();
 
-        // Stats brutes depuis le service
-        $rawStats = ClickAnalytics::forPeriod($clicksQuery, $days);
+        // Stats enrichies : top liens, meilleurs jours, heatmap…
+        $rawStats = ClickAnalytics::forSource($clicksQuery, $days);
 
         // Mapping en snake_case pour rester cohérent avec LinkAnalytics + tests
         $stats = [
-            'total_clicks'      => $rawStats['totalClicks'],
-            'unique_visitors'   => $rawStats['uniqueVisitors'],
-            'devices_breakdown' => $rawStats['devices'],
-            'browsers_breakdown'=> $rawStats['browsers'],
-            'clicks_per_day'    => $rawStats['clicksPerDay'],
-            'period'            => $rawStats['period'],
+            'total_clicks'       => $rawStats['totalClicks'],
+            'unique_visitors'    => $rawStats['uniqueVisitors'],
+            'devices_breakdown'  => $rawStats['devices'],
+            'browsers_breakdown' => $rawStats['browsers'],
+            'clicks_per_day'     => $rawStats['clicksPerDay'],
+            'top_links'          => $rawStats['topLinks'] ?? [],
+            'top_days'           => $rawStats['topDays'] ?? [],
+            'hourly_heatmap'     => $rawStats['hourlyHeatmap'] ?? [],
+            'period'             => $rawStats['period'],
         ];
 
         return Inertia::render('Sources/Analytics', [

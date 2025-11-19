@@ -27,7 +27,10 @@ class SourceAnalyticsTest extends TestCase
             'campaign_id' => $campaign->id,
         ]);
 
-        $link = Link::factory()->create(['user_id' => $user->id]);
+        $link = Link::factory()->create([
+            'user_id' => $user->id,
+            'title'   => 'Lien initial',
+        ]);
 
         $tracked = TrackedLink::factory()->create([
             'user_id'   => $user->id,
@@ -35,17 +38,34 @@ class SourceAnalyticsTest extends TestCase
             'source_id' => $source->id,
         ]);
 
+        $secondLink = Link::factory()->create([
+            'user_id' => $user->id,
+            'title'   => 'Lien secondaire',
+        ]);
+
+        $secondTracked = TrackedLink::factory()->create([
+            'user_id'   => $user->id,
+            'link_id'   => $secondLink->id,
+            'source_id' => $source->id,
+        ]);
+
         // 2 clics => 2 total / 1 unique
         Click::factory()->create([
             'tracked_link_id' => $tracked->id,
             'visitor_hash'    => 'hash-123',
-            'created_at'      => now()->subDay(),
+            'created_at'      => now()->setHour(9),
         ]);
 
         Click::factory()->create([
             'tracked_link_id' => $tracked->id,
             'visitor_hash'    => 'hash-123',
-            'created_at'      => now()->subDay()->addMinutes(5),
+            'created_at'      => now()->setHour(11),
+        ]);
+
+        Click::factory()->create([
+            'tracked_link_id' => $secondTracked->id,
+            'visitor_hash'    => 'hash-789',
+            'created_at'      => now()->subDay()->setHour(15),
         ]);
 
         $response = $this
@@ -57,15 +77,19 @@ class SourceAnalyticsTest extends TestCase
 
         $response->assertOk();
 
-        $response->assertInertia(function (Assert $page) use ($source) {
+        $response->assertInertia(function (Assert $page) use ($source, $link) {
             $page
                 ->component('Sources/Analytics')
                 ->where('source.id', $source->id)
                 ->where('filters.days', 7)
 
                 // Clés réellement renvoyées par ton SourceAnalyticsController
-                ->where('stats.total_clicks', 2)
-                ->where('stats.unique_visitors', 1)
+                ->where('stats.total_clicks', 3)
+                ->where('stats.unique_visitors', 2)
+                ->has('stats.top_links')
+                ->where('stats.top_links.0.title', $link->title)
+                ->has('stats.top_days')
+                ->has('stats.hourly_heatmap')
 
                 // Ton controller NE renvoie PAS "devices" ni "browsers" aujourd’hui
                 // ->has('stats.devices')
