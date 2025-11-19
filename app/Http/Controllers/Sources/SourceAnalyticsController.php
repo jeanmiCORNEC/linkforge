@@ -26,6 +26,9 @@ class SourceAnalyticsController extends Controller
         if ($days <= 0) {
             $days = 7;
         }
+        if ($days > 365) {
+            $days = 365;
+        }
 
         // On part de la relation clicks() définie sur Source
         $clicksQuery = $source->clicks();

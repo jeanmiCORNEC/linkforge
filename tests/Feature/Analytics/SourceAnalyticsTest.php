@@ -20,18 +20,14 @@ class SourceAnalyticsTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $campaign = Campaign::factory()->create([
-            'user_id' => $user->id,
-        ]);
+        $campaign = Campaign::factory()->create(['user_id' => $user->id]);
 
         $source = Source::factory()->create([
             'user_id'     => $user->id,
             'campaign_id' => $campaign->id,
         ]);
 
-        $link = Link::factory()->create([
-            'user_id' => $user->id,
-        ]);
+        $link = Link::factory()->create(['user_id' => $user->id]);
 
         $tracked = TrackedLink::factory()->create([
             'user_id'   => $user->id,
@@ -39,7 +35,7 @@ class SourceAnalyticsTest extends TestCase
             'source_id' => $source->id,
         ]);
 
-        // 2 clics avec le même visitor_hash => 2 clics / 1 visiteur unique
+        // 2 clics => 2 total / 1 unique
         Click::factory()->create([
             'tracked_link_id' => $tracked->id,
             'visitor_hash'    => 'hash-123',
@@ -54,16 +50,32 @@ class SourceAnalyticsTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->get(route('sources.analytics.show', ['source' => $source->id, 'days' => 7]));
+            ->get(route('sources.analytics.show', [
+                'source' => $source->id,
+                'days'   => 7,
+            ]));
 
         $response->assertOk();
 
-        $response->assertInertia(fn (Assert $page) => $page
-            ->component('Sources/Analytics')
-            ->where('source.id', $source->id)
-            ->where('stats.total_clicks', 2)
-            ->where('stats.unique_visitors', 1)
-        );
+        $response->assertInertia(function (Assert $page) use ($source) {
+            $page
+                ->component('Sources/Analytics')
+                ->where('source.id', $source->id)
+                ->where('filters.days', 7)
+
+                // Clés réellement renvoyées par ton SourceAnalyticsController
+                ->where('stats.total_clicks', 2)
+                ->where('stats.unique_visitors', 1)
+
+                // Ton controller NE renvoie PAS "devices" ni "browsers" aujourd’hui
+                // ->has('stats.devices')
+                // ->has('stats.browsers')
+
+                // Mais il renvoie "clicks_per_day"
+                ->has('stats.clicks_per_day')
+
+                ->etc();
+        });
     }
 
     public function test_user_cannot_view_someone_else_source_analytics(): void
@@ -71,9 +83,7 @@ class SourceAnalyticsTest extends TestCase
         $owner = User::factory()->create();
         $other = User::factory()->create();
 
-        $campaign = Campaign::factory()->create([
-            'user_id' => $owner->id,
-        ]);
+        $campaign = Campaign::factory()->create(['user_id' => $owner->id]);
 
         $source = Source::factory()->create([
             'user_id'     => $owner->id,

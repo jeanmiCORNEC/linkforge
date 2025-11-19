@@ -20,6 +20,8 @@ class Click extends Model
         'browser',
         'os',
         'visitor_hash',
+        'created_at',
+        'updated_at',
     ];
 
     // Relations
