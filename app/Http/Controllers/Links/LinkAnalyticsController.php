@@ -137,7 +137,7 @@ class LinkAnalyticsController extends Controller
             ->first();
 
         $mainTrackingUrl = $defaultTracked
-            ? route('links.redirect', ['tracking_key' => $defaultTracked->tracking_key])
+            ? route('links.redirect', ['code' => $defaultTracked->short_code ?: $defaultTracked->tracking_key])
             : '';
 
         $campaignIds = DB::table('sources')
