@@ -30,6 +30,11 @@ php artisan serve
 - DB_* (connexion MySQL)
 - `LOG_CHANNEL=stack`, `LOG_LEVEL=info`
 
+## Domaine local conseillé
+- APP_URL: `http://linkforge.test`
+- Ajoutez dans `/etc/hosts` (ou équivalent) : `127.0.0.1 linkforge.test`
+- Utilisez ce domaine pour tester les liens courts `/l/{code}` (évite 127.0.0.1 dans les CSV/exports).
+
 ## Géolocalisation (GeoLite2 City)
 1. Créez une licence MaxMind et renseignez `MAXMIND_LICENSE_KEY` dans `.env`.
 2. Installez/actualisez la base :
@@ -62,8 +67,8 @@ Il déclenche notamment :
 ## Commandes utiles
 - `php artisan clicks:monitor --since=60` : vérifie qu’il y a eu des clics récents.
 - `php artisan geo:maxmind-update` : met à jour GeoLite2 City.
+- `php artisan demo:seed --clicks=200` : génère un jeu de données de démonstration (user démo plan pro, campagnes/sources/liens + clics).
 
 ## Notes
 - Les redirections sont best-effort : même si la géoloc ou l’insert du clic échoue, l’utilisateur est redirigé.
 - Les short codes sont uniques et générés automatiquement à la création des tracked links.
-
