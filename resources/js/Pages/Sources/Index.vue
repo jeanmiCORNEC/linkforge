@@ -229,6 +229,13 @@ const badgePlatformClass =
                             </div>
                         </div>
 
+                        <div
+                            v-if="createForm.errors.source"
+                            class="rounded-lg border border-amber-500/60 bg-amber-500/10 px-3 py-2 text-xs text-amber-100"
+                        >
+                            {{ createForm.errors.source }}
+                        </div>
+
                         <form @submit.prevent="createSource" class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                             <!-- Campagne -->
                             <div class="md:col-span-1">

@@ -209,6 +209,13 @@ const pillClasses = (value) => {
                             </div>
                         </div>
 
+                        <div
+                            v-if="createForm.errors.link"
+                            class="rounded-lg border border-amber-500/60 bg-amber-500/10 px-3 py-2 text-xs text-amber-100"
+                        >
+                            {{ createForm.errors.link }}
+                        </div>
+
                         <form @submit.prevent="createLink" class="space-y-4 text-sm">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>

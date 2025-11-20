@@ -172,6 +172,13 @@ const ghostBadgeClass =
                             </div>
                         </div>
 
+                        <div
+                            v-if="createForm.errors.campaign"
+                            class="rounded-lg border border-amber-500/60 bg-amber-500/10 px-3 py-2 text-xs text-amber-100"
+                        >
+                            {{ createForm.errors.campaign }}
+                        </div>
+
                         <form @submit.prevent="createCampaign" class="space-y-4 text-sm">
                             <!-- grille compacte : nom (1/3) + notes (2/3) -->
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
