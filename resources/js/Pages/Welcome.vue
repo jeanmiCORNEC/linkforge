@@ -14,6 +14,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    appUrl: {
+        type: String,
+        default: '',
+    },
 });
 
 const pricingCards = computed(() => {
@@ -68,10 +72,13 @@ const pricingCards = computed(() => {
 });
 
 const canonicalUrl = computed(() => {
-    if (typeof window === 'undefined') {
-        return '';
+    if (props.appUrl) {
+        return props.appUrl;
     }
-    return window.location.origin;
+    if (typeof window !== 'undefined') {
+        return window.location.origin;
+    }
+    return '';
 });
 
 const ogImageUrl = computed(() => {

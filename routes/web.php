@@ -40,6 +40,7 @@ Route::get('/', function () {
         'laravelVersion' => Application::VERSION,
         'phpVersion'     => PHP_VERSION,
         'plans'          => $plans,
+        'appUrl'         => config('app.url'),
     ]);
 })->name('welcome');
 
