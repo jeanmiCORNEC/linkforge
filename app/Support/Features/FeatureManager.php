@@ -11,31 +11,18 @@ class FeatureManager
      */
     protected const PLAN_FEATURES = [
         'free' => [
-            'analytics.deltas'         => false,
-            'analytics.heatmap'        => false,
-            'analytics.top_lists'      => false,
-            'analytics.exports'        => false,
-            'analytics.raw_log'        => false,
-            'conversions.access'       => false,
-            'integrations.manage'      => false,
+            'analytics.deltas'    => false,
+            'analytics.heatmap'   => false,
+            'analytics.top_lists' => false,
+            'analytics.exports'   => false,
+            'analytics.raw_log'   => false,
         ],
         'pro' => [
-            'analytics.deltas'         => true,
-            'analytics.heatmap'        => true,
-            'analytics.top_lists'      => true,
-            'analytics.exports'        => true,
-            'analytics.raw_log'        => true,
-            'conversions.access'       => true,
-            'integrations.manage'      => true,
-        ],
-        'scale' => [
-            'analytics.deltas'         => true,
-            'analytics.heatmap'        => true,
-            'analytics.top_lists'      => true,
-            'analytics.exports'        => true,
-            'analytics.raw_log'        => true,
-            'conversions.access'       => true,
-            'integrations.manage'      => true,
+            'analytics.deltas'    => true,
+            'analytics.heatmap'   => true,
+            'analytics.top_lists' => true,
+            'analytics.exports'   => true,
+            'analytics.raw_log'   => true,
         ],
     ];
 

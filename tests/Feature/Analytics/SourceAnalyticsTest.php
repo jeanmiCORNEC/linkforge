@@ -4,7 +4,6 @@ namespace Tests\Feature\Analytics;
 
 use App\Models\Campaign;
 use App\Models\Click;
-use App\Models\Conversion;
 use App\Models\Link;
 use App\Models\Source;
 use App\Models\TrackedLink;
@@ -69,19 +68,6 @@ class SourceAnalyticsTest extends TestCase
             'created_at'      => now()->subDay()->setHour(15),
         ]);
 
-        Conversion::factory()->create([
-            'user_id'         => $user->id,
-            'tracked_link_id' => $tracked->id,
-            'link_id'         => $link->id,
-            'source_id'       => $source->id,
-            'campaign_id'     => $campaign->id,
-            'visitor_hash'    => 'hash-123',
-            'revenue'         => 55,
-            'commission'      => 11,
-            'status'          => 'approved',
-            'created_at'      => now()->addMinutes(10),
-        ]);
-
         $response = $this
             ->actingAs($user)
             ->get(route('sources.analytics.show', [
@@ -105,8 +91,6 @@ class SourceAnalyticsTest extends TestCase
                 ->where('stats.top_links.0.title', $link->title)
                 ->has('stats.top_days')
                 ->has('stats.hourly_heatmap')
-                ->where('stats.conversions.total', 1)
-                ->where('stats.conversions.revenue', 55)
 
                 // Ton controller NE renvoie PAS "devices" ni "browsers" aujourd’hui
                 // ->has('stats.devices')
@@ -137,19 +121,6 @@ class SourceAnalyticsTest extends TestCase
             'created_at'      => now(),
         ]);
 
-        Conversion::factory()->create([
-            'user_id'         => $user->id,
-            'tracked_link_id' => $tracked->id,
-            'link_id'         => $link->id,
-            'source_id'       => $source->id,
-            'campaign_id'     => $campaign->id,
-            'visitor_hash'    => 'csv-source',
-            'revenue'         => 80,
-            'commission'      => 15,
-            'status'          => 'pending',
-            'created_at'      => now()->addHour(),
-        ]);
-
         $response = $this->actingAs($user)->get(route('sources.analytics.export', [
             'source' => $source->id,
             'days'   => 7,
@@ -162,8 +133,7 @@ class SourceAnalyticsTest extends TestCase
         $headers = array_shift($rows);
         $data = array_combine($headers, $rows[0]);
 
-        $this->assertSame('1', $data['conversions']);
-        $this->assertSame('80', $data['revenue']);
+        $this->assertArrayNotHasKey('conversions', $data);
     }
 
     public function test_user_can_export_source_raw_clicks(): void
@@ -181,20 +151,6 @@ class SourceAnalyticsTest extends TestCase
             'created_at'      => now(),
         ]);
 
-        Conversion::factory()->create([
-            'user_id'         => $user->id,
-            'tracked_link_id' => $tracked->id,
-            'link_id'         => $link->id,
-            'source_id'       => $source->id,
-            'campaign_id'     => $campaign->id,
-            'visitor_hash'    => 'raw-source',
-            'order_id'        => 'SRC-RAW-1',
-            'revenue'         => 33,
-            'commission'      => 7,
-            'status'          => 'approved',
-            'created_at'      => now()->addMinutes(5),
-        ]);
-
         $response = $this->actingAs($user)->get(route('sources.analytics.export-raw', [
             'source' => $source->id,
             'days'   => 7,
@@ -202,7 +158,7 @@ class SourceAnalyticsTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
-        $this->assertStringContainsString('SRC-RAW-1', $response->getContent());
+        $this->assertStringContainsString('raw-source', $response->getContent());
     }
 
     public function test_free_plan_cannot_export_source_raw_clicks(): void

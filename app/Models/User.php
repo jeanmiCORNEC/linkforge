@@ -69,13 +69,5 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(TrackedLink::class);
     }
 
-    public function conversions()
-    {
-        return $this->hasMany(Conversion::class);
-    }
-
-    public function affiliateIntegrations()
-    {
-        return $this->hasMany(AffiliateIntegration::class);
-    }
+    // Plus de conversions / connecteurs exposés dans le MVP recentré.
 }
