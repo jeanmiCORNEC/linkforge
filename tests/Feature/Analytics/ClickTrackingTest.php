@@ -46,7 +46,7 @@ class ClickTrackingTest extends TestCase
                 'REMOTE_ADDR'      => $ip,
                 'HTTP_USER_AGENT'  => $userAgent,
             ])
-            ->get(route('links.redirect', ['tracking_key' => $tracked->tracking_key]));
+            ->get(route('links.redirect', ['code' => $tracked->short_code]));
 
         $response->assertStatus(302);
 
