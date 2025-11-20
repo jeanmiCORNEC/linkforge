@@ -41,6 +41,16 @@ php artisan geo:maxmind-update
 
 Vous pouvez également fournir un fichier `.mmdb` ou `.tar.gz` local avec `--local=/chemin/vers/GeoLite2-City.mmdb` pour installer manuellement une version spécifique.
 
+## Checklist mise en production
+
+- Env de base : `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://app.linkforge.io` (domaine final).
+- HTTPS : activer `FORCE_HTTPS=true` une fois le certificat en place (middleware déjà branché).
+- Cron scheduler : mettre en place `* * * * * php artisan schedule:run` (déclenche `geo:maxmind-update` mensuel + `clicks:monitor` horaire).
+- Monitoring collecte de clics : ajuster `CLICK_MONITOR_LOOKBACK_MINUTES` (ex: 60) si besoin d’alerte plus stricte.
+- MaxMind : renseigner `MAXMIND_LICENSE_KEY` pour que `geo:maxmind-update` fonctionne en prod.
+- Logs : garder `LOG_CHANNEL=stack` et `LOG_LEVEL=info` (les erreurs/alertes collecte de clics sont logguées).
+- APP_URL et redirections : vérifier que les liens courts `/l/{code}` pointent bien sur le domaine prod pour éviter toute perte de tracking.
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
