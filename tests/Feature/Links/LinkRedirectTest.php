@@ -212,4 +212,38 @@ class LinkRedirectTest extends TestCase
             'ip_address'      => '192.168.0.42',
         ]);
     }
+
+    public function test_fallback_on_tracking_key_when_short_code_missing(): void
+    {
+        $user = User::factory()->create();
+
+        $link = Link::factory()->create([
+            'user_id'         => $user->id,
+            'destination_url' => 'https://example.com/product',
+            'is_active'       => true,
+        ]);
+
+        $tracked = TrackedLink::factory()->create([
+            'user_id'   => $user->id,
+            'link_id'   => $link->id,
+            'source_id' => null,
+        ]);
+
+        // Simuler un ancien enregistrement sans short_code
+        $tracked->update(['short_code' => null]);
+
+        $this
+            ->withServerVariables([
+                'REMOTE_ADDR' => '10.0.0.2',
+            ])
+            ->get('/l/'.$tracked->tracking_key, [
+                'HTTP_USER_AGENT' => 'Mozilla/5.0 (Windows NT 10.0) Chrome/120.0',
+            ])
+            ->assertRedirect('https://example.com/product');
+
+        $this->assertDatabaseHas('clicks', [
+            'tracked_link_id' => $tracked->id,
+            'ip_address'      => '10.0.0.2',
+        ]);
+    }
 }
