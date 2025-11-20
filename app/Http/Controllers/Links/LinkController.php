@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Links;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use App\Models\Link;
 use App\Models\TrackedLink;
 use App\Models\Click;
@@ -189,23 +190,45 @@ class LinkController extends Controller
         $device      = $this->guessDeviceFromUserAgent($ua);
         $browser     = $this->guessBrowserFromUserAgent($ua);
         $visitorHash = hash('sha256', $ip . '|' . $ua);
-        $geoLocation = $this->geoLocator->lookup($ip);
+        $geoCountry  = null;
+        $geoCity     = null;
 
-        // 5. Log du clic
-        Click::create([
-            'tracked_link_id' => $tracked->id,
-            'ip_address'      => $ip,
-            'user_agent'      => $ua,
-            'referrer'        => $request->headers->get('referer'),
+        try {
+            $geoLocation = $this->geoLocator->lookup($ip);
+            $geoCountry  = $geoLocation->countryCode ?? $geoLocation->countryName;
+            $geoCity     = $geoLocation->city;
+        } catch (\Throwable $e) {
+            Log::warning('Geo lookup failed', [
+                'ip'     => $ip,
+                'error'  => $e->getMessage(),
+                'userAgent' => $ua,
+            ]);
+        }
 
-            // Champs analytics
-            'device'       => $device,
-            'browser'      => $browser,
-            'os'           => null,          // on pourra décider plus tard si on parse l'OS
-            'visitor_hash' => $visitorHash,
-            'country'      => $geoLocation->countryCode ?? $geoLocation->countryName,
-            'city'         => $geoLocation->city,
-        ]);
+        // 5. Log du clic (en mode best-effort : on continue la redirection même en cas d’échec)
+        try {
+            Click::create([
+                'tracked_link_id' => $tracked->id,
+                'ip_address'      => $ip,
+                'user_agent'      => $ua,
+                'referrer'        => $request->headers->get('referer'),
+
+                // Champs analytics
+                'device'       => $device,
+                'browser'      => $browser,
+                'os'           => null,          // on pourra décider plus tard si on parse l'OS
+                'visitor_hash' => $visitorHash,
+                'country'      => $geoCountry,
+                'city'         => $geoCity,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Click logging failed', [
+                'tracked_link_id' => $tracked->id,
+                'ip'              => $ip,
+                'user_agent'      => $ua,
+                'error'           => $e->getMessage(),
+            ]);
+        }
 
         // 6. Redirection finale avec propagation des paramètres GET
         $destination = $tracked->link->destination_url;
