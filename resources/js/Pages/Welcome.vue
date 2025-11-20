@@ -1,166 +1,186 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 
-defineProps({
+const props = defineProps({
     canLogin: Boolean,
     canRegister: Boolean,
     auth: {
         type: Object,
         default: () => ({ user: null }),
     },
-    laravelVersion: String,
-    phpVersion: String,
     plans: {
         type: Array,
         default: () => [],
     },
 });
+
+const pricingCards = computed(() => {
+    if (props.plans.length) {
+        return props.plans.map((plan) => ({
+            id: plan.id,
+            name: plan.name,
+            price: plan.price,
+            priceLabel: plan.price_label,
+            description: plan.description,
+            featured: plan.featured ?? false,
+            limits: plan.limits ?? [],
+            features: plan.features ?? [],
+            ctaLabel: plan.cta_label ?? 'Choisir ce plan',
+            ctaUrl: plan.cta_url ?? '#pricing',
+            isFree: plan.price === 0,
+        }));
+    }
+
+    return [
+        {
+            id: 'free',
+            name: 'Discovery',
+            price: 0,
+            priceLabel: '0€ / mois',
+            description: '10 liens, 2 campagnes, stats basiques sur 7 jours.',
+            featured: false,
+            limits: ['10 liens trackés', '2 campagnes / 4 sources', 'Statistiques 7 jours'],
+            features: ['Heatmap et exports désactivés'],
+            ctaLabel: 'Créer un compte',
+            ctaUrl: props.canRegister ? route('register') : route('login'),
+            isFree: true,
+        },
+        {
+            id: 'pro',
+            name: 'Creator',
+            price: 9.9,
+            priceLabel: '9,90€ / mois',
+            description: 'Full options : heatmap, tops, exports CSV/raw.',
+            featured: true,
+            limits: [
+                'Liens, campagnes et sources illimités',
+                'Deltas, tops, heatmap horaire',
+                'Exports CSV + raw',
+            ],
+            features: ['Support prioritaire'],
+            ctaLabel: 'Passer en Pro',
+            ctaUrl: props.canRegister ? route('register', { plan: 'pro' }) : route('login'),
+            isFree: false,
+        },
+    ];
+});
 </script>
 
 <template>
-
-    <Head title="LinkForge – Suis enfin les liens qui rapportent" />
+    <Head>
+        <title>LinkForge - Raccourcisseur de liens et analytics pour créateurs</title>
+        <meta name="description" content="Créez des liens courts, organisez vos campagnes et analysez votre audience (géoloc, device, source). Essai gratuit, pas de CB." />
+        <meta property="og:title" content="LinkForge - Raccourcisseur de liens et analytics" />
+        <meta property="og:description" content="Ne devinez plus d'où vient votre trafic. Suivez les clics, devices et pays en un tableau de bord." />
+    </Head>
 
     <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
         <!-- Top bar -->
-        <header class="border-b border-slate-800">
+        <header class="border-b border-slate-800/60 bg-slate-950/95 backdrop-blur">
             <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <ApplicationLogo class="w-8 h-8 text-indigo-400" />
-                    <span class="font-semibold text-lg tracking-tight">
-                        LinkForge
-                    </span>
+                    <ApplicationLogo class="w-9 h-9 text-indigo-400" />
+                    <span class="font-semibold text-lg tracking-tight">LinkForge</span>
                 </div>
 
-                <nav class="flex items-center gap-4 text-sm">
-                    <a href="#how-it-works" class="hover:text-indigo-300 transition">Comment ça marche</a>
-                    <a href="#for-who" class="hover:text-indigo-300 transition">Pour qui ?</a>
-                    <a href="#features" class="hover:text-indigo-300 transition">Fonctionnalités</a>
-                    <a href="#pricing" class="hover:text-indigo-300 transition">Plans & Tarifs</a>
+                <nav class="hidden md:flex items-center gap-4 text-sm">
+                    <a href="#hero" class="hover:text-indigo-300 transition">Accueil</a>
+                    <a href="#proof" class="hover:text-indigo-300 transition">Compatibilité</a>
+                    <a href="#problem" class="hover:text-indigo-300 transition">Problème</a>
+                    <a href="#features" class="hover:text-indigo-300 transition">Solution</a>
+                    <a href="#pricing" class="hover:text-indigo-300 transition">Tarifs</a>
 
                     <div class="h-6 w-px bg-slate-700 mx-2" />
 
                     <Link v-if="auth.user" :href="route('dashboard')"
-                        class="px-6 py-3 rounded-full bg-indigo-500 text-white font-semibold">
-                    Aller au Dashboard
+                        class="px-4 py-2 rounded-full bg-indigo-500 text-white font-semibold hover:bg-indigo-400">
+                        Dashboard
                     </Link>
-
-                    <!-- Sinon : boutons Connexion / Créer un compte -->
                     <template v-else>
                         <Link v-if="canLogin" :href="route('login')" class="text-sm text-gray-300 hover:text-white">
-                        Connexion
+                            Connexion
                         </Link>
-
                         <Link v-if="canRegister" :href="route('register')"
-                            class="px-6 py-3 rounded-full bg-indigo-500 text-white font-semibold">
-                        Créer un compte gratuit
+                            class="px-4 py-2 rounded-full bg-indigo-500 text-white font-semibold hover:bg-indigo-400">
+                            Commencer gratuitement
                         </Link>
                     </template>
                 </nav>
             </div>
         </header>
 
-        <!-- Hero -->
         <main class="flex-1">
-            <section class="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
-                <div class="max-w-6xl mx-auto px-4 py-16 grid md:grid-cols-2 gap-12 items-center">
-                    <div class="space-y-6">
-                        <p
-                            class="inline-flex items-center rounded-full border border-indigo-500/40 bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-200 uppercase tracking-[0.15em]">
-                            SaaS pour créateurs & affiliés
+            <!-- HERO -->
+            <section id="hero" class="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+                <div class="max-w-6xl mx-auto px-4 py-14 grid md:grid-cols-2 gap-12 items-center">
+                    <div class="space-y-5">
+                        <p class="inline-flex items-center rounded-full border border-indigo-500/40 bg-indigo-500/10 px-3 py-1 text-[11px] font-semibold text-indigo-200 uppercase tracking-[0.15em]">
+                            Ne devinez plus d'où vient votre trafic
                         </p>
-
-                        <h1 class="text-3xl md:text-4xl font-bold tracking-tight">
-                            <span class="block">Sache enfin</span>
-                            <span class="block text-indigo-400">quels liens rapportent vraiment.</span>
+                        <h1 class="text-3xl md:text-4xl font-bold tracking-tight leading-tight">
+                            Le gestionnaire de liens intelligent pour créateurs et solopreneurs.
                         </h1>
-
                         <p class="text-sm md:text-base text-slate-300 leading-relaxed">
-                            LinkForge suit chaque clic sur tes liens d’affiliation
-                            sur TikTok, YouTube, Instagram & co, et te montre
-                            quelles vidéos, stories ou posts génèrent réellement
-                            des clics et des revenus.
+                            Créez des liens courts, organisez vos campagnes et découvrez exactement ce qui convertit. Devices, pays, sources : tout est dans un dashboard clair.
                         </p>
-
-                        <ul class="space-y-2 text-sm text-slate-300">
-                            <li class="flex gap-2">
-                                <span class="mt-1 h-4 w-4 rounded-full bg-indigo-500 flex-shrink-0" />
-                                <span>Relie chaque lien à une <strong>source</strong> : vidéo, story, post…</span>
-                            </li>
-                            <li class="flex gap-2">
-                                <span class="mt-1 h-4 w-4 rounded-full bg-emerald-500 flex-shrink-0" />
-                                <span>Vois en un coup d’œil tes liens et contenus les plus rentables.</span>
-                            </li>
-                            <li class="flex gap-2">
-                                <span class="mt-1 h-4 w-4 rounded-full bg-fuchsia-500 flex-shrink-0" />
-                                <span>Prouve ta valeur aux marques avec des stats claires.</span>
-                            </li>
-                        </ul>
-
-                        <div class="flex flex-wrap items-center gap-3 pt-2">
+                        <div class="flex flex-wrap items-center gap-3">
                             <Link v-if="canRegister" :href="route('register')"
-                                class="inline-flex items-center rounded-md bg-indigo-500 px-5 py-2.5 text-sm font-medium text-white shadow hover:bg-indigo-400 transition">
-                            Commencer gratuitement
+                                class="inline-flex items-center rounded-md bg-indigo-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-900/40 hover:bg-indigo-400 transition">
+                                Commencer gratuitement
                             </Link>
-
                             <a href="#pricing"
                                 class="inline-flex items-center rounded-md border border-slate-700 px-5 py-2.5 text-sm font-medium text-slate-200 hover:text-white hover:border-indigo-400 transition">
                                 Voir les plans
                             </a>
-
-                            <p class="text-xs text-slate-400">
-                                Plan gratuit pour toujours • Idéal 1 000 – 50 000 abonnés.
-                            </p>
+                            <p class="text-xs text-slate-400">Pas de CB requise • Paramètres UTM conservés</p>
                         </div>
                     </div>
 
-                    <!-- Faux dashboard aperçu -->
                     <div class="hidden md:block">
-                        <div
-                            class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-xl shadow-indigo-900/30">
-                            <div class="flex items-center justify-between mb-3">
+                        <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-xl shadow-indigo-900/30 space-y-3">
+                            <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-xs text-slate-400">Dashboard créateur</p>
-                                    <p class="text-sm font-semibold">Exemple : @setup.tok</p>
+                                    <p class="text-xs text-slate-400">Dashboard</p>
+                                    <p class="text-sm font-semibold">Exemple campagne TikTok</p>
                                 </div>
-                                <span
-                                    class="text-[10px] rounded-full bg-emerald-500/10 text-emerald-300 px-2 py-0.5 border border-emerald-500/40">
-                                    Plan FREE
+                                <span class="text-[10px] rounded-full bg-emerald-500/10 text-emerald-300 px-2 py-0.5 border border-emerald-500/40">
+                                    Temps réel
                                 </span>
                             </div>
-
-                            <div class="grid grid-cols-3 gap-3 mb-4">
+                            <div class="grid grid-cols-3 gap-3">
                                 <div class="rounded-xl bg-slate-950/60 border border-slate-800 p-3">
-                                    <p class="text-xs md:text-sm text-slate-400">Clics (7 jours)</p>
-                                    <p class="text-lg font-semibold">1 284</p>
-                                    <p class="text-xs md:text-sm text-emerald-400 mt-1">+32%</p>
+                                    <p class="text-xs text-slate-400">Clics (7 j)</p>
+                                    <p class="text-2xl font-bold">1 284</p>
+                                    <p class="text-[11px] text-emerald-400 mt-1">+32% vs période précédente</p>
                                 </div>
                                 <div class="rounded-xl bg-slate-950/60 border border-slate-800 p-3">
-                                    <p class="text-xs md:text-sm text-slate-400">Liens trackés</p>
-                                    <p class="text-lg font-semibold">27</p>
-                                    <p class="text-xs md:text-sm text-slate-400 mt-1">6 pages bio</p>
+                                    <p class="text-xs text-slate-400">Mobile</p>
+                                    <p class="text-xl font-semibold">72%</p>
+                                    <p class="text-[11px] text-slate-400 mt-1">iOS 48% / Android 24%</p>
                                 </div>
                                 <div class="rounded-xl bg-slate-950/60 border border-slate-800 p-3">
-                                    <p class="text-xs md:text-sm text-slate-400">Sources actives</p>
-                                    <p class="text-lg font-semibold">14</p>
-                                    <p class="text-xs md:text-sm text-slate-400 mt-1">Shorts, Reels, Stories</p>
+                                    <p class="text-xs text-slate-400">Top pays</p>
+                                    <p class="text-lg font-semibold">FR • CA • BE</p>
+                                    <p class="text-[11px] text-slate-400 mt-1">Heatmap horaire incluse</p>
                                 </div>
                             </div>
-
-                            <p class="text-xs md:text-sm text-slate-400 mb-2">Top sources</p>
-                            <div class="space-y-1.5 text-xs md:text-sm">
-                                <div class="flex justify-between">
-                                    <span>🎧 TikTok – Setup 2025</span>
-                                    <span class="text-slate-300">432 clics</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>📦 YouTube – Unboxing micro</span>
-                                    <span class="text-slate-300">311 clics</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>🛒 Story Insta – Code -10%</span>
-                                    <span class="text-slate-300">187 clics</span>
+                            <div class="rounded-xl bg-slate-950/60 border border-slate-800 p-3">
+                                <p class="text-xs text-slate-400 mb-2">Top sources</p>
+                                <div class="space-y-1 text-sm">
+                                    <div class="flex justify-between">
+                                        <span>Bio TikTok – Setup 2025</span>
+                                        <span class="text-slate-200">432 clics</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>YouTube – Unboxing micro</span>
+                                        <span class="text-slate-200">311 clics</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Story Insta – Code -10%</span>
+                                        <span class="text-slate-200">187 clics</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -168,179 +188,165 @@ defineProps({
                 </div>
             </section>
 
-            <!-- Section : Pour qui ? -->
-            <section id="for-who" class="border-b border-slate-800 bg-slate-950">
-                <div class="max-w-6xl mx-auto px-4 py-10 grid md:grid-cols-3 gap-6 text-sm">
-                    <div>
-                        <h2 class="text-base font-semibold mb-2">Pour qui ?</h2>
-                        <p class="text-slate-300">
-                            Pour les créateurs entre <strong>1k et 50k abonnés</strong>
-                            qui font de l’affiliation et veulent arrêter de
-                            travailler “dans le flou”.
-                        </p>
-                    </div>
-                    <div>
-                        <h2 class="text-base font-semibold mb-2">Quel problème ?</h2>
-                        <p class="text-slate-300">
-                            Tu sais que tu as des clics, mais tu ignores
-                            <strong>quelle vidéo</strong> ou <strong>quelle story</strong>
-                            les a générés. LinkForge relie chaque clic à une
-                            source précise.
-                        </p>
-                    </div>
-                    <div>
-                        <h2 class="text-base font-semibold mb-2">Ce que tu gagnes</h2>
-                        <p class="text-slate-300">
-                            Tu peux : arrêter les contenus qui ne performent pas,
-                            doubler sur ceux qui convertissent, et montrer des
-                            stats claires aux marques qui te contactent.
-                        </p>
+            <!-- SOCIAL PROOF -->
+            <section id="proof" class="border-b border-slate-800 bg-slate-950">
+                <div class="max-w-6xl mx-auto px-4 py-8">
+                    <p class="text-xs uppercase tracking-[0.2em] text-slate-500 text-center mb-4">Compatible avec vos plateformes</p>
+                    <div class="flex flex-wrap items-center justify-center gap-6 text-slate-400 text-sm">
+                        <span>TikTok</span>
+                        <span>Instagram</span>
+                        <span>YouTube</span>
+                        <span>LinkedIn</span>
+                        <span>Facebook</span>
+                        <span>X (Twitter)</span>
                     </div>
                 </div>
             </section>
 
-            <!-- Section : Comment ça marche -->
-            <section id="how-it-works" class="bg-slate-950">
-                <div class="max-w-6xl mx-auto px-4 py-10 text-sm">
-                    <h2 class="text-base font-semibold mb-4">Comment ça marche ?</h2>
-                    <ol class="grid md:grid-cols-3 gap-4 list-decimal list-inside text-slate-300">
-                        <li>
-                            Tu crées un compte et définis tes premières
-                            <strong>sources</strong> : “Short setup”, “Story promo micro”, etc.
-                        </li>
-                        <li>
-                            Tu colles tes liens d’affiliation, LinkForge génère
-                            des liens courts trackés pour chaque source.
-                        </li>
-                        <li>
-                            Tu colles ces liens dans tes bios / descriptions.
-                            LinkForge enregistre chaque clic et te montre ce qui
-                            performe vraiment.
-                        </li>
-                    </ol>
-                </div>
-            </section>
-
-            <!-- Section : Pricing -->
-            <section v-if="plans.length" id="pricing" class="border-t border-slate-800 bg-slate-950">
-                <div class="max-w-6xl mx-auto px-4 py-14 space-y-10">
-                    <div class="md:flex md:items-end md:justify-between gap-6">
-                        <div class="space-y-3">
-                            <p class="text-xs uppercase tracking-[0.2em] text-slate-400">
-                                Plans & Tarifs
-                            </p>
-                            <h2 class="text-2xl font-semibold">
-                                Choisis le plan adapté à ta création de contenu
-                            </h2>
-                            <p class="text-sm text-slate-300 max-w-3xl">
-                                LinkForge grandit avec toi : démarre en plan Free pour valider ton tracking,
-                                passe en Pro quand tu as besoin d’exports et d’analytics détaillés,
-                                puis ouvre un plan Scale pour ton studio ou ta micro-agence.
-                            </p>
+            <!-- PROBLÈME -->
+            <section id="problem" class="border-b border-slate-800 bg-slate-950/90">
+                <div class="max-w-6xl mx-auto px-4 py-12 space-y-6">
+                    <h2 class="text-2xl font-bold">Vous publiez du contenu, mais vous avancez à l'aveugle ?</h2>
+                    <div class="grid md:grid-cols-3 gap-4 text-sm text-slate-300">
+                        <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                            <p class="font-semibold text-white mb-2">Des liens partout</p>
+                            <p>Bio, descriptions, newsletters... impossible de s’y retrouver.</p>
                         </div>
+                        <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                            <p class="font-semibold text-white mb-2">Zéro visibilité</p>
+                            <p>Les réseaux donnent un total de clics, mais pas le device ni le pays.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                            <p class="font-semibold text-white mb-2">Perte de revenus</p>
+                            <p>Sans savoir quelles campagnes marchent, vous gaspillez du temps sur les mauvais canaux.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-                        <p class="text-xs text-slate-400">
-                            Tous les plans incluent la double authentification, la sauvegarde et les exports programmés.
-                        </p>
+            <!-- SOLUTION / FEATURES -->
+            <section id="features" class="border-b border-slate-800 bg-slate-950">
+                <div class="max-w-6xl mx-auto px-4 py-12 space-y-8">
+                    <h2 class="text-2xl font-bold">LinkForge est le remède</h2>
+                    <div class="grid md:grid-cols-3 gap-6 text-sm text-slate-300">
+                        <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-5 space-y-2">
+                            <p class="text-xs uppercase tracking-[0.2em] text-indigo-300">Tracking chirurgical</p>
+                            <p class="text-lg font-semibold text-white">Sachez tout de vos visiteurs</p>
+                            <p>Pays, ville, appareil (mobile/desktop/tablette), navigateur. La data que les réseaux cachent.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-5 space-y-2">
+                            <p class="text-xs uppercase tracking-[0.2em] text-indigo-300">Campagnes & Sources</p>
+                            <p class="text-lg font-semibold text-white">Organisez, ne subissez plus</p>
+                            <p>Groupez par campagne (Black Friday, Lancement ebook) et par source (Bio TikTok, Story). Comparez en un coup d’œil.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-5 space-y-2">
+                            <p class="text-xs uppercase tracking-[0.2em] text-indigo-300">Redirection intelligente</p>
+                            <p class="text-lg font-semibold text-white">Ne perdez jamais un clic</p>
+                            <p>Propagation automatique des paramètres (UTM, affiliation) et redirection ultra-rapide.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- USE CASES -->
+            <section id="for-who" class="border-b border-slate-800 bg-slate-950/90">
+                <div class="max-w-6xl mx-auto px-4 py-12 grid md:grid-cols-3 gap-6 text-sm text-slate-300">
+                    <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-4 space-y-2">
+                        <p class="text-xs uppercase tracking-[0.2em] text-indigo-300">Infopreneur</p>
+                        <p class="text-white font-semibold">Comparer YouTube vs Instagram</p>
+                        <p>Trackez les clics sur vos ebooks et identifiez les vidéos qui convertissent.</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-4 space-y-2">
+                        <p class="text-xs uppercase tracking-[0.2em] text-indigo-300">Affilié</p>
+                        <p class="text-white font-semibold">Nettoyez vos liens</p>
+                        <p>Masquez les URL moches, sécurisez vos paramètres et suivez chaque clic par source.</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-4 space-y-2">
+                        <p class="text-xs uppercase tracking-[0.2em] text-indigo-300">Marketer</p>
+                        <p class="text-white font-semibold">Prouvez le ROI</p>
+                        <p>Rapports clairs par campagne/source, exports CSV pour vos clients.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRICING -->
+            <section id="pricing" class="border-b border-slate-800 bg-slate-950">
+                <div class="max-w-6xl mx-auto px-4 py-12 space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.2em] text-indigo-300">Pricing simple</p>
+                            <h2 class="text-2xl font-bold">Une offre gratuite, une offre Pro : c'est tout.</h2>
+                        </div>
+                        <p class="text-sm text-slate-400">Essai gratuit. Pas de carte.</p>
                     </div>
 
-                    <div class="grid md:grid-cols-3 gap-6">
-                        <article
-                            v-for="plan in plans"
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div
+                            v-for="plan in pricingCards"
                             :key="plan.id"
                             :class="[
-                                'rounded-2xl border p-6 flex flex-col h-full bg-slate-950/70',
-                                plan.featured ? 'border-indigo-500 shadow-lg shadow-indigo-900/40' : 'border-slate-800',
+                                'rounded-2xl border p-6 space-y-3 bg-slate-950/70',
+                                plan.featured ? 'border-indigo-500 shadow-xl shadow-indigo-900/30' : 'border-slate-800'
                             ]"
                         >
-                            <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400">
-                                        {{ plan.name }}
-                                    </p>
-                                    <p class="mt-2 text-2xl font-semibold text-white">
-                                        {{ plan.price_label }}
-                                    </p>
+                                    <p class="text-xs uppercase tracking-[0.18em] text-slate-400">{{ plan.name }}</p>
+                                    <p class="text-3xl font-bold text-white">{{ plan.priceLabel }}</p>
                                 </div>
-
-                                <span
-                                    v-if="plan.featured"
-                                    class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-200 border border-indigo-400/40"
-                                >
-                                    Populaire
+                                <span v-if="plan.featured" class="text-[11px] rounded-full bg-indigo-500/15 text-indigo-200 px-3 py-1 border border-indigo-500/40">
+                                    Le plus populaire
                                 </span>
                             </div>
+                            <p class="text-sm text-slate-300">{{ plan.description }}</p>
 
-                            <p class="mt-4 text-sm text-slate-300">
-                                {{ plan.description }}
-                            </p>
+                            <ul class="space-y-1 text-sm text-slate-200">
+                                <li v-for="item in plan.limits" :key="item" class="flex gap-2">
+                                    <span class="mt-1 h-2 w-2 rounded-full bg-indigo-400"></span>
+                                    <span>{{ item }}</span>
+                                </li>
+                                <li v-for="feat in plan.features" :key="feat" class="flex gap-2">
+                                    <span class="mt-1 h-2 w-2 rounded-full bg-emerald-400"></span>
+                                    <span>{{ feat }}</span>
+                                </li>
+                            </ul>
 
-                            <div class="mt-6 space-y-3 text-sm text-slate-200">
-                                <div>
-                                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400 mb-1">
-                                        Limites principales
-                                    </p>
-                                    <ul class="space-y-1">
-                                        <li
-                                            v-for="item in plan.limits"
-                                            :key="item"
-                                            class="flex gap-2 text-slate-300"
-                                        >
-                                            <span class="text-indigo-400">•</span>
-                                            <span>{{ item }}</span>
-                                        </li>
-                                    </ul>
-                                </div>
-
-                                <div>
-                                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400 mb-1">
-                                        Inclus
-                                    </p>
-                                    <ul class="space-y-1">
-                                        <li
-                                            v-for="feature in plan.features"
-                                            :key="feature"
-                                            class="flex gap-2 text-slate-300"
-                                        >
-                                            <span class="text-emerald-400">✔</span>
-                                            <span>{{ feature }}</span>
-                                        </li>
-                                    </ul>
-                                </div>
+                            <div class="pt-2">
+                                <a :href="plan.ctaUrl"
+                                    class="inline-flex items-center rounded-md px-4 py-2 text-sm font-semibold shadow transition"
+                                    :class="plan.featured ? 'bg-indigo-500 text-white hover:bg-indigo-400 shadow-indigo-900/30' : 'border border-slate-700 text-slate-100 hover:border-indigo-400'">
+                                    {{ plan.ctaLabel }}
+                                </a>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-                            <div class="mt-6 pt-4 border-t border-slate-800">
-                                <component
-                                    v-if="plan.cta_url"
-                                    :is="plan.cta_action === 'register' ? Link : 'a'"
-                                    :href="plan.cta_url"
-                                    class="inline-flex items-center justify-center w-full rounded-md px-4 py-2 text-sm font-semibold transition"
-                                    :class="plan.featured ? 'bg-indigo-500 text-white hover:bg-indigo-400' : 'border border-slate-700 text-slate-100 hover:border-indigo-400'"
-                                    :target="plan.cta_action === 'contact' ? '_blank' : undefined"
-                                >
-                                    {{ plan.cta_label }}
-                                </component>
-
-                                <button
-                                    v-else
-                                    type="button"
-                                    disabled
-                                    class="inline-flex items-center justify-center w-full rounded-md px-4 py-2 text-sm font-semibold border border-slate-800 text-slate-500 cursor-not-allowed"
-                                >
-                                    Bientôt disponible
-                                </button>
-                            </div>
-                        </article>
+            <!-- FAQ -->
+            <section id="faq" class="bg-slate-950">
+                <div class="max-w-6xl mx-auto px-4 py-12 space-y-6">
+                    <h2 class="text-2xl font-bold">FAQ</h2>
+                    <div class="grid md:grid-cols-2 gap-4 text-sm text-slate-200">
+                        <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-4 space-y-2">
+                            <p class="font-semibold text-white">LinkForge impacte-t-il le SEO ?</p>
+                            <p>Non, redirections propres (301/302), pas de contenu dupliqué.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-4 space-y-2">
+                            <p class="font-semibold text-white">Puis-je modifier un lien après partage ?</p>
+                            <p>Oui, vous pouvez mettre à jour l’URL cible à tout moment sans changer le lien court.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-4 space-y-2">
+                            <p class="font-semibold text-white">Compatible avec l’affiliation Amazon ?</p>
+                            <p>Oui, nous gardons vos paramètres et UTM pour préserver le tracking Amazon.</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-4 space-y-2">
+                            <p class="font-semibold text-white">Dois-je ajouter du code ?</p>
+                            <p>Non, tout se passe via l’app : générez vos liens courts, copiez-collez, c’est tout.</p>
+                        </div>
                     </div>
                 </div>
             </section>
         </main>
-
-        <footer class="border-t border-slate-800 bg-slate-950">
-            <div class="max-w-6xl mx-auto px-4 py-4 text-xs md:text-sm flex justify-between text-slate-500">
-                <span>© {{ new Date().getFullYear() }} LinkForge – Micro-SaaS pour créateurs & affiliés.</span>
-                <span>Made en France 🇫🇷</span>
-            </div>
-        </footer>
     </div>
 </template>
