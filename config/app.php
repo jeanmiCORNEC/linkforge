@@ -56,6 +56,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Forced HTTPS (prod-ready)
+    |--------------------------------------------------------------------------
+    |
+    | Lorsque activé, toutes les requêtes HTTP seront redirigées en HTTPS.
+    | Laisser à false en local. À activer en production via FORCE_HTTPS=true.
+    |
+    */
+
+    'force_https' => (bool) env('FORCE_HTTPS', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |
