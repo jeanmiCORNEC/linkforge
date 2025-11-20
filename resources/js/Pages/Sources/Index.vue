@@ -116,7 +116,7 @@ const attachLinkToSource = (source) => {
 
 // --- Helpers : copie de tracking links ---
 const trackingUrl = (trackedLink) =>
-    route('links.redirect', { tracking_key: trackedLink.tracking_key });
+    route('links.redirect', { code: trackedLink.short_code || trackedLink.tracking_key });
 
 const showToast = ref(false);
 const toastMessage = ref('');
