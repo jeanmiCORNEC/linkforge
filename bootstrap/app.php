@@ -10,6 +10,7 @@ return Application::configure(basePath: dirname(__DIR__))
         App\Console\Commands\UpdateGeoDatabase::class,
         App\Console\Commands\BackfillTrackedLinkShortCodes::class,
         App\Console\Commands\MonitorClicks::class,
+        App\Console\Commands\SeedDemoData::class,
     ])
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('geo:maxmind-update')->monthlyOn(1, '03:00')->timezone('UTC');
