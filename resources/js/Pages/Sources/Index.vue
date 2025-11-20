@@ -136,11 +136,29 @@ const triggerToast = (message = 'Lien copié dans le presse-papier') => {
 const copyTrackedLink = async (trackedLink) => {
     if (!trackedLink) return;
 
+    const url = trackingUrl(trackedLink);
+    if (!url) {
+        triggerToast("Lien manquant");
+        return;
+    }
+
     try {
-        await navigator.clipboard.writeText(trackingUrl(trackedLink));
+        if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(url);
+        } else {
+            throw new Error('Clipboard API not available');
+        }
         triggerToast();
     } catch (error) {
-        triggerToast("Impossible de copier l'URL");
+        // Fallback pour HTTP/local sans Clipboard API
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+
+        triggerToast();
     }
 };
 
