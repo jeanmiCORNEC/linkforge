@@ -91,6 +91,7 @@ const getShortUrlForLink = (link) => {
     const tracked = getDefaultTrackedLink(link);
     if (!tracked) return '';
     const code = tracked.short_code || tracked.tracking_key;
+    if (!code) return '';
     return route('links.redirect', { code });
 };
 

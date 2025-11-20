@@ -115,8 +115,11 @@ const attachLinkToSource = (source) => {
 };
 
 // --- Helpers : copie de tracking links ---
-const trackingUrl = (trackedLink) =>
-    route('links.redirect', { code: trackedLink.short_code || trackedLink.tracking_key });
+const trackingUrl = (trackedLink) => {
+    const code = trackedLink.short_code || trackedLink.tracking_key;
+    if (!code) return '';
+    return route('links.redirect', { code });
+};
 
 const showToast = ref(false);
 const toastMessage = ref('');
