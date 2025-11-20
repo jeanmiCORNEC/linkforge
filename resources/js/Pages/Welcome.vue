@@ -73,6 +73,13 @@ const canonicalUrl = computed(() => {
     }
     return window.location.origin;
 });
+
+const ogImageUrl = computed(() => {
+    if (canonicalUrl.value) {
+        return `${canonicalUrl.value}/images/og-linkforge.png`;
+    }
+    return '/images/og-linkforge.png';
+});
 </script>
 
 <template>
@@ -81,8 +88,8 @@ const canonicalUrl = computed(() => {
         <meta name="description" content="Créez des liens courts, organisez vos campagnes et analysez votre audience (géoloc, device, source). Essai gratuit, pas de CB." />
         <meta property="og:title" content="LinkForge - Raccourcisseur de liens et analytics" />
         <meta property="og:description" content="Ne devinez plus d'où vient votre trafic. Suivez les clics, devices et pays en un tableau de bord." />
-        <meta property="og:image" content="/images/og-linkforge.png" />
-        <meta name="twitter:image" content="/images/og-linkforge.png" />
+        <meta property="og:image" :content="ogImageUrl" />
+        <meta name="twitter:image" :content="ogImageUrl" />
         <meta property="og:url" :content="canonicalUrl" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="LinkForge - Raccourcisseur de liens et analytics" />

@@ -43,6 +43,15 @@ Route::get('/', function () {
     ]);
 })->name('welcome');
 
+// Sitemap statique généré dynamiquement avec l'APP_URL
+Route::get('/sitemap.xml', function () {
+    $appUrl = rtrim(config('app.url'), '/');
+
+    return response()
+        ->view('sitemap', ['appUrl' => $appUrl])
+        ->header('Content-Type', 'application/xml');
+});
+
 // Routes d'auth Breeze
 require __DIR__ . '/auth.php';
 
