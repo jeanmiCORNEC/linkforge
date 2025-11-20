@@ -6,6 +6,7 @@ use Inertia\Inertia;
 use App\Models\Campaign;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Support\Plans\PlanLimits;
 
 class CampaignController extends Controller
 {
@@ -42,7 +43,14 @@ class CampaignController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $campaign = $request->user()->campaigns()->create([
+        $user = $request->user();
+        if ($limit = PlanLimits::campaignsLimit($user)) {
+            $current = $user->campaigns()->count();
+            if ($current >= $limit) {
+                return back()->withErrors(['campaign' => "Limite atteinte : {$limit} campagnes sur le plan Free."]);
+            }
+        }
+        $campaign = $user->campaigns()->create([
             'name'    => $validated['name'],
             'notes'   => $validated['notes'] ?? null,
             'status'  => 'active',
