@@ -8,6 +8,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 return Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
         App\Console\Commands\UpdateGeoDatabase::class,
+        App\Console\Commands\BackfillTrackedLinkShortCodes::class,
     ])
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('geo:maxmind-update')->monthlyOn(1, '03:00')->timezone('UTC');
