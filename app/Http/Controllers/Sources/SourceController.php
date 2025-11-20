@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Sources;
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Source;
+use App\Support\Plans\PlanLimits;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -70,6 +71,13 @@ class SourceController extends Controller
         $campaign = Campaign::where('id', $validated['campaign_id'])
             ->where('user_id', $user->id)
             ->firstOrFail();
+
+        if ($limit = PlanLimits::sourcesLimit($user)) {
+            $current = $user->sources()->count();
+            if ($current >= $limit) {
+                return back()->withErrors(['source' => "Limite atteinte : {$limit} sources sur le plan Free."]);
+            }
+        }
 
         $source = $campaign->sources()->create([
             'user_id'  => $user->id,

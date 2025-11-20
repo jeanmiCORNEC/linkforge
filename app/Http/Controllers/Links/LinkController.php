@@ -9,6 +9,7 @@ use App\Models\Link;
 use App\Models\TrackedLink;
 use App\Models\Click;
 use App\Support\Geo\GeoLocator;
+use App\Support\Plans\PlanLimits;
 use Inertia\Inertia;
 use App\Http\Controllers\Controller;
 
@@ -36,6 +37,13 @@ class LinkController extends Controller
         ]);
 
         $user = $request->user();
+
+        if ($limit = PlanLimits::linksLimit($user)) {
+            $current = $user->links()->count();
+            if ($current >= $limit) {
+                return back()->withErrors(['link' => "Limite atteinte : {$limit} liens actifs sur le plan Free."]);
+            }
+        }
 
         // 1) Création du lien
         $link = $user->links()->create([
