@@ -14,6 +14,7 @@ class TrackedLink extends Model
         'link_id',
         'source_id',
         'tracking_key',
+        'short_code',
     ];
 
     // Relations

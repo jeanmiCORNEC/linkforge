@@ -124,5 +124,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // Route publique de redirection courte
-Route::get('/l/{tracking_key}', [LinkController::class, 'redirect'])
+Route::get('/l/{code}', [LinkController::class, 'redirect'])
     ->name('links.redirect');

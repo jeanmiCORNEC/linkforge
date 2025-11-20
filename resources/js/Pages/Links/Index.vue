@@ -90,7 +90,8 @@ const getDefaultTrackedLink = (link) => {
 const getShortUrlForLink = (link) => {
     const tracked = getDefaultTrackedLink(link);
     if (!tracked) return '';
-    return route('links.redirect', { tracking_key: tracked.tracking_key });
+    const code = tracked.short_code || tracked.tracking_key;
+    return route('links.redirect', { code });
 };
 
 // --- Filtre statut (Tous / Actifs / Inactifs) ---

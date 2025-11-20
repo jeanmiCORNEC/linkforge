@@ -9,6 +9,7 @@ use App\Models\Link;
 use App\Models\TrackedLink;
 use App\Models\Click;
 use App\Support\Geo\GeoLocator;
+use App\Support\Links\ShortCode;
 use App\Support\Plans\PlanLimits;
 use Inertia\Inertia;
 use App\Http\Controllers\Controller;
@@ -59,6 +60,10 @@ class LinkController extends Controller
             'source_id'    => null,
             'tracking_key' => Str::random(10),
         ]);
+
+        // 2bis) Génération d'un short_code lisible (base62)
+        $trackedLink->short_code = ShortCode::encode($trackedLink->id);
+        $trackedLink->save();
 
         // 3) Si c'est une requête API (Accept: application/json)
         if ($request->wantsJson()) {
@@ -159,11 +164,12 @@ class LinkController extends Controller
         ]);
     }
 
-    public function redirect(Request $request, string $tracking_key)
+    public function redirect(Request $request, string $code)
     {
-        // 1. Retrouver la tracked_link + le lien associé
+        // 1. Retrouver la tracked_link + le lien associé (short_code prioritaire)
         $tracked = TrackedLink::with('link')
-            ->where('tracking_key', $tracking_key)
+            ->where('short_code', $code)
+            ->orWhere('tracking_key', $code)
             ->firstOrFail();
 
         // 2. Si le lien est inactif -> 404
