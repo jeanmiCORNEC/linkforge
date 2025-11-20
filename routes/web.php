@@ -12,7 +12,6 @@ use App\Http\Controllers\Links\SourceTrackedLinkController;
 use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\Sources\SourceAnalyticsController;
 use App\Http\Controllers\Sources\SourceController;
-use App\Http\Controllers\Integrations\AffiliateIntegrationController;
 use App\Http\Controllers\Exports\TrafficExportController;
 
 // Landing publique (Inertia)
@@ -114,11 +113,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/exports/traffic/monthly', [TrafficExportController::class, 'monthly'])
         ->name('exports.traffic.monthly');
 
-    // Affiliate integrations
-    Route::post('/integrations/affiliate', [AffiliateIntegrationController::class, 'store'])
-        ->name('integrations.affiliate.store');
-    Route::delete('/integrations/affiliate/{integration}', [AffiliateIntegrationController::class, 'destroy'])
-        ->name('integrations.affiliate.destroy');
 
     // Profil
     Route::get('/profile', [ProfileController::class, 'edit'])

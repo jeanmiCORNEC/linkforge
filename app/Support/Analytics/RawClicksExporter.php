@@ -2,7 +2,6 @@
 
 namespace App\Support\Analytics;
 
-use App\Models\Conversion;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
@@ -31,10 +30,6 @@ class RawClicksExporter
             'country_code',
             'referrer',
             'order_id',
-            'conversion_id',
-            'revenue',
-            'commission',
-            'status',
         ];
     }
 
@@ -54,30 +49,6 @@ class RawClicksExporter
             ->orderBy('clicks.created_at')
             ->get();
 
-        $trackedLinkIds = $clicks->pluck('tracked_link_id')->filter()->unique();
-
-        $conversionLookup = [];
-        $specificBuckets = [];
-        $fallbackBuckets = [];
-        $used = [];
-
-        if ($trackedLinkIds->isNotEmpty()) {
-            Conversion::whereIn('tracked_link_id', $trackedLinkIds)
-                ->whereBetween('created_at', [$since, $until])
-                ->orderBy('created_at')
-                ->get()
-                ->each(function (Conversion $conversion) use (&$conversionLookup, &$specificBuckets, &$fallbackBuckets) {
-                    $conversionLookup[$conversion->id] = $conversion;
-
-                    if ($conversion->visitor_hash) {
-                        $key = self::specificKey($conversion->tracked_link_id, $conversion->visitor_hash);
-                        $specificBuckets[$key][] = $conversion->id;
-                    }
-
-                    $fallbackBuckets[$conversion->tracked_link_id][] = $conversion->id;
-                });
-        }
-
         $rows = [];
 
         foreach ($clicks as $click) {
@@ -85,23 +56,6 @@ class RawClicksExporter
             $link     = $tracked?->link;
             $source   = $tracked?->source;
             $campaign = $source?->campaign;
-
-            $matched = null;
-
-            if ($click->visitor_hash) {
-                $key = self::specificKey($click->tracked_link_id, $click->visitor_hash);
-                $matched = self::shiftConversion($specificBuckets[$key] ?? [], $conversionLookup, $used);
-                if (isset($specificBuckets[$key])) {
-                    $specificBuckets[$key] = array_values(array_diff($specificBuckets[$key], array_keys($used)));
-                }
-            }
-
-            if (! $matched && $click->tracked_link_id) {
-                $matched = self::shiftConversion($fallbackBuckets[$click->tracked_link_id] ?? [], $conversionLookup, $used);
-                if (isset($fallbackBuckets[$click->tracked_link_id])) {
-                    $fallbackBuckets[$click->tracked_link_id] = array_values(array_diff($fallbackBuckets[$click->tracked_link_id], array_keys($used)));
-                }
-            }
 
             $rows[] = [
                 'click_id'        => $click->id,
@@ -122,39 +76,10 @@ class RawClicksExporter
                 'os'              => $click->os,
                 'country_code'    => $click->country,
                 'referrer'        => $click->referrer,
-                'order_id'        => $matched?->order_id ?? '',
-                'conversion_id'   => $matched?->id ?? '',
-                'revenue'         => $matched?->revenue ?? 0,
-                'commission'      => $matched?->commission ?? 0,
-                'status'          => $matched?->status ?? 'click',
+                'order_id'        => '',
             ];
         }
 
         return $rows;
-    }
-
-    protected static function specificKey(?int $trackedLinkId, ?string $visitorHash): string
-    {
-        return ($trackedLinkId ?? 0) . '|' . ($visitorHash ?? '');
-    }
-
-    /**
-     * @param  array<int>  $bucket
-     */
-    protected static function shiftConversion(array $bucket, array $lookup, array &$used): ?Conversion
-    {
-        while (! empty($bucket)) {
-            $conversionId = array_shift($bucket);
-
-            if (! isset($lookup[$conversionId]) || isset($used[$conversionId])) {
-                continue;
-            }
-
-            $used[$conversionId] = true;
-
-            return $lookup[$conversionId];
-        }
-
-        return null;
     }
 }

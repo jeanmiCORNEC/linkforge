@@ -47,8 +47,4 @@ class Link extends Model
         );
     }
 
-    public function conversions()
-    {
-        return $this->hasMany(Conversion::class);
-    }
 }

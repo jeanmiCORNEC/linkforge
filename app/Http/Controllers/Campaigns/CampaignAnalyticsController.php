@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Click;
 use App\Support\Analytics\ClickAnalytics;
-use App\Support\Analytics\ConversionMetrics;
 use App\Support\Analytics\RawClicksExporter;
 use App\Support\CsvExporter;
 use App\Support\Features\FeatureManager;
@@ -76,7 +75,6 @@ class CampaignAnalyticsController extends Controller
 
         $periodSince = Carbon::parse($stats['period']['since'])->startOfDay();
         $periodUntil = Carbon::parse($stats['period']['until'] ?? now()->toDateString())->endOfDay();
-        $stats['conversions'] = ConversionMetrics::summary($campaign->conversions(), $periodSince, $periodUntil);
 
         return Inertia::render('Campaigns/Analytics', [
             'campaign' => [
@@ -135,10 +133,6 @@ class CampaignAnalyticsController extends Controller
         $tablet  = (int) ($devices['tablet'] ?? 0);
         $unknown = max($stats['totalClicks'] - ($mobile + $desktop + $tablet), 0);
 
-        $conversionSummary = ConversionMetrics::summary($campaign->conversions(), $since, $until);
-        $approved = $conversionSummary['by_status']['approved'] ?? 0;
-        $pending  = $conversionSummary['by_status']['pending'] ?? 0;
-
         $totalSources = $campaign->sources()->whereNull('deleted_at')->count();
         $totalLinks   = DB::table('tracked_links')
             ->join('sources', 'sources.id', '=', 'tracked_links.source_id')
@@ -183,12 +177,6 @@ class CampaignAnalyticsController extends Controller
             'clicks_unknown_device',
             'top_country',
             'top_referrer',
-            'conversions',
-            'approved_conversions',
-            'pending_conversions',
-            'revenue',
-            'commission',
-            'epc',
         ];
 
         $row = [
@@ -212,14 +200,6 @@ class CampaignAnalyticsController extends Controller
             'clicks_unknown_device' => $unknown,
             'top_country'           => $topCountry ?? '',
             'top_referrer'          => $topReferer ?? '',
-            'conversions'           => $conversionSummary['total'],
-            'approved_conversions'  => $approved,
-            'pending_conversions'   => $pending,
-            'revenue'               => $conversionSummary['revenue'],
-            'commission'            => $conversionSummary['commission'],
-            'epc'                   => $stats['totalClicks'] > 0
-                ? round($conversionSummary['revenue'] / $stats['totalClicks'], 2)
-                : 0,
         ];
 
         $csv = CsvExporter::build($columns, [$row]);

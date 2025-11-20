@@ -49,8 +49,4 @@ class Source extends Model
         );
     }
 
-    public function conversions()
-    {
-        return $this->hasMany(Conversion::class);
-    }
 }

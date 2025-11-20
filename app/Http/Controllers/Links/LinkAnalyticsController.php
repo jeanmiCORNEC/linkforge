@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Link;
 use App\Support\Analytics\ClickAnalytics;
-use App\Support\Analytics\ConversionMetrics;
 use App\Support\Analytics\RawClicksExporter;
 use App\Support\CsvExporter;
 use App\Support\Features\FeatureManager;
@@ -57,8 +56,6 @@ class LinkAnalyticsController extends Controller
 
         $since = Carbon::parse($stats['period']['since'])->startOfDay();
         $until = Carbon::parse($stats['period']['until'] ?? now()->toDateString())->endOfDay();
-        $conversions = ConversionMetrics::summary($link->conversions(), $since, $until);
-        $stats['conversions'] = $conversions;
 
         if (! $featureScope->allows('analytics.top_lists')) {
             unset($stats['topSources']);
@@ -128,8 +125,6 @@ class LinkAnalyticsController extends Controller
             ->whereBetween('clicks.created_at', [$since, $until])
             ->max('clicks.created_at');
 
-        $conversionSummary = ConversionMetrics::summary($link->conversions(), $since, $until);
-
         $sourcesCount = $link->trackedLinks()
             ->whereNotNull('source_id')
             ->distinct('source_id')
@@ -192,10 +187,6 @@ class LinkAnalyticsController extends Controller
             'top_country',
             'top_referrer',
             'last_click_at',
-            'conversions',
-            'revenue',
-            'commission',
-            'epc',
         ];
 
         $topCountry = $link->clicks()
@@ -241,12 +232,6 @@ class LinkAnalyticsController extends Controller
             'top_country'          => $topCountry ?? '',
             'top_referrer'         => $topReferer ?? '',
             'last_click_at'        => $lastClickAt ? Carbon::parse($lastClickAt)->toDateTimeString() : '',
-            'conversions'          => $conversionSummary['total'],
-            'revenue'              => $conversionSummary['revenue'],
-            'commission'           => $conversionSummary['commission'],
-            'epc'                  => $stats['totalClicks'] > 0
-                ? round($conversionSummary['revenue'] / $stats['totalClicks'], 2)
-                : 0,
         ];
 
         $csv = CsvExporter::build($columns, [$row]);
