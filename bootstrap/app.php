@@ -9,9 +9,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
         App\Console\Commands\UpdateGeoDatabase::class,
         App\Console\Commands\BackfillTrackedLinkShortCodes::class,
+        App\Console\Commands\MonitorClicks::class,
     ])
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('geo:maxmind-update')->monthlyOn(1, '03:00')->timezone('UTC');
+        $schedule->command('clicks:monitor')->hourlyAt(5);
     })
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
