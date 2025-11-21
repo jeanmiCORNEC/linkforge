@@ -32,6 +32,19 @@ const { theme, setTheme } = useTheme();
 
         <div class="py-12">
             <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
+                <!-- Flash Messages -->
+                <div v-if="$page.props.flash.error" class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded relative" role="alert">
+                    <strong class="font-bold">Erreur : </strong>
+                    <span class="block sm:inline">{{ $page.props.flash.error }}</span>
+                </div>
+                <div v-if="$page.props.flash.success" class="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-4 py-3 rounded relative" role="alert">
+                    <strong class="font-bold">Succès : </strong>
+                    <span class="block sm:inline">{{ $page.props.flash.success }}</span>
+                </div>
+                <div v-if="$page.props.flash.status" class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 px-4 py-3 rounded relative" role="alert">
+                    <strong class="font-bold">Info : </strong>
+                    <span class="block sm:inline">{{ $page.props.flash.status }}</span>
+                </div>
                 <!-- Subscription Card -->
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>

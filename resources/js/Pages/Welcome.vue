@@ -21,20 +21,60 @@ const props = defineProps({
 });
 
 const pricingCards = computed(() => {
+    const user = props.auth.user;
+
     if (props.plans.length) {
-        return props.plans.map((plan) => ({
-            id: plan.id,
-            name: plan.name,
-            price: plan.price,
-            priceLabel: plan.price_label,
-            description: plan.description,
-            featured: plan.featured ?? false,
-            limits: plan.limits ?? [],
-            features: plan.features ?? [],
-            ctaLabel: plan.cta_label ?? 'Choisir ce plan',
-            ctaUrl: plan.cta_url ?? '#pricing',
-            isFree: plan.price === 0,
-        }));
+        return props.plans.map((plan) => {
+            const isPro = plan.id === 'pro';
+            const isFree = plan.id === 'free';
+            
+            let ctaLabel = plan.cta_label ?? 'Choisir ce plan';
+            let ctaUrl = plan.cta_url ?? '#pricing';
+            let disabled = false;
+
+            if (user) {
+                if (isPro) {
+                    if (user.plan === 'pro') {
+                        ctaLabel = 'Plan Actuel';
+                        ctaUrl = '#';
+                        disabled = true;
+                    } else {
+                        ctaLabel = 'Passer en Pro';
+                        ctaUrl = route('subscription.checkout');
+                    }
+                } else if (isFree) {
+                    ctaLabel = 'Aller au Dashboard';
+                    ctaUrl = route('dashboard');
+                }
+            } else {
+                // Guest override for Pro plan to remove ?plan=pro if desired, 
+                // OR keep it as is. User said: "garder la redirection vers register, uniquement pour les gens non connectés"
+                // But previously said: "supprimer ?plan=pro".
+                // Let's stick to the latest request: "garder la redirection vers register, uniquement pour les gens non connectés"
+                // AND "redirige toujours vers register?plan=pro si on est enregistré et free" (complaint).
+                // So for guests, register?plan=pro is likely fine, BUT the user explicitly asked to remove it in the previous turn.
+                // "on doit supprimer ?plan=pro et laisser cette route pour les utilisateurs non connectés"
+                
+                if (isPro && props.canRegister) {
+                     ctaUrl = route('register');
+                }
+            }
+
+            return {
+                id: plan.id,
+                name: plan.name,
+                price: plan.price,
+                priceLabel: plan.price_label,
+                description: plan.description,
+                featured: plan.featured ?? false,
+                limits: plan.limits ?? [],
+                features: plan.features ?? [],
+                ctaLabel: ctaLabel,
+                ctaUrl: ctaUrl,
+                isFree: plan.price === 0,
+                disabled: disabled,
+            };
+        });
     }
 
     return [
@@ -47,8 +87,8 @@ const pricingCards = computed(() => {
             featured: false,
             limits: ['10 liens trackés', '2 campagnes / 4 sources', 'Statistiques 7 jours'],
             features: ['Heatmap et exports désactivés'],
-            ctaLabel: 'Créer un compte',
-            ctaUrl: props.canRegister ? route('register') : route('login'),
+            ctaLabel: user ? 'Aller au Dashboard' : 'Créer un compte',
+            ctaUrl: user ? route('dashboard') : (props.canRegister ? route('register') : route('login')),
             isFree: true,
         },
         {
@@ -64,9 +104,12 @@ const pricingCards = computed(() => {
                 'Exports CSV + raw',
             ],
             features: ['Support prioritaire'],
-            ctaLabel: 'Passer en Pro',
-            ctaUrl: props.canRegister ? route('register', { plan: 'pro' }) : route('login'),
+            ctaLabel: user ? (user.plan === 'pro' ? 'Plan Actuel' : 'Passer en Pro') : 'Passer en Pro',
+            ctaUrl: user 
+                ? (user.plan === 'pro' ? '#' : route('subscription.checkout')) 
+                : (props.canRegister ? route('register') : route('login')),
             isFree: false,
+            disabled: user && user.plan === 'pro',
         },
     ];
 });
@@ -342,7 +385,10 @@ const ogImageUrl = computed(() => {
                             <div class="pt-2">
                                 <a :href="plan.ctaUrl"
                                     class="inline-flex items-center rounded-md px-4 py-2 text-sm font-semibold shadow transition"
-                                    :class="plan.featured ? 'bg-indigo-600 dark:bg-indigo-500 text-white hover:bg-indigo-500 dark:hover:bg-indigo-400 shadow-indigo-500/30 dark:shadow-indigo-900/30' : 'border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-100 hover:border-indigo-400 bg-white dark:bg-transparent'">
+                                    :class="[
+                                        plan.featured ? 'bg-indigo-600 dark:bg-indigo-500 text-white hover:bg-indigo-500 dark:hover:bg-indigo-400 shadow-indigo-500/30 dark:shadow-indigo-900/30' : 'border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-100 hover:border-indigo-400 bg-white dark:bg-transparent',
+                                        plan.disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
+                                    ]">
                                     {{ plan.ctaLabel }}
                                 </a>
                             </div>
