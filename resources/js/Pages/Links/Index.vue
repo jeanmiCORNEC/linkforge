@@ -111,32 +111,32 @@ const applyFilter = (status) => {
 /* ---------- Styles DA LinkForge (harmonisés avec les pages Analytics) ---------- */
 
 const shellCardClass =
-    'relative rounded-3xl border border-slate-800 bg-slate-950/80 px-6 py-5 shadow-xl shadow-indigo-900/30';
+    'relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-5 shadow-sm dark:shadow-black/20';
 
 const bigCardClass =
-    'rounded-xl border border-slate-800 bg-slate-950/70 p-6 shadow-xl shadow-indigo-900/30';
+    'rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm dark:shadow-black/20';
 
 const primaryButtonClass =
-    'inline-flex items-center rounded-md bg-indigo-500 px-4 py-2 text-xs font-semibold ' +
-    'text-white shadow-sm shadow-indigo-900/40 hover:bg-indigo-400 disabled:opacity-50 transition';
+    'inline-flex items-center rounded-md bg-indigo-600 dark:bg-indigo-500 px-4 py-2 text-xs font-semibold ' +
+    'text-white shadow-sm hover:bg-indigo-500 dark:hover:bg-indigo-400 disabled:opacity-50 transition';
 
 const secondaryButtonClass =
-    'px-2 py-1 text-xs rounded-md border border-slate-600 text-slate-200 ' +
-    'hover:bg-slate-800 transition';
+    'px-2 py-1 text-xs rounded-md border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 ' +
+    'hover:bg-slate-50 dark:hover:bg-slate-800 transition';
 
 const dangerButtonClass =
-    'px-2 py-1 text-xs rounded-md border border-red-500 text-red-400 ' +
-    'hover:bg-red-900/30 transition';
+    'px-2 py-1 text-xs rounded-md border border-red-500 text-red-600 dark:text-red-400 ' +
+    'hover:bg-red-50 dark:hover:bg-red-900/30 transition';
 
 const warningButtonClass =
-    'px-2 py-1 text-xs rounded-md border border-amber-500 text-amber-300 ' +
-    'hover:bg-amber-900/20 transition';
+    'px-2 py-1 text-xs rounded-md border border-amber-500 text-amber-600 dark:text-amber-300 ' +
+    'hover:bg-amber-50 dark:hover:bg-amber-900/20 transition';
 
 const successButtonClass =
-    'px-2 py-1 text-xs rounded-md border border-emerald-500 text-emerald-300 hover:bg-emerald-900/30 transition';
+    'px-2 py-1 text-xs rounded-md border border-emerald-500 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition';
 
 const statsButtonClass =
-    'px-2 py-1 text-[11px] rounded-md border border-indigo-500 text-indigo-300 hover:bg-indigo-900/30 transition';
+    'px-2 py-1 text-[11px] rounded-md border border-indigo-500 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition';
 
 // Pills filtre (Tous / actifs / inactifs)
 const pillBase =
@@ -145,8 +145,8 @@ const pillBase =
 const pillClasses = (value) => {
     const active = (filters.status || 'all') === value;
     return active
-        ? `${pillBase} bg-indigo-500 text-white shadow-sm shadow-indigo-900/40`
-        : `${pillBase} bg-slate-900/70 text-slate-300 border border-slate-700 hover:border-indigo-500 hover:text-slate-50`;
+        ? `${pillBase} bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm`
+        : `${pillBase} bg-slate-100 dark:bg-slate-900/70 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-slate-50`;
 };
 </script>
 
@@ -154,22 +154,22 @@ const pillClasses = (value) => {
     <Head title="Liens" />
 
     <AuthenticatedLayout>
-        <div class="min-h-screen bg-slate-950 text-slate-100">
+        <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
             <!-- HEADER -->
-            <section class="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+            <section class="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
                 <div class="w-[95%] mx-auto pt-8 pb-10">
                     <div :class="shellCardClass + ' flex flex-col md:flex-row md:items-center md:justify-between gap-4'">
                         <div class="space-y-2">
                             <p
-                                class="inline-flex items-center rounded-full border border-indigo-500/40 bg-indigo-500/10 px-3 py-1 text-xs md:text-sm font-medium text-indigo-200 uppercase tracking-[0.15em]"
+                                class="inline-flex items-center rounded-full border border-indigo-200 dark:border-indigo-500/40 bg-indigo-50 dark:bg-indigo-500/10 px-3 py-1 text-xs md:text-sm font-medium text-indigo-600 dark:text-indigo-200 uppercase tracking-[0.15em]"
                             >
                                 Espace – Liens
                             </p>
                             <div>
-                                <h1 class="text-2xl md:text-3xl font-semibold tracking-tight">
+                                <h1 class="text-2xl md:text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
                                     Liens trackés
                                 </h1>
-                                <p class="mt-1 text-xs md:text-sm text-slate-400">
+                                <p class="mt-1 text-xs md:text-sm text-slate-500 dark:text-slate-400">
                                     Créez, gérez et analysez vos liens raccourcis.
                                 </p>
                             </div>
@@ -177,9 +177,9 @@ const pillClasses = (value) => {
 
                         <!-- Petit rappel filtre actuel -->
                         <div class="flex flex-col items-start md:items-end gap-2 text-xs">
-                            <p class="text-slate-400">
+                            <p class="text-slate-500 dark:text-slate-400">
                                 Filtre actuel :
-                                <span class="font-semibold text-slate-100">
+                                <span class="font-semibold text-slate-900 dark:text-slate-100">
                                     {{
                                         (filters.status || 'all') === 'all'
                                             ? 'Tous les liens'
@@ -199,13 +199,13 @@ const pillClasses = (value) => {
             <main class="w-[95%] mx-auto pt-8 pb-12 space-y-8">
                 <!-- Bloc création de lien -->
                 <section :class="bigCardClass">
-                    <div class="text-slate-50">
+                    <div class="text-slate-900 dark:text-slate-50">
                         <div class="flex items-center justify-between mb-4">
                             <div>
                                 <h3 class="text-sm font-semibold">
                                     Créer un lien tracké
                                 </h3>
-                                <p class="mt-1 text-xs text-slate-400">
+                                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
                                     Raccourcissez et trackez vos URLs en quelques secondes.
                                 </p>
                             </div>
@@ -213,7 +213,7 @@ const pillClasses = (value) => {
 
                         <div
                             v-if="createForm.errors.link"
-                            class="rounded-lg border border-amber-500/60 bg-amber-500/10 px-3 py-2 text-xs text-amber-100"
+                            class="rounded-lg border border-amber-500/60 bg-amber-50 dark:bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-100"
                         >
                             {{ createForm.errors.link }}
                         </div>
@@ -221,31 +221,31 @@ const pillClasses = (value) => {
                         <form @submit.prevent="createLink" class="space-y-4 text-sm">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-medium text-slate-300">
+                                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">
                                         Titre
                                     </label>
                                     <input
                                         v-model="createForm.title"
                                         type="text"
-                                        class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                        class="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                                         placeholder="Lien setup vidéo TikTok"
                                     />
-                                    <div v-if="createForm.errors.title" class="text-xs text-red-400 mt-1">
+                                    <div v-if="createForm.errors.title" class="text-xs text-red-500 dark:text-red-400 mt-1">
                                         {{ createForm.errors.title }}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label class="block text-xs font-medium text-slate-300">
+                                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">
                                         URL de destination
                                     </label>
                                     <input
                                         v-model="createForm.destination_url"
                                         type="url"
-                                        class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                        class="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                                         placeholder="https://www.amazon.fr/..."
                                     />
-                                    <div v-if="createForm.errors.destination_url" class="text-xs text-red-400 mt-1">
+                                    <div v-if="createForm.errors.destination_url" class="text-xs text-red-500 dark:text-red-400 mt-1">
                                         {{ createForm.errors.destination_url }}
                                     </div>
                                 </div>
@@ -266,7 +266,7 @@ const pillClasses = (value) => {
 
                 <!-- Bloc liste des liens -->
                 <section :class="bigCardClass">
-                    <div class="text-slate-50">
+                    <div class="text-slate-900 dark:text-slate-50">
                         <div
                             class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4"
                         >
@@ -276,7 +276,7 @@ const pillClasses = (value) => {
 
                             <!-- Filtre sous forme de pills -->
                             <div class="flex items-center gap-3 text-xs">
-                                <span class="text-slate-400">Filtrer :</span>
+                                <span class="text-slate-500 dark:text-slate-400">Filtrer :</span>
                                 <div class="flex items-center gap-2">
                                     <button
                                         type="button"
@@ -303,15 +303,15 @@ const pillClasses = (value) => {
                             </div>
                         </div>
 
-                        <div v-if="!links.data.length" class="text-xs text-slate-400">
+                        <div v-if="!links.data.length" class="text-xs text-slate-500 dark:text-slate-400">
                             Aucun lien pour le moment. Créez-en un au-dessus 👆
                         </div>
 
-                        <div v-else class="overflow-x-auto">
+                        <div v-else class="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
                             <table class="min-w-full text-xs">
                                 <thead>
                                     <tr
-                                        class="bg-slate-900/80 text-left text-[11px] font-medium text-slate-400 uppercase tracking-wider"
+                                        class="bg-slate-100 dark:bg-slate-900 text-left text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
                                     >
                                         <th class="px-4 py-3">Titre</th>
                                         <th class="px-4 py-3">Lien court</th>
@@ -321,22 +321,22 @@ const pillClasses = (value) => {
                                         <th class="px-4 py-3 text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-800">
+                                <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
                                     <tr
                                         v-for="link in links.data"
                                         :key="link.id"
-                                        class="odd:bg-slate-950/60 even:bg-slate-950/30"
+                                        class="odd:bg-slate-50 dark:odd:bg-slate-900/50 even:bg-white dark:even:bg-slate-900/20"
                                     >
                                         <td class="px-4 py-3 whitespace-nowrap">
                                             <div class="flex items-center gap-2">
-                                                <span class="font-medium">
+                                                <span class="font-medium text-slate-900 dark:text-slate-100">
                                                     {{ link.title }}
                                                 </span>
                                                 <span
                                                     class="px-2 py-0.5 rounded-full text-[10px] font-medium border"
                                                     :class="link.is_active
-                                                        ? 'bg-emerald-900/40 text-emerald-300 border-emerald-500/40'
-                                                        : 'bg-slate-800 text-slate-200 border-slate-600'
+                                                        ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/40'
+                                                        : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-200 border-slate-300 dark:border-slate-600'
                                                     "
                                                 >
                                                     {{ link.is_active ? 'Actif' : 'Inactif' }}
@@ -345,7 +345,7 @@ const pillClasses = (value) => {
                                         </td>
 
                                         <!-- Lien court (affichage uniquement) -->
-                                        <td class="px-4 py-3 text-xs text-slate-200">
+                                        <td class="px-4 py-3 text-xs text-slate-600 dark:text-slate-200">
                                             <span class="truncate max-w-[240px] inline-block">
                                                 {{ getShortUrlForLink(link) || 'Aucun tracking key' }}
                                             </span>
@@ -355,17 +355,17 @@ const pillClasses = (value) => {
                                             <a
                                                 :href="link.destination_url"
                                                 target="_blank"
-                                                class="text-indigo-300 hover:text-indigo-200 hover:underline break-all"
+                                                class="text-indigo-600 dark:text-indigo-300 hover:text-indigo-500 dark:hover:text-indigo-200 hover:underline break-all"
                                             >
                                                 {{ link.destination_url }}
                                             </a>
                                         </td>
 
-                                        <td class="px-4 py-3 whitespace-nowrap">
+                                        <td class="px-4 py-3 whitespace-nowrap text-slate-700 dark:text-slate-300">
                                             {{ link.clicks_count ?? 0 }} clics
                                         </td>
 
-                                        <td class="px-4 py-3 whitespace-nowrap">
+                                        <td class="px-4 py-3 whitespace-nowrap text-slate-500 dark:text-slate-400">
                                             {{ new Date(link.created_at).toLocaleString() }}
                                         </td>
 
@@ -425,40 +425,40 @@ const pillClasses = (value) => {
         <!-- Modale d'édition -->
         <div
             v-if="isEditOpen"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
         >
             <div
-                class="bg-slate-950 border border-slate-800 rounded-xl shadow-xl shadow-slate-950/60 w-full max-w-lg p-6"
+                class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl shadow-slate-900/20 dark:shadow-slate-950/60 w-full max-w-lg p-6"
             >
-                <h3 class="text-sm font-semibold text-slate-50 mb-4">
+                <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50 mb-4">
                     Éditer le lien
                 </h3>
 
-                <form @submit.prevent="updateLink" class="space-y-4 text-sm text-slate-50">
+                <form @submit.prevent="updateLink" class="space-y-4 text-sm text-slate-900 dark:text-slate-50">
                     <div>
-                        <label class="block text-xs font-medium text-slate-300">
+                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">
                             Titre
                         </label>
                         <input
                             v-model="editForm.title"
                             type="text"
-                            class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 text-sm text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                            class="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                         />
-                        <div v-if="editForm.errors.title" class="text-xs text-red-400 mt-1">
+                        <div v-if="editForm.errors.title" class="text-xs text-red-500 dark:text-red-400 mt-1">
                             {{ editForm.errors.title }}
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-slate-300">
+                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">
                             URL de destination
                         </label>
                         <input
                             v-model="editForm.destination_url"
                             type="url"
-                            class="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 text-sm text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                            class="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                         />
-                        <div v-if="editForm.errors.destination_url" class="text-xs text-red-400 mt-1">
+                        <div v-if="editForm.errors.destination_url" class="text-xs text-red-500 dark:text-red-400 mt-1">
                             {{ editForm.errors.destination_url }}
                         </div>
                     </div>

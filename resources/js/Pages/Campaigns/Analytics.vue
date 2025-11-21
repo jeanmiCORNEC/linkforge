@@ -132,12 +132,12 @@ const heatmapMatrix = computed(() => {
 const heatmapCellClass = (value) => {
     const max = heatmapMatrix.value.max;
     if (!max || value === 0) {
-        return 'bg-slate-900/40 text-slate-500';
+        return 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500';
     }
     const ratio = value / max;
-    if (ratio < 0.33) return 'bg-indigo-900 text-slate-200';
-    if (ratio < 0.66) return 'bg-indigo-700 text-white';
-    return 'bg-indigo-500 text-white';
+    if (ratio < 0.33) return 'bg-indigo-200 dark:bg-indigo-900 text-indigo-800 dark:text-slate-200';
+    if (ratio < 0.66) return 'bg-indigo-400 dark:bg-indigo-700 text-white';
+    return 'bg-indigo-600 dark:bg-indigo-500 text-white';
 };
 
 // --- Changement de période (7 / 30 / perso) ---
@@ -180,19 +180,19 @@ const exportRawAnalytics = () => {
 /* ---------- Styles DA LinkForge (mêmes que link analytics) ---------- */
 
 const shellCardClass =
-    'relative rounded-3xl border border-slate-800 bg-slate-950/80 px-6 py-5 shadow-xl shadow-indigo-900/30';
+    'relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-5 shadow-sm dark:shadow-black/20';
 
 const cardClass =
-    'rounded-xl border border-slate-800 bg-slate-950/70 p-5 shadow-xl shadow-indigo-900/30';
+    'rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm dark:shadow-black/20';
 
 const bigCardClass =
-    'rounded-xl border border-slate-800 bg-slate-950/70 p-6 shadow-xl shadow-indigo-900/30';
+    'rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm dark:shadow-black/20';
 
 const primaryButtonClass =
-    'inline-flex items-center rounded-md bg-indigo-500 px-3 py-1 text-xs md:text-sm font-semibold text-white shadow-xl shadow-indigo-900/30 hover:bg-indigo-400 disabled:opacity-50 transition';
+    'inline-flex items-center rounded-md bg-indigo-600 dark:bg-indigo-500 px-3 py-1 text-xs md:text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 dark:hover:bg-indigo-400 disabled:opacity-50 transition';
 
 const periodPillGroupClass =
-    'inline-flex items-center rounded-full bg-slate-900/80 border border-slate-700 p-1';
+    'inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1';
 
 const periodPillBaseClass =
     'px-3 py-1 rounded-full text-xs md:text-sm font-medium transition';
@@ -204,12 +204,12 @@ const deltaLabel = (value) => {
 
 const deltaClass = (value) => {
     if (value > 0) {
-        return 'text-emerald-300 bg-emerald-900/30 border border-emerald-500/30';
+        return 'text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-500/30';
     }
     if (value < 0) {
-        return 'text-rose-300 bg-rose-900/30 border border-rose-500/30';
+        return 'text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-500/30';
     }
-    return 'text-slate-300 bg-slate-800/60 border border-slate-700';
+    return 'text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700';
 };
 
 const totalDelta = computed(() => props.stats.delta?.totalClicks ?? 0);
@@ -221,27 +221,27 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
 
     <AuthenticatedLayout>
         <!-- HEADER ANALYTICS -->
-        <section class="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+        <section class="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
             <!-- même largeur que la page liens -->
             <div class="w-[95%] mx-auto pt-8 pb-10">
                 <div :class="shellCardClass + ' flex flex-col gap-6'">
                     <!-- Bloc gauche : titre -->
                     <div class="space-y-3">
                         <p
-                            class="inline-flex items-center rounded-full border border-indigo-500/40 bg-indigo-500/10 px-3 py-1 text-xs md:text-sm font-medium text-indigo-200 uppercase tracking-[0.15em]"
+                            class="inline-flex items-center rounded-full border border-indigo-200 dark:border-indigo-500/40 bg-indigo-50 dark:bg-indigo-500/10 px-3 py-1 text-xs md:text-sm font-medium text-indigo-600 dark:text-indigo-200 uppercase tracking-[0.15em]"
                         >
                             Analytics – Campagne
                         </p>
 
                         <div>
-                            <h1 class="text-xl md:text-2xl font-semibold tracking-tight">
+                            <h1 class="text-xl md:text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
                                 {{ campaign.name }}
                             </h1>
                         </div>
 
                         <InertiaLink
                             :href="route('campaigns.index')"
-                            class="inline-flex items-center gap-1 text-xs md:text-sm text-slate-400 hover:text-indigo-300 transition"
+                            class="inline-flex items-center gap-1 text-xs md:text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition"
                         >
                             <span>←</span>
                             <span>Retour aux campagnes</span>
@@ -249,7 +249,7 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                     </div>
 
                     <div class="grid gap-6 md:grid-cols-2">
-                        <div class="space-y-4 text-xs md:text-sm text-slate-200">
+                        <div class="space-y-4 text-xs md:text-sm text-slate-700 dark:text-slate-200">
                             <div class="space-y-2">
                                 <p class="uppercase tracking-[0.15em] text-slate-500 text-[10px]">
                                     Période
@@ -261,8 +261,8 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                                             :class="[
                                                 periodPillBaseClass,
                                                 currentDays === 7
-                                                    ? 'bg-indigo-500 text-white shadow shadow-indigo-500/40'
-                                                    : 'text-slate-300 hover:text-white',
+                                                    ? 'bg-white dark:bg-indigo-500 text-indigo-600 dark:text-white shadow-sm dark:shadow shadow-slate-200'
+                                                    : 'text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white',
                                             ]"
                                             @click="changePeriod(7)"
                                         >
@@ -273,8 +273,8 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                                             :class="[
                                                 periodPillBaseClass,
                                                 currentDays === 30
-                                                    ? 'bg-indigo-500 text-white shadow shadow-indigo-500/40'
-                                                    : 'text-slate-300 hover:text-white',
+                                                    ? 'bg-white dark:bg-indigo-500 text-indigo-600 dark:text-white shadow-sm dark:shadow shadow-slate-200'
+                                                    : 'text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white',
                                             ]"
                                             @click="changePeriod(30)"
                                         >
@@ -282,12 +282,12 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                                         </button>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <span class="text-slate-400">Perso :</span>
+                                        <span class="text-slate-500 dark:text-slate-400">Perso :</span>
                                         <input
                                             v-model="customDays"
                                             type="number"
                                             min="1"
-                                            class="w-16 rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                            class="w-16 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                         />
                                         <button
                                             type="button"
@@ -299,12 +299,12 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                                     </div>
                                 </div>
                             </div>
-                            <p class="text-slate-400">
+                            <p class="text-slate-500 dark:text-slate-400">
                                 Analyse des {{ stats.period?.days ?? currentDays }} derniers jours • Depuis le {{ formatDateFr(stats.period?.since) }}
                             </p>
                         </div>
 
-                        <div class="space-y-3 text-xs md:text-sm text-slate-200">
+                        <div class="space-y-3 text-xs md:text-sm text-slate-700 dark:text-slate-200">
                             <div class="flex flex-wrap items-start gap-3">
                                 <button
                                     v-if="canExport"
@@ -323,18 +323,18 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                                     >
                                         Exporter clics (raw)
                                     </button>
-                                    <p class="text-[11px] text-slate-400 max-w-[220px] leading-snug">
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 max-w-[220px] leading-snug">
                                         Log brut clic par clic (horodatage, device, pays) pour audit ou reporting avancé.
                                     </p>
                                 </div>
                             </div>
-                            <div class="flex flex-col md:flex-row items-start md:items-center gap-2 text-slate-300">
+                            <div class="flex flex-col md:flex-row items-start md:items-center gap-2 text-slate-600 dark:text-slate-300">
                                 <label class="flex items-center gap-2">
                                     Mois
                                     <input
                                         v-model="exportMonth"
                                         type="month"
-                                        class="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                        class="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                     />
                                 </label>
                                 <button
@@ -357,13 +357,13 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
             <!-- KPIs : même layout que liens -->
             <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div :class="cardClass">
-                    <p class="text-xs md:text-sm uppercase tracking-[0.15em] text-slate-400">
+                    <p class="text-xs md:text-sm uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
                         Total clics
                     </p>
-                    <p class="mt-2 text-3xl font-bold">
+                    <p class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
                         {{ stats.totalClicks ?? 0 }}
                     </p>
-                    <p class="mt-1 text-xs md:text-sm text-slate-400">
+                    <p class="mt-1 text-xs md:text-sm text-slate-500 dark:text-slate-400">
                         Sur les {{ stats.period?.days ?? currentDays }} derniers jours
                     </p>
                     <p
@@ -376,13 +376,13 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                 </div>
 
                 <div :class="cardClass">
-                    <p class="text-xs md:text-sm uppercase tracking-[0.15em] text-slate-400">
+                    <p class="text-xs md:text-sm uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
                         Visiteurs uniques
                     </p>
-                    <p class="mt-2 text-3xl font-bold">
+                    <p class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
                         {{ stats.uniqueVisitors ?? 0 }}
                     </p>
-                    <p class="mt-1 text-xs md:text-sm text-slate-400">
+                    <p class="mt-1 text-xs md:text-sm text-slate-500 dark:text-slate-400">
                         Basé sur le hash visiteur (IP + user-agent)
                     </p>
                     <p
@@ -395,13 +395,13 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                 </div>
 
                 <div :class="cardClass">
-                    <p class="text-xs md:text-sm uppercase tracking-[0.15em] text-slate-400">
+                    <p class="text-xs md:text-sm uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
                         Période analysée
                     </p>
-                    <p class="mt-2 text-lg font-semibold">
+                    <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
                         Derniers {{ stats.period?.days ?? currentDays }} jours
                     </p>
-                    <p class="mt-1 text-xs md:text-sm text-slate-400">
+                    <p class="mt-1 text-xs md:text-sm text-slate-500 dark:text-slate-400">
                         Depuis le {{ formatDateFr(stats.period?.since) }}
                     </p>
                 </div>
@@ -410,28 +410,28 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
             <!-- Tops : sources / liens / meilleurs jours -->
             <section v-if="showTopLists" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div :class="bigCardClass">
-                    <h3 class="text-sm font-semibold">
+                    <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50">
                         Top sources
                     </h3>
-                    <p class="text-xs text-slate-400 mb-4">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
                         Les emplacements de cette campagne qui génèrent le plus de clics.
                     </p>
                     <ul class="space-y-3">
                         <li
                             v-for="source in topSources"
                             :key="source.id"
-                            class="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-xs md:text-sm text-slate-100"
+                            class="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-3 text-xs md:text-sm text-slate-900 dark:text-slate-100"
                         >
                             <div class="flex items-center justify-between gap-3">
                                 <div class="min-w-0">
                                     <p class="font-semibold truncate">
                                         {{ source.name }}
                                     </p>
-                                    <p class="text-[11px] text-slate-400">
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400">
                                         {{ formatPercentage(source.percentage) }} des clics
                                     </p>
                                 </div>
-                                <span class="text-xl font-bold">
+                                <span class="text-xl font-bold text-slate-900 dark:text-white">
                                     {{ source.total }}
                                 </span>
                             </div>
@@ -443,28 +443,28 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                 </div>
 
                 <div :class="bigCardClass">
-                    <h3 class="text-sm font-semibold">
+                    <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50">
                         Top liens trackés
                     </h3>
-                    <p class="text-xs text-slate-400 mb-4">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
                         Copiez ces liens courts dans vos placements pour garder le tracking précis.
                     </p>
                     <ul class="space-y-3">
                         <li
                             v-for="link in topLinks"
                             :key="link.id"
-                            class="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-xs md:text-sm text-slate-100"
+                            class="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-3 text-xs md:text-sm text-slate-900 dark:text-slate-100"
                         >
                             <div class="flex items-center justify-between gap-3">
                                 <div class="min-w-0">
                                     <p class="font-semibold truncate">
                                         {{ link.title }}
                                     </p>
-                                    <p class="text-[11px] text-slate-400">
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400">
                                         {{ formatPercentage(link.percentage) }} des clics
                                     </p>
                                 </div>
-                                <span class="text-xl font-bold">
+                                <span class="text-xl font-bold text-slate-900 dark:text-white">
                                     {{ link.total }}
                                 </span>
                             </div>
@@ -476,28 +476,28 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                 </div>
 
                 <div :class="bigCardClass">
-                    <h3 class="text-sm font-semibold">
+                    <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50">
                         Jours les plus performants
                     </h3>
-                    <p class="text-xs text-slate-400 mb-4">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
                         Identifiez les dates à fort engagement pour caler vos prochains contenus.
                     </p>
                     <ul class="space-y-3">
                         <li
                             v-for="day in topDays"
                             :key="day.date"
-                            class="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-xs md:text-sm text-slate-100 flex items-center justify-between gap-3"
+                            class="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-3 text-xs md:text-sm text-slate-900 dark:text-slate-100 flex items-center justify-between gap-3"
                         >
                             <div>
                                 <p class="font-semibold">
                                     {{ formatDateFr(day.date) }}
                                 </p>
-                                <p class="text-[11px] text-slate-400">
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400">
                                     {{ formatPercentage(day.percentage) }} des clics
                                 </p>
                             </div>
-                            <span class="text-xl font-bold">
-                                {{ day.total }}
+                            <span class="text-xl font-bold text-slate-900 dark:text-white">
+                                    {{ day.total }}
                             </span>
                         </li>
                         <li v-if="!topDays.length" class="text-xs text-slate-500">
@@ -509,10 +509,10 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
 
             <!-- Graph clics / jour (full width) -->
             <section v-if="showHeatmap" :class="bigCardClass">
-                <h3 class="text-sm font-semibold mb-1">
+                <h3 class="text-sm font-semibold mb-1 text-slate-900 dark:text-slate-50">
                     Clics par jour
                 </h3>
-                <p class="text-xs md:text-sm text-slate-400 mb-4">
+                <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 mb-4">
                     Évolution des clics pour cette campagne sur la période sélectionnée.
                 </p>
 
@@ -524,19 +524,19 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                             class="flex-1 flex flex-col items-center justify-end gap-1"
                         >
                             <div
-                                class="w-full rounded-t-md bg-indigo-500/80 transition-all"
+                                class="w-full rounded-t-md bg-indigo-600 dark:bg-indigo-500/80 transition-all"
                                 :style="{ height: `${day.total === 0 ? 4 : Math.min(day.total * 12, 120)}px` }"
                             />
-                            <div class="text-[10px] text-slate-400">
+                            <div class="text-[10px] text-slate-500 dark:text-slate-400">
                                 {{ formatDayLabel(day.date) }}
                             </div>
-                            <div class="text-[10px] text-slate-200">
+                            <div class="text-[10px] text-slate-700 dark:text-slate-200">
                                 {{ day.total }}
                             </div>
                         </div>
                     </template>
 
-                    <div v-else class="text-xs text-slate-400">
+                    <div v-else class="text-xs text-slate-500 dark:text-slate-400">
                         Aucun clic enregistré pour cette campagne sur la période sélectionnée.
                     </div>
                 </div>
@@ -545,10 +545,10 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
             <!-- Devices & top pays -->
             <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div :class="bigCardClass">
-                    <h3 class="text-sm font-semibold mb-2">
+                    <h3 class="text-sm font-semibold mb-2 text-slate-900 dark:text-slate-50">
                         Mobile vs Desktop
                     </h3>
-                    <p class="text-xs text-slate-400 mb-4">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
                         Identifiez où concentrer vos efforts créatifs selon l’appareil utilisé.
                     </p>
                     <div class="space-y-4">
@@ -557,15 +557,15 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                             :key="segment.key"
                             class="space-y-1"
                         >
-                            <div class="flex items-center justify-between text-xs text-slate-300">
+                            <div class="flex items-center justify-between text-xs text-slate-700 dark:text-slate-300">
                                 <span>{{ segment.label }}</span>
-                                <span class="font-semibold text-slate-100">
+                                <span class="font-semibold text-slate-900 dark:text-slate-100">
                                     {{ segment.percentage }}% • {{ segment.count }}
                                 </span>
                             </div>
-                            <div class="h-2 rounded-full bg-slate-800 overflow-hidden">
+                            <div class="h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                                 <div
-                                    class="h-full rounded-full bg-indigo-500 transition-all duration-300"
+                                    class="h-full rounded-full bg-indigo-600 dark:bg-indigo-500 transition-all duration-300"
                                     :style="{ width: `${segment.percentage}%` }"
                                 ></div>
                             </div>
@@ -580,22 +580,22 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                 </div>
 
                 <div :class="bigCardClass">
-                    <h3 class="text-sm font-semibold mb-2">
+                    <h3 class="text-sm font-semibold mb-2 text-slate-900 dark:text-slate-50">
                         Top pays
                     </h3>
-                    <p class="text-xs text-slate-400 mb-4">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
                         Les pays qui alimentent le plus cette campagne.
                     </p>
-                    <ul class="space-y-2 text-xs text-slate-200">
+                    <ul class="space-y-2 text-xs text-slate-700 dark:text-slate-200">
                         <li
                             v-for="country in topCountries"
                             :key="country.country"
-                            class="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2"
+                            class="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-3 py-2"
                         >
                             <span class="font-medium">
                                 {{ country.country || 'Inconnu' }}
                             </span>
-                            <span class="text-sm font-semibold text-slate-100">
+                            <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
                                 {{ country.percentage }}% • {{ country.total }}
                             </span>
                         </li>
@@ -608,10 +608,10 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
 
             <!-- Heatmap -->
             <section :class="bigCardClass">
-                <h3 class="text-sm font-semibold">
+                <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50">
                     Heatmap horaire
                 </h3>
-                <p class="text-xs text-slate-400 mb-4">
+                <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
                     Constatez les créneaux (jour × heure) où la campagne est la plus performante.
                 </p>
 
@@ -622,7 +622,7 @@ const uniqueDelta = computed(() => props.stats.delta?.uniqueVisitors ?? 0);
                             :key="row.weekday"
                             class="flex items-center gap-2 text-[11px]"
                         >
-                            <span class="w-10 text-right text-slate-400">
+                            <span class="w-10 text-right text-slate-500 dark:text-slate-400">
                                 {{ row.label }}
                             </span>
                             <div

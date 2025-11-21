@@ -19,22 +19,22 @@ const navLinkClasses = (active) =>
     [
         navLinkBase,
         active
-            ? 'text-white'
-            : 'text-slate-400 hover:text-slate-50',
+            ? 'text-indigo-600 dark:text-white'
+            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-50',
     ].join(' ');
 </script>
 
 <template>
-    <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors duration-300">
         <!-- Top nav -->
-        <nav class="border-b border-slate-800 bg-slate-950/95 backdrop-blur">
+        <nav class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur sticky top-0 z-50">
             <div class="mx-auto w-[95%] px-4 sm:px-6 lg:px-8">
                 <div class="flex h-16 justify-between">
                     <div class="flex">
                         <!-- Logo -->
                         <div class="flex shrink-0 items-center">
                             <Link :href="route('welcome')">
-                                <ApplicationLogo class="block h-9 w-auto text-indigo-400" />
+                                <ApplicationLogo class="block h-9 w-auto text-indigo-600 dark:text-indigo-400" />
                             </Link>
                         </div>
 
@@ -49,7 +49,7 @@ const navLinkClasses = (active) =>
                                 <span>Tableau de bord</span>
                                 <span
                                     v-if="isActive('dashboard')"
-                                    class="pointer-events-none absolute inset-x-2 -bottom-1 h-0.5 rounded-full bg-indigo-500"
+                                    class="pointer-events-none absolute inset-x-2 -bottom-1 h-0.5 rounded-full bg-indigo-600 dark:bg-indigo-500"
                                 />
                             </Link>
 
@@ -62,7 +62,7 @@ const navLinkClasses = (active) =>
                                 <span>Liens</span>
                                 <span
                                     v-if="isActive('links.index')"
-                                    class="pointer-events-none absolute inset-x-2 -bottom-1 h-0.5 rounded-full bg-indigo-500"
+                                    class="pointer-events-none absolute inset-x-2 -bottom-1 h-0.5 rounded-full bg-indigo-600 dark:bg-indigo-500"
                                 />
                             </Link>
 
@@ -75,7 +75,7 @@ const navLinkClasses = (active) =>
                                 <span>Campagnes</span>
                                 <span
                                     v-if="isActive('campaigns.*')"
-                                    class="pointer-events-none absolute inset-x-2 -bottom-1 h-0.5 rounded-full bg-indigo-500"
+                                    class="pointer-events-none absolute inset-x-2 -bottom-1 h-0.5 rounded-full bg-indigo-600 dark:bg-indigo-500"
                                 />
                             </Link>
 
@@ -88,7 +88,7 @@ const navLinkClasses = (active) =>
                                 <span>Sources</span>
                                 <span
                                     v-if="isActive('sources.*')"
-                                    class="pointer-events-none absolute inset-x-2 -bottom-1 h-0.5 rounded-full bg-indigo-500"
+                                    class="pointer-events-none absolute inset-x-2 -bottom-1 h-0.5 rounded-full bg-indigo-600 dark:bg-indigo-500"
                                 />
                             </Link>
 
@@ -103,7 +103,7 @@ const navLinkClasses = (active) =>
                                     <span class="inline-flex rounded-full">
                                         <button
                                             type="button"
-                                            class="inline-flex items-center rounded-full border border-slate-700 bg-slate-900/80 px-3 py-2 text-xs font-medium text-slate-200 shadow-sm shadow-slate-900/40 transition hover:border-indigo-500 hover:text-white hover:bg-slate-900"
+                                            class="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 shadow-sm dark:shadow-slate-900/40 transition hover:border-indigo-500 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-900"
                                         >
                                             {{ $page.props.auth.user.name }}
 
@@ -139,7 +139,7 @@ const navLinkClasses = (active) =>
                     <div class="-me-2 flex items-center sm:hidden">
                         <button
                             @click="showingNavigationDropdown = !showingNavigationDropdown"
-                            class="inline-flex items-center justify-center rounded-md p-2 text-slate-400 transition duration-150 ease-in-out hover:bg-slate-800 hover:text-slate-200 focus:bg-slate-800 focus:text-slate-200 focus:outline-none"
+                            class="inline-flex items-center justify-center rounded-md p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-500 dark:hover:text-slate-200 focus:bg-slate-100 dark:focus:bg-slate-800 focus:text-slate-500 dark:focus:text-slate-200 focus:outline-none transition duration-150 ease-in-out"
                         >
                             <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                                 <path
@@ -171,9 +171,9 @@ const navLinkClasses = (active) =>
             <!-- Responsive Navigation Menu -->
             <div
                 :class="{ block: showingNavigationDropdown, hidden: !showingNavigationDropdown }"
-                class="sm:hidden"
+                class="sm:hidden border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950"
             >
-                <div class="space-y-1 pb-3 pt-2 border-t border-slate-800 bg-slate-950">
+                <div class="space-y-1 pb-3 pt-2">
                     <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
                         Tableau de bord
                     </ResponsiveNavLink>
@@ -189,12 +189,12 @@ const navLinkClasses = (active) =>
                 </div>
 
                 <!-- Responsive Settings Options -->
-                <div class="border-t border-slate-800 pb-1 pt-4 bg-slate-950">
+                <div class="border-t border-slate-200 dark:border-slate-800 pb-1 pt-4 bg-slate-50 dark:bg-slate-900">
                     <div class="px-4">
-                        <div class="text-sm font-medium text-slate-100">
+                        <div class="text-sm font-medium text-slate-800 dark:text-slate-100">
                             {{ $page.props.auth.user.name }}
                         </div>
-                        <div class="text-xs font-medium text-slate-400">
+                        <div class="text-xs font-medium text-slate-500 dark:text-slate-400">
                             {{ $page.props.auth.user.email }}
                         </div>
                     </div>
@@ -212,7 +212,7 @@ const navLinkClasses = (active) =>
         </nav>
 
         <!-- Page Heading -->
-        <header v-if="$slots.header" class="border-b border-slate-900 bg-slate-950">
+        <header v-if="$slots.header" class="border-b border-slate-200 dark:border-slate-900 bg-white dark:bg-slate-950">
             <div class="mx-auto w-[95%] px-4 py-6 sm:px-6 lg:px-8">
                 <slot name="header" />
             </div>
