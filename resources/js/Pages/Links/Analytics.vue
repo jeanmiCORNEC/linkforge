@@ -96,7 +96,7 @@ const heatmapMatrix = computed(() => {
 const heatmapCellClass = (value) => {
     const max = heatmapMatrix.value.max;
     if (!max || value === 0) {
-        return 'bg-slate-100 dark:bg-slate-900/40 text-slate-400 dark:text-slate-500';
+        return 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500';
     }
     const ratio = value / max;
     if (ratio < 0.33) return 'bg-indigo-200 dark:bg-indigo-900 text-indigo-800 dark:text-slate-200';
