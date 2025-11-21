@@ -22,5 +22,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        \Illuminate\Support\Facades\Event::listen(
+            \Laravel\Cashier\Events\WebhookReceived::class,
+            \App\Listeners\StripeEventListener::class
+        );
     }
 }

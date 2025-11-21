@@ -124,6 +124,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('exports.traffic.monthly');
 
 
+    // Subscription
+    Route::get('/subscription/checkout', [App\Http\Controllers\SubscriptionController::class, 'checkout'])
+        ->name('subscription.checkout');
+    Route::get('/subscription/portal', [App\Http\Controllers\SubscriptionController::class, 'portal'])
+        ->name('subscription.portal');
+
     // Profil
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
