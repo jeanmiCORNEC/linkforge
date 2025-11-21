@@ -53,18 +53,19 @@ const deltaLabel = (value) => {
 
 const deltaClass = (value) => {
     if (value > 0) {
-        return 'text-emerald-300 bg-emerald-900/30 border border-emerald-500/30';
+        return 'text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-500/30';
     }
     if (value < 0) {
-        return 'text-rose-300 bg-rose-900/30 border border-rose-500/30';
+        return 'text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-500/30';
     }
-    return 'text-slate-300 bg-slate-800/60 border border-slate-700';
+    return 'text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700';
 };
 
 /* ---------- Styles DA LinkForge ---------- */
 // Card de base : même DA que les pages analytics (glow indigo)
+// Card de base : Matte Pro (Linear/Stripe style)
 const cardClass =
-    'rounded-xl border border-slate-800 bg-slate-950/70 shadow-xl shadow-indigo-900/30';
+    'rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm dark:shadow-black/20';
 
 // Variante "grande" avec padding
 const bigCardClass = cardClass + ' p-6';
@@ -72,14 +73,14 @@ const bigCardClass = cardClass + ' p-6';
 // Cards cliquables (raccourcis)
 const clickableCardClass =
     cardClass +
-    ' cursor-pointer hover:border-indigo-500/70 hover:bg-slate-900/90 hover:shadow-indigo-900/40 transition';
+    ' cursor-pointer hover:border-indigo-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md transition';
 
 const primaryLinkCardClass = 'block ' + clickableCardClass;
 
 const formatPercentage = (value) => `${value ?? 0}%`;
 
 const analyticsButtonClass =
-    'inline-flex items-center gap-1 rounded-md border border-indigo-500 px-3 py-1 text-[11px] font-semibold text-indigo-200 hover:bg-indigo-900/30 transition';
+    'inline-flex items-center gap-1 rounded-md border border-indigo-200 dark:border-indigo-500 px-3 py-1 text-[11px] font-semibold text-indigo-700 dark:text-indigo-200 bg-indigo-50 dark:bg-transparent hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition';
 
 const heatmapHours = Array.from({ length: 24 }, (_, index) => index);
 const weekdayLabels = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
@@ -116,12 +117,12 @@ const heatmapMatrix = computed(() => {
 const heatmapCellClass = (value) => {
     const max = heatmapMatrix.value.max;
     if (!max || value === 0) {
-        return 'bg-slate-900/40 text-slate-500';
+        return 'bg-slate-100 dark:bg-slate-900/40 text-slate-400 dark:text-slate-500';
     }
     const ratio = value / max;
-    if (ratio < 0.33) return 'bg-indigo-900 text-slate-200';
-    if (ratio < 0.66) return 'bg-indigo-700 text-white';
-    return 'bg-indigo-500 text-white';
+    if (ratio < 0.33) return 'bg-indigo-200 dark:bg-indigo-900 text-indigo-900 dark:text-slate-200';
+    if (ratio < 0.66) return 'bg-indigo-400 dark:bg-indigo-700 text-white';
+    return 'bg-indigo-600 dark:bg-indigo-500 text-white';
 };
 
 const deviceSegments = computed(() => {
@@ -161,7 +162,7 @@ const exportMonthlyTraffic = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-4xl font-bold text-slate-50 tracking-tight">
+            <h2 class="text-4xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">
                 Tableau de bord
             </h2>
         </template>
@@ -172,26 +173,26 @@ const exportMonthlyTraffic = () => {
                 <section class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <!-- Liens -->
                     <div :class="cardClass + ' p-5'">
-                        <div class="text-xs font-medium uppercase tracking-[0.15em] text-slate-400">
+                        <div class="text-xs font-medium uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
                             Liens
                         </div>
-                        <div class="mt-2 text-3xl font-semibold text-slate-50">
+                        <div class="mt-2 text-3xl font-semibold text-slate-900 dark:text-slate-50">
                             {{ stats.links_count }}
                         </div>
-                        <p class="mt-2 text-xs text-slate-400">
+                        <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
                             Liens trackés créés
                         </p>
                     </div>
 
                     <!-- Clics + uniques -->
                     <div :class="cardClass + ' p-5'">
-                        <div class="text-xs font-medium uppercase tracking-[0.15em] text-slate-400">
+                        <div class="text-xs font-medium uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
                             Clics
                         </div>
-                        <div class="mt-2 text-3xl font-semibold text-slate-50">
+                        <div class="mt-2 text-3xl font-semibold text-slate-900 dark:text-slate-50">
                             {{ stats.clicks_count }}
                         </div>
-                        <p class="mt-1 text-xs text-slate-400">
+                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
                             {{ stats.unique_visitors }} visiteurs uniques
                         </p>
                         <p
@@ -205,13 +206,13 @@ const exportMonthlyTraffic = () => {
 
                     <!-- Campagnes -->
                     <div :class="cardClass + ' p-5'">
-                        <div class="text-xs font-medium uppercase tracking-[0.15em] text-slate-400">
+                        <div class="text-xs font-medium uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
                             Campagnes
                         </div>
-                        <div class="mt-2 text-3xl font-semibold text-slate-50">
+                        <div class="mt-2 text-3xl font-semibold text-slate-900 dark:text-slate-50">
                             {{ stats.campaigns_count }}
                         </div>
-                        <p class="mt-2 text-xs text-slate-400">
+                        <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
                             Campagnes actives ou archivées
                         </p>
                         <p
@@ -225,13 +226,13 @@ const exportMonthlyTraffic = () => {
 
                     <!-- Sources -->
                     <div :class="cardClass + ' p-5'">
-                        <div class="text-xs font-medium uppercase tracking-[0.15em] text-slate-400">
+                        <div class="text-xs font-medium uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
                             Sources
                         </div>
-                        <div class="mt-2 text-3xl font-semibold text-slate-50">
+                        <div class="mt-2 text-3xl font-semibold text-slate-900 dark:text-slate-50">
                             {{ stats.sources_count }}
                         </div>
-                        <p class="mt-1 text-xs text-slate-400">
+                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
                             {{ stats.countries_count }} pays touchés
                         </p>
                         <p
@@ -247,11 +248,11 @@ const exportMonthlyTraffic = () => {
                 <!-- Graphique : clics sur 7 jours -->
                 <section v-if="props.features.heatmap" :class="bigCardClass">
                     <div class="flex items-center justify-between mb-1">
-                        <h3 class="text-sm font-semibold text-slate-50">
+                        <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50">
                             Clics sur les 7 derniers jours
                         </h3>
                     </div>
-                    <p class="text-xs text-slate-400 mb-4">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
                         Toutes sources et toutes campagnes confondues.
                     </p>
 
@@ -263,13 +264,13 @@ const exportMonthlyTraffic = () => {
                                 class="flex-1 flex flex-col items-center justify-end gap-1"
                             >
                                 <div
-                                    class="w-full rounded-t-md bg-indigo-500/80 transition-all"
+                                    class="w-full rounded-t-md bg-indigo-600 dark:bg-indigo-500/80 transition-all"
                                     :style="{ height: `${day.count === 0 ? 4 : Math.min(day.count * 8, 120)}px` }"
                                 />
-                                <div class="text-[10px] text-slate-400">
+                                <div class="text-[10px] text-slate-500 dark:text-slate-400">
                                     {{ day.label }}
                                 </div>
-                                <div class="text-[10px] text-slate-200">
+                                <div class="text-[10px] text-slate-700 dark:text-slate-200">
                                     {{ day.count }}
                                 </div>
                             </div>
@@ -284,11 +285,11 @@ const exportMonthlyTraffic = () => {
                 <!-- Heatmap horaire -->
                 <section v-if="props.features.topLists" :class="bigCardClass">
                     <div class="flex items-center justify-between mb-1">
-                        <h3 class="text-sm font-semibold text-slate-50">
+                        <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50">
                             Heatmap horaire
                         </h3>
                     </div>
-                    <p class="text-xs text-slate-400 mb-4">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
                         Visualisez les jours et heures où vos clics sont les plus élevés.
                     </p>
 
@@ -299,7 +300,7 @@ const exportMonthlyTraffic = () => {
                                 :key="row.weekday"
                                 class="flex items-center gap-2 text-[11px]"
                             >
-                                <span class="w-10 text-right text-slate-400">
+                                <span class="w-10 text-right text-slate-500 dark:text-slate-400">
                                     {{ row.label }}
                                 </span>
                                 <div
@@ -331,23 +332,23 @@ const exportMonthlyTraffic = () => {
 
                 <!-- Top campagnes -->
                 <section :class="bigCardClass">
-                    <h3 class="text-sm font-semibold text-slate-50 mb-2">
+                    <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50 mb-2">
                         Campagnes les plus performantes
                     </h3>
-                    <p class="text-xs text-slate-400 mb-4">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
                         Classement des campagnes (via leurs sources) sur les 7 derniers jours.
                     </p>
                     <ul class="space-y-3">
                         <li
                             v-for="campaign in topCampaigns"
                             :key="campaign.id"
-                            class="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-xs md:text-sm text-slate-100 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+                            class="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-3 text-xs md:text-sm text-slate-900 dark:text-slate-100 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
                         >
                             <div class="min-w-0">
                                 <p class="font-semibold truncate">
                                     {{ campaign.name }}
                                 </p>
-                                <p class="text-[11px] text-slate-400">
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400">
                                     {{ campaign.status === 'archived' ? 'Archivée' : 'Active' }}
                                 </p>
                             </div>
@@ -372,23 +373,23 @@ const exportMonthlyTraffic = () => {
                 <!-- Top sources / liens -->
                 <section v-if="props.features.topLists" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div :class="bigCardClass">
-                        <h3 class="text-sm font-semibold text-slate-50 mb-2">
+                        <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50 mb-2">
                             Top sources globales
                         </h3>
-                        <p class="text-xs text-slate-400 mb-4">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
                             Vos emplacements (bio, newsletter…) qui performent le plus toutes campagnes confondues.
                         </p>
                         <ul class="space-y-3">
                             <li
                                 v-for="source in topSources"
                                 :key="source.id"
-                                class="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-xs md:text-sm text-slate-100 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+                                class="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-3 text-xs md:text-sm text-slate-900 dark:text-slate-100 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
                             >
                                 <div class="min-w-0">
                                     <p class="font-semibold truncate">
                                         {{ source.name }}
                                     </p>
-                                    <p class="text-[11px] text-slate-400">
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400">
                                         {{ formatPercentage(source.percentage) }} des clics
                                     </p>
                                 </div>
@@ -411,24 +412,24 @@ const exportMonthlyTraffic = () => {
                     </div>
 
                     <div :class="bigCardClass">
-                        <h3 class="text-sm font-semibold text-slate-50 mb-2">
+                        <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50 mb-2">
                             Top liens trackés
                         </h3>
-                        <p class="text-xs text-slate-400 mb-4">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
                             Les liens courts qui génèrent le plus de trafic sur 7 jours.
                         </p>
                         <ul class="space-y-3">
                             <li
                                 v-for="link in topLinks"
                                 :key="link.id"
-                                class="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-xs md:text-sm text-slate-100 flex flex-col gap-3"
+                                class="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-3 text-xs md:text-sm text-slate-900 dark:text-slate-100 flex flex-col gap-3"
                             >
                                 <div class="flex items-center justify-between gap-3">
                                     <div class="min-w-0">
                                         <p class="font-semibold truncate">
                                             {{ link.title }}
                                         </p>
-                                        <p class="text-[11px] text-slate-400 truncate">
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                                             {{ formatPercentage(link.percentage) }} • {{ link.destination }}
                                         </p>
                                     </div>
@@ -455,10 +456,10 @@ const exportMonthlyTraffic = () => {
                 <!-- Résumé devices + pays -->
                 <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div :class="bigCardClass">
-                        <h3 class="text-sm font-semibold text-slate-50">
+                        <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50">
                             Mobile vs Desktop
                         </h3>
-                        <p class="text-xs text-slate-400 mb-4">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
                             Visualisez comment se répartissent vos clics selon le type d’appareil.
                         </p>
                         <div class="space-y-4">
@@ -467,15 +468,15 @@ const exportMonthlyTraffic = () => {
                                 :key="segment.key"
                                 class="space-y-1"
                             >
-                                <div class="flex items-center justify-between text-xs text-slate-300">
+                                <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
                                     <span>{{ segment.label }}</span>
-                                    <span class="font-semibold text-slate-100">
+                                    <span class="font-semibold text-slate-900 dark:text-slate-100">
                                         {{ segment.percentage }}% • {{ segment.count }}
                                     </span>
                                 </div>
-                                <div class="h-2 rounded-full bg-slate-800 overflow-hidden">
+                                <div class="h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                                     <div
-                                        class="h-full rounded-full bg-indigo-500 transition-all duration-300"
+                                        class="h-full rounded-full bg-indigo-600 dark:bg-indigo-500 transition-all duration-300"
                                         :style="{ width: `${segment.percentage}%` }"
                                     ></div>
                                 </div>
@@ -490,22 +491,22 @@ const exportMonthlyTraffic = () => {
                     </div>
 
                     <div :class="bigCardClass">
-                        <h3 class="text-sm font-semibold text-slate-50">
+                        <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50">
                             Top pays
                         </h3>
-                        <p class="text-xs text-slate-400 mb-4">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
                             Les zones géographiques qui génèrent le plus de trafic sur 7 jours.
                         </p>
-                        <ul class="space-y-2 text-xs text-slate-200">
+                        <ul class="space-y-2 text-xs text-slate-700 dark:text-slate-200">
                             <li
                                 v-for="country in topCountries"
                                 :key="country.country"
-                                class="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2"
+                                class="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 px-3 py-2"
                             >
                                 <span class="font-medium">
                                     {{ country.country || 'Inconnu' }}
                                 </span>
-                                <span class="text-sm font-semibold text-slate-100">
+                                <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
                                     {{ country.percentage }}% • {{ country.total }}
                                 </span>
                             </li>
@@ -523,10 +524,10 @@ const exportMonthlyTraffic = () => {
                         :class="primaryLinkCardClass"
                     >
                         <div class="p-5">
-                            <div class="text-sm font-semibold text-slate-50 mb-1">
+                            <div class="text-sm font-semibold text-slate-900 dark:text-slate-50 mb-1">
                                 Gérer vos liens
                             </div>
-                            <p class="text-xs text-slate-400">
+                            <p class="text-xs text-slate-500 dark:text-slate-400">
                                 Créez, activez/désactivez et supprimez vos liens trackés.
                             </p>
                         </div>
@@ -537,10 +538,10 @@ const exportMonthlyTraffic = () => {
                         :class="primaryLinkCardClass"
                     >
                         <div class="p-5">
-                            <div class="text-sm font-semibold text-slate-50 mb-1">
+                            <div class="text-sm font-semibold text-slate-900 dark:text-slate-50 mb-1">
                                 Gérer vos campagnes
                             </div>
-                            <p class="text-xs text-slate-400">
+                            <p class="text-xs text-slate-500 dark:text-slate-400">
                                 Organisez vos promos par campagne et archivez ce qui est terminé.
                             </p>
                         </div>
@@ -551,10 +552,10 @@ const exportMonthlyTraffic = () => {
                         :class="primaryLinkCardClass"
                     >
                         <div class="p-5">
-                            <div class="text-sm font-semibold text-slate-50 mb-1">
+                            <div class="text-sm font-semibold text-slate-900 dark:text-slate-50 mb-1">
                                 Gérer vos sources
                             </div>
-                            <p class="text-xs text-slate-400">
+                            <p class="text-xs text-slate-500 dark:text-slate-400">
                                 Reliez vos liens à TikTok, Instagram, newsletter, etc.
                             </p>
                         </div>
@@ -565,10 +566,10 @@ const exportMonthlyTraffic = () => {
                 <section :class="bigCardClass">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
-                            <h3 class="text-sm font-semibold text-slate-50">
+                            <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50">
                                 Export mensuel CSV
                             </h3>
-                            <p class="text-xs text-slate-400 mt-1">
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                 Téléchargez un rapport consolidé (clics, devices, pays, referers) pour le mois choisi.
                             </p>
                         </div>
@@ -576,11 +577,11 @@ const exportMonthlyTraffic = () => {
                             <input
                                 v-model="exportMonth"
                                 type="month"
-                                class="rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-xs text-slate-100 focus:border-indigo-500 focus:ring-indigo-500"
+                                class="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/80 px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:border-indigo-500 focus:ring-indigo-500"
                             >
                             <button
                                 type="button"
-                                class="inline-flex items-center rounded-md bg-indigo-500 px-4 py-2 text-xs font-semibold text-white shadow-xl shadow-indigo-900/30 hover:bg-indigo-400 transition"
+                                class="inline-flex items-center rounded-md bg-indigo-600 dark:bg-indigo-500 px-4 py-2 text-xs font-semibold text-white shadow-xl shadow-indigo-500/30 dark:shadow-indigo-900/30 hover:bg-indigo-500 dark:hover:bg-indigo-400 transition"
                                 @click="exportMonthlyTraffic"
                                 :disabled="!exportMonth"
                             >
