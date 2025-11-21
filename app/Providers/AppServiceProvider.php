@@ -27,5 +27,10 @@ class AppServiceProvider extends ServiceProvider
             \Laravel\Cashier\Events\WebhookReceived::class,
             \App\Listeners\StripeEventListener::class
         );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \Illuminate\Auth\Events\Registered::class,
+            \App\Listeners\SendWelcomeEmail::class
+        );
     }
 }
