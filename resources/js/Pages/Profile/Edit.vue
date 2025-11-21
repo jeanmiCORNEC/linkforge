@@ -38,15 +38,23 @@ const props = defineProps({
                             {{ props.plan === 'free' ? 'Free' : 'Pro' }}
                         </p>
                         <p class="text-xs text-slate-400 mt-1">
-                            Accédez aux heatmaps, tops et exports illimités avec le plan Pro.
+                            {{ props.plan === 'free' ? 'Accédez aux heatmaps, tops et exports illimités avec le plan Pro.' : 'Merci de soutenir LinkForge !' }}
                         </p>
                     </div>
-                    <div v-if="props.plan === 'free'" class="flex items-center">
+                    <div class="flex items-center gap-4">
                         <a
-                            href="/#pricing"
+                            v-if="props.plan === 'free'"
+                            :href="route('subscription.checkout')"
                             class="rounded-md bg-indigo-500 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-indigo-900/30 hover:bg-indigo-400 transition"
                         >
                             Passer en Pro
+                        </a>
+                        <a
+                            v-else
+                            :href="route('subscription.portal')"
+                            class="rounded-md border border-slate-700 bg-slate-900 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition"
+                        >
+                            Gérer mon abonnement
                         </a>
                     </div>
                 </div>
