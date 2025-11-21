@@ -53,6 +53,15 @@ Route::get('/sitemap.xml', function () {
         ->header('Content-Type', 'application/xml');
 });
 
+// Pages légales
+Route::get('/terms', function () {
+    return Inertia::render('Terms');
+})->name('terms.show');
+
+Route::get('/privacy', function () {
+    return Inertia::render('Privacy');
+})->name('privacy.show');
+
 // Routes d'auth Breeze
 require __DIR__ . '/auth.php';
 
