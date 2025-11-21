@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
+import Footer from '@/Components/Footer.vue';
 
 const props = defineProps({
     canLogin: Boolean,
@@ -422,5 +423,6 @@ const ogImageUrl = computed(() => {
                 </div>
             </section>
         </main>
+        <Footer />
     </div>
 </template>
