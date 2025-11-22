@@ -47,4 +47,22 @@ class Link extends Model
         );
     }
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::updated(function ($link) {
+            foreach ($link->trackedLinks as $trackedLink) {
+                \Illuminate\Support\Facades\Cache::forget("link_redirect_{$trackedLink->short_code}");
+                \Illuminate\Support\Facades\Cache::forget("link_redirect_{$trackedLink->tracking_key}");
+            }
+        });
+
+        static::deleted(function ($link) {
+            foreach ($link->trackedLinks as $trackedLink) {
+                \Illuminate\Support\Facades\Cache::forget("link_redirect_{$trackedLink->short_code}");
+                \Illuminate\Support\Facades\Cache::forget("link_redirect_{$trackedLink->tracking_key}");
+            }
+        });
+    }
 }
