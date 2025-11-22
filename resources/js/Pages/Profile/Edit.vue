@@ -58,16 +58,22 @@ const { theme, setTheme } = useTheme();
                             {{ props.plan === 'free' ? 'Accédez aux heatmaps, tops et exports illimités avec le plan Pro.' : 'Merci de soutenir LinkForge !' }}
                         </p>
                     </div>
-                    <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2" v-if="props.plan === 'free'">
                         <a
-                            v-if="props.plan === 'free'"
-                            :href="route('subscription.checkout')"
+                            :href="route('subscription.checkout', { interval: 'monthly' })"
                             class="rounded-md bg-indigo-600 dark:bg-indigo-500 px-4 py-2 text-xs font-semibold text-white shadow-lg hover:bg-indigo-500 dark:hover:bg-indigo-400 transition"
                         >
-                            Passer en Pro
+                            Pro Mensuel (9,90€)
                         </a>
                         <a
-                            v-else
+                            :href="route('subscription.checkout', { interval: 'yearly' })"
+                            class="rounded-md border border-indigo-600 dark:border-indigo-500 px-4 py-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition"
+                        >
+                            Pro Annuel (99€)
+                        </a>
+                    </div>
+                    <div class="flex items-center gap-4" v-else>
+                        <a
                             :href="route('subscription.portal')"
                             class="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-white transition"
                         >

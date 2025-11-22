@@ -1,8 +1,10 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Footer from '@/Components/Footer.vue';
+
+const billingInterval = ref('monthly');
 
 const props = defineProps({
     canLogin: Boolean,
@@ -33,43 +35,49 @@ const pricingCards = computed(() => {
             let ctaUrl = plan.cta_url ?? '#pricing';
             let disabled = false;
 
-            if (user) {
-                if (isPro) {
+            if (isPro) {
+                if (user) {
                     if (user.plan === 'pro') {
                         ctaLabel = 'Plan Actuel';
                         ctaUrl = '#';
                         disabled = true;
                     } else {
                         ctaLabel = 'Passer en Pro';
-                        ctaUrl = route('subscription.checkout');
+                        ctaUrl = route('subscription.checkout', { interval: billingInterval.value });
                     }
                 } else if (isFree) {
                     ctaLabel = 'Aller au Dashboard';
                     ctaUrl = route('dashboard');
                 }
             } else {
-                // Guest override for Pro plan to remove ?plan=pro if desired, 
-                // OR keep it as is. User said: "garder la redirection vers register, uniquement pour les gens non connectés"
-                // But previously said: "supprimer ?plan=pro".
-                // Let's stick to the latest request: "garder la redirection vers register, uniquement pour les gens non connectés"
-                // AND "redirige toujours vers register?plan=pro si on est enregistré et free" (complaint).
-                // So for guests, register?plan=pro is likely fine, BUT the user explicitly asked to remove it in the previous turn.
-                // "on doit supprimer ?plan=pro et laisser cette route pour les utilisateurs non connectés"
-                
+                // Guest override
                 if (isPro && props.canRegister) {
                      ctaUrl = route('register');
+                }
+            }
+
+            // Override price for Pro plan based on interval
+            let finalPrice = plan.price;
+            let finalPriceLabel = plan.price_label;
+            let finalFeatures = plan.features ?? [];
+
+            if (isPro) {
+                finalPrice = billingInterval.value === 'yearly' ? 99 : 9.9;
+                finalPriceLabel = billingInterval.value === 'yearly' ? '99€ / an' : '9,90€ / mois';
+                if (billingInterval.value === 'yearly') {
+                    finalFeatures = ['Support prioritaire', '2 mois offerts'];
                 }
             }
 
             return {
                 id: plan.id,
                 name: plan.name,
-                price: plan.price,
-                priceLabel: plan.price_label,
+                price: finalPrice,
+                priceLabel: finalPriceLabel,
                 description: plan.description,
                 featured: plan.featured ?? false,
                 limits: plan.limits ?? [],
-                features: plan.features ?? [],
+                features: finalFeatures,
                 ctaLabel: ctaLabel,
                 ctaUrl: ctaUrl,
                 isFree: plan.price === 0,
@@ -95,8 +103,8 @@ const pricingCards = computed(() => {
         {
             id: 'pro',
             name: 'Creator',
-            price: 9.9,
-            priceLabel: '9,90€ / mois',
+            price: billingInterval.value === 'yearly' ? 99 : 9.9,
+            priceLabel: billingInterval.value === 'yearly' ? '99€ / an' : '9,90€ / mois',
             description: 'Full options : heatmap, tops, exports CSV/raw.',
             featured: true,
             limits: [
@@ -104,10 +112,10 @@ const pricingCards = computed(() => {
                 'Deltas, tops, heatmap horaire',
                 'Exports CSV + raw',
             ],
-            features: ['Support prioritaire'],
+            features: ['Support prioritaire', ...(billingInterval.value === 'yearly' ? ['2 mois offerts'] : [])],
             ctaLabel: user ? (user.plan === 'pro' ? 'Plan Actuel' : 'Passer en Pro') : 'Passer en Pro',
             ctaUrl: user 
-                ? (user.plan === 'pro' ? '#' : route('subscription.checkout')) 
+                ? (user.plan === 'pro' ? '#' : route('subscription.checkout', { interval: billingInterval.value })) 
                 : (props.canRegister ? route('register') : route('login')),
             isFree: false,
             disabled: user && user.plan === 'pro',
@@ -264,13 +272,15 @@ const ogImageUrl = computed(() => {
             <section id="proof" class="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
                 <div class="max-w-6xl mx-auto px-4 py-8">
                     <p class="text-xs uppercase tracking-[0.2em] text-slate-500 text-center mb-4">Compatible avec vos plateformes</p>
-                    <div class="flex flex-wrap items-center justify-center gap-6 text-slate-400 dark:text-slate-500 text-sm font-medium">
-                        <span>TikTok</span>
-                        <span>Instagram</span>
-                        <span>YouTube</span>
-                        <span>LinkedIn</span>
-                        <span>Facebook</span>
-                        <span>X (Twitter)</span>
+                    <div class="flex flex-wrap items-center justify-center gap-6 text-sm font-medium">
+                        <span class="text-pink-500 font-semibold">TikTok</span>
+                        <span class="text-fuchsia-500 font-semibold">Instagram</span>
+                        <span class="text-red-600 font-semibold">YouTube</span>
+                        <span class="text-blue-600 font-semibold">LinkedIn</span>
+                        <span class="text-blue-500 font-semibold">Facebook</span>
+                        <span class="text-slate-900 dark:text-white font-semibold">X (Twitter)</span>
+                        <span class="text-indigo-500 font-semibold">Vinted</span>
+                        <span class="text-orange-500 font-semibold">Leboncoin</span>
                     </div>
                 </div>
             </section>
@@ -350,6 +360,34 @@ const ogImageUrl = computed(() => {
                             <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Une offre gratuite, une offre Pro : c'est tout.</h2>
                         </div>
                         <p class="text-sm text-slate-500 dark:text-slate-400">Essai gratuit. Pas de carte.</p>
+                    </div>
+
+                    <!-- Toggle Mensuel / Annuel -->
+                    <div class="flex justify-center">
+                        <div class="relative flex items-center rounded-full bg-slate-100 dark:bg-slate-800 p-1">
+                            <button
+                                @click="billingInterval = 'monthly'"
+                                :class="[
+                                    'relative z-10 rounded-full px-4 py-1.5 text-sm font-medium transition',
+                                    billingInterval === 'monthly'
+                                        ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                ]"
+                            >
+                                Mensuel
+                            </button>
+                            <button
+                                @click="billingInterval = 'yearly'"
+                                :class="[
+                                    'relative z-10 rounded-full px-4 py-1.5 text-sm font-medium transition',
+                                    billingInterval === 'yearly'
+                                        ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                ]"
+                            >
+                                Annuel <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold ml-1">-15%</span>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="grid md:grid-cols-2 gap-6">

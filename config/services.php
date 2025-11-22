@@ -43,6 +43,7 @@ return [
             'tolerance' => env('STRIPE_WEBHOOK_TOLERANCE', 300),
         ],
         'price_pro' => env('STRIPE_PRICE_PRO'),
+        'price_pro_yearly' => env('STRIPE_PRICE_PRO_YEARLY'),
     ],
 
 ];

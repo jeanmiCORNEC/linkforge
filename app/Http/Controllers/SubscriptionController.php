@@ -19,7 +19,10 @@ class SubscriptionController extends Controller
             return redirect()->route('profile.edit')->with('status', 'already-subscribed');
         }
 
-        $priceId = config('services.stripe.price_pro');
+        $interval = $request->query('interval', 'monthly');
+        $priceId = $interval === 'yearly'
+            ? config('services.stripe.price_pro_yearly')
+            : config('services.stripe.price_pro');
 
         if (empty($priceId)) {
             return redirect()->route('profile.edit')->with('error', 'Stripe configuration error: Price ID is missing.');
