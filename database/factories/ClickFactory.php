@@ -17,7 +17,20 @@ class ClickFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'tracked_link_id' => null, // on associera dans les tests
+
+            'ip_address'   => $this->faker->ipv4(),
+            'user_agent'   => $this->faker->userAgent(),
+            'referrer'     => $this->faker->url(),
+
+            'device'       => 'desktop',
+            'browser'      => 'Chrome',
+            'os'           => 'macOS',
+
+            'visitor_hash' => \Illuminate\Support\Str::random(40),
+
+            'country'      => null,
+            'city'         => null,
         ];
     }
 }
