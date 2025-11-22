@@ -22,8 +22,11 @@ import LegalLayout from '@/Layouts/LegalLayout.vue';
             </p>
             <p>
                 <strong>Hébergeur :</strong><br>
-                Nom : [Nom Hébergeur]<br>
-                Adresse : [Adresse Hébergeur]<br>
+                Nom : Hetzner<br>
+                Adresse : Hetzner Online GmbH<br>
+                Industriestr. 25<br>
+                91710 Gunzenhausen<br>
+                Germany<br>
             </p>
             <hr class="my-8 border-slate-200 dark:border-slate-700">
 
