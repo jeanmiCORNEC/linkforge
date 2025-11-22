@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use App\Models\Link;
 use App\Models\TrackedLink;
 use App\Models\Click;
@@ -167,11 +168,20 @@ class LinkController extends Controller
 
     public function redirect(Request $request, string $code)
     {
+        $cacheKey = "link_redirect_{$code}";
+
         // 1. Retrouver la tracked_link + le lien associé (short_code prioritaire)
-        $tracked = TrackedLink::with('link')
-            ->where('short_code', $code)
-            ->orWhere('tracking_key', $code)
-            ->firstOrFail();
+        // On cache le résultat de la requête DB pendant 24h
+        $tracked = Cache::remember($cacheKey, now()->addDay(), function () use ($code) {
+            return TrackedLink::with('link')
+                ->where('short_code', $code)
+                ->orWhere('tracking_key', $code)
+                ->first();
+        });
+
+        if (! $tracked) {
+            abort(404);
+        }
 
         // 2. Si le lien est inactif -> 404
         if (! $tracked->link || ! $tracked->link->is_active) {

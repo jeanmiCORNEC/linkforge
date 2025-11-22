@@ -9,7 +9,23 @@ import LegalLayout from '@/Layouts/LegalLayout.vue';
     <LegalLayout>
         <article class="prose dark:prose-invert max-w-none">
             <h1>Conditions Générales d'Utilisation</h1>
-            <p class="text-sm text-slate-500">Dernière mise à jour : 21 Novembre 2025</p>
+            <p class="text-sm text-slate-500">Dernière mise à jour : 22 Novembre 2025</p>
+
+            <h2>Mentions Légales</h2>
+            <p>
+                <strong>Éditeur du Service :</strong><br>
+                Cornec Jean-Michel<br>
+                Forme juridique :  EI<br>
+                SIRET : 88293195900028<br>
+                Siège social : 12 rue chateaubriand 13007 Marseille<br>
+                Directeur de la publication : Cornec Jean-Michel<br>
+            </p>
+            <p>
+                <strong>Hébergeur :</strong><br>
+                Nom : [Nom Hébergeur]<br>
+                Adresse : [Adresse Hébergeur]<br>
+            </p>
+            <hr class="my-8 border-slate-200 dark:border-slate-700">
 
             <h2>1. Acceptation des conditions</h2>
             <p>
@@ -29,23 +45,22 @@ import LegalLayout from '@/Layouts/LegalLayout.vue';
                 de vos identifiants et de toutes les activités effectuées sous votre compte.
             </p>
 
-            <h2>4. Utilisation acceptable</h2>
+            <h2>4. Utilisation acceptable (Tolérance Zéro)</h2>
             <p>
-                Vous vous engagez à ne pas utiliser le service pour :
+                Il est strictement interdit d'utiliser LinkForge pour masquer des URL de destination menant vers : du phishing (hameçonnage), des malwares, de la pornographie illégale, de la vente de produits illicites ou contrefaits.
             </p>
-            <ul>
-                <li>Diffuser du contenu illégal, nuisible ou frauduleux.</li>
-                <li>Spammer ou envoyer des messages non sollicités.</li>
-                <li>Tenter de perturber l'intégrité de nos systèmes.</li>
-            </ul>
             <p>
-                Nous nous réservons le droit de supprimer tout lien ou compte violant ces règles sans préavis.
+                <strong>LinkForge se réserve le droit de désactiver immédiatement tout lien suspect et de bannir le compte de l'utilisateur sans remboursement ni préavis.</strong>
+                Nous collaborons avec les autorités et les services de sécurité (Google Safe Browsing) pour signaler les abus.
             </p>
 
-            <h2>5. Abonnements et Paiements</h2>
+            <h2>5. Abonnements et Droit de Rétractation</h2>
             <p>
                 Certaines fonctionnalités nécessitent un abonnement payant (Plan Pro). Les paiements sont traités de manière sécurisée via Stripe.
-                L'abonnement est renouvelé automatiquement sauf résiliation de votre part.
+            </p>
+            <p>
+                <strong>Renoncement au droit de rétractation :</strong><br>
+                Conformément à l'article L221-28 du Code de la consommation, en souscrivant au Plan Pro, l'utilisateur accepte que la fourniture du service commence immédiatement et renonce expressément à son droit de rétractation de 14 jours. Aucun remboursement ne sera effectué pour la période en cours.
             </p>
 
             <h2>6. Limitation de responsabilité</h2>

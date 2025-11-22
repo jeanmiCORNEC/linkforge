@@ -11,13 +11,17 @@ import LegalLayout from '@/Layouts/LegalLayout.vue';
             <h1>Politique de Confidentialité</h1>
             <p class="text-sm text-slate-500">Dernière mise à jour : 21 Novembre 2025</p>
 
-            <h2>1. Collecte des données</h2>
+            <h2>1. Collecte et Localisation des données</h2>
             <p>
                 Nous collectons les informations que vous nous fournissez directement (email, nom) lors de l'inscription.
                 Nous collectons également des données techniques lors de l'utilisation de nos liens (adresse IP, User-Agent, Pays) à des fins d'analyse.
             </p>
+            <p>
+                <strong>Localisation des données :</strong><br>
+                Les données sont hébergées sur des serveurs situés en Union Européenne (région eu-west-3 Paris) afin de garantir la souveraineté numérique et la conformité RGPD.
+            </p>
 
-            <h2>2. Utilisation des données</h2>
+            <h2>2. Utilisation et Conservation des données</h2>
             <p>
                 Nous utilisons vos données pour :
             </p>
@@ -25,6 +29,14 @@ import LegalLayout from '@/Layouts/LegalLayout.vue';
                 <li>Fournir et maintenir le service.</li>
                 <li>Générer des statistiques anonymisées pour les créateurs de liens.</li>
                 <li>Vous envoyer des notifications importantes (mises à jour, alertes de sécurité).</li>
+            </ul>
+            <p>
+                <strong>Durée de conservation :</strong>
+            </p>
+            <ul>
+                <li><strong>Logs bruts (IP) :</strong> Conservés pendant 12 mois conformément aux obligations légales, puis anonymisés ou supprimés.</li>
+                <li><strong>Statistiques agrégées :</strong> Conservées sans limite de durée tant que le compte est actif.</li>
+                <li><strong>Données de compte :</strong> Effacées sous 30 jours après suppression du compte.</li>
             </ul>
 
             <h2>3. Partage des données</h2>
