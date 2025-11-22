@@ -15,6 +15,7 @@ use App\Support\Links\ShortCode;
 use App\Support\Plans\PlanLimits;
 use Inertia\Inertia;
 use App\Http\Controllers\Controller;
+use App\Jobs\TrackClickJob;
 
 class LinkController extends Controller
 {
@@ -189,58 +190,17 @@ class LinkController extends Controller
         }
 
         // 3. Décider si on trace ce clic (bots + anti-spam)
-        if (! $this->shouldTrackClick($request, $tracked)) {
-            return redirect()->away($tracked->link->destination_url);
+        if ($this->shouldTrackClick($request, $tracked)) {
+            // Fire & Forget : On pousse le job dans la queue
+            TrackClickJob::dispatch(
+                $tracked->id,
+                $request->ip() ?? '0.0.0.0',
+                (string) $request->userAgent(),
+                $request->headers->get('referer')
+            );
         }
 
-        // 4. Enrichissement à partir de l’IP et du user-agent
-        $ip  = $request->ip() ?? '0.0.0.0';
-        $ua  = (string) $request->userAgent();
-
-        $device      = $this->guessDeviceFromUserAgent($ua);
-        $browser     = $this->guessBrowserFromUserAgent($ua);
-        $visitorHash = hash('sha256', $ip . '|' . $ua);
-        $geoCountry  = null;
-        $geoCity     = null;
-
-        try {
-            $geoLocation = $this->geoLocator->lookup($ip);
-            $geoCountry  = $geoLocation->countryCode ?? $geoLocation->countryName;
-            $geoCity     = $geoLocation->city;
-        } catch (\Throwable $e) {
-            Log::warning('Geo lookup failed', [
-                'ip'     => $ip,
-                'error'  => $e->getMessage(),
-                'userAgent' => $ua,
-            ]);
-        }
-
-        // 5. Log du clic (en mode best-effort : on continue la redirection même en cas d’échec)
-        try {
-            Click::create([
-                'tracked_link_id' => $tracked->id,
-                'ip_address'      => $ip,
-                'user_agent'      => $ua,
-                'referrer'        => $request->headers->get('referer'),
-
-                // Champs analytics
-                'device'       => $device,
-                'browser'      => $browser,
-                'os'           => null,          // on pourra décider plus tard si on parse l'OS
-                'visitor_hash' => $visitorHash,
-                'country'      => $geoCountry,
-                'city'         => $geoCity,
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('Click logging failed', [
-                'tracked_link_id' => $tracked->id,
-                'ip'              => $ip,
-                'user_agent'      => $ua,
-                'error'           => $e->getMessage(),
-            ]);
-        }
-
-        // 6. Redirection finale avec propagation des paramètres GET
+        // 4. Redirection finale avec propagation des paramètres GET
         $destination = $tracked->link->destination_url;
         if ($request->query()) {
             $destination = $this->appendQueryParameters($destination, $request->query());
@@ -267,17 +227,16 @@ class LinkController extends Controller
             return false;
         }
 
-        // 3) Anti-spam : 1 clic par IP / tracking_key toutes les 5 minutes
+        // 3) Anti-spam : Cache Redis au lieu de DB
         $ip = $request->ip() ?? 'unknown';
+        $spamCacheKey = "click_spam:{$tracked->id}:{$ip}";
 
-        $recentClickExists = Click::where('tracked_link_id', $tracked->id)
-            ->where('ip_address', $ip)
-            ->where('created_at', '>=', now()->subMinutes(5))
-            ->exists();
-
-        if ($recentClickExists) {
+        if (Cache::has($spamCacheKey)) {
             return false;
         }
+
+        // On marque l'IP comme ayant cliqué pour 5 minutes
+        Cache::put($spamCacheKey, true, now()->addMinutes(5));
 
         return true;
     }
@@ -309,51 +268,6 @@ class LinkController extends Controller
         }
 
         return false;
-    }
-
-    /**
-     * Déterminer grossièrement le type de device depuis le user-agent.
-     */
-    protected function guessDeviceFromUserAgent(string $ua): string
-    {
-        $ua = strtolower($ua);
-
-        if (str_contains($ua, 'iphone') || str_contains($ua, 'android') && str_contains($ua, 'mobile')) {
-            return 'mobile';
-        }
-
-        if (str_contains($ua, 'ipad') || str_contains($ua, 'tablet')) {
-            return 'tablet';
-        }
-
-        // par défaut : desktop
-        return 'desktop';
-    }
-
-    /**
-     * Déterminer grossièrement le navigateur depuis le user-agent.
-     */
-    protected function guessBrowserFromUserAgent(string $ua): string
-    {
-        $ua = strtolower($ua);
-
-        if (str_contains($ua, 'chrome')) {
-            return 'Chrome';
-        }
-
-        if (str_contains($ua, 'firefox')) {
-            return 'Firefox';
-        }
-
-        if (str_contains($ua, 'safari') && ! str_contains($ua, 'chrome')) {
-            return 'Safari';
-        }
-
-        if (str_contains($ua, 'edg')) {
-            return 'Edge';
-        }
-
-        return 'Other';
     }
 
     protected function appendQueryParameters(string $url, array $params): string

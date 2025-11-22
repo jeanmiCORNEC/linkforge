@@ -15,8 +15,10 @@ class TrackClickTest extends TestCase
     use RefreshDatabase;
 
     #[Test]
-    public function it_redirects_and_logs_click_for_valid_tracking_key()
+    public function it_redirects_and_pushes_tracking_job_to_queue()
     {
+        \Illuminate\Support\Facades\Queue::fake();
+
         $user = User::factory()->create();
 
         $link = Link::factory()->for($user)->create([
@@ -38,18 +40,13 @@ class TrackClickTest extends TestCase
         $response->assertStatus(302);
         $response->assertRedirect('https://example.com/landing');
 
-        // 3) Un clic bien loggé avec les champs réellement stockés
-        $this->assertDatabaseHas('clicks', [
-            'tracked_link_id' => $tracked->id,
-        ]);
+        // 3) Vérifier que le Job a été dispatché
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\TrackClickJob::class, function ($job) use ($tracked) {
+            return $job->trackedLinkId === $tracked->id;
+        });
 
-        $click = Click::first();
-
-        $this->assertNotNull($click->ip_address);
-        $this->assertNotNull($click->user_agent);
-        $this->assertNotNull($click->visitor_hash);
-        $this->assertNotNull($click->device);
-        $this->assertNotNull($click->browser);
+        // 4) Vérifier que la DB est vide (Fire & Forget)
+        $this->assertDatabaseCount('clicks', 0);
     }
 
     #[Test]
