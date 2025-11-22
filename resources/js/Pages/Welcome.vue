@@ -313,7 +313,7 @@ const ogImageUrl = computed(() => {
                     <div class="grid md:grid-cols-3 gap-6 text-sm text-slate-600 dark:text-slate-300">
                         <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-5 space-y-2">
                             <p class="text-xs uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-300">Tracking chirurgical</p>
-                            <p class="text-lg font-semibold text-slate-900 dark:text-white">Sachez tout de vos visiteurs</p>
+                            <p class="text-lg font-semibold text-slate-900 dark:text-white">Connaissez tout de vos visiteurs</p>
                             <p>Pays, ville, appareil (mobile/desktop/tablette), navigateur. La data que les réseaux cachent.</p>
                         </div>
                         <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-5 space-y-2">
