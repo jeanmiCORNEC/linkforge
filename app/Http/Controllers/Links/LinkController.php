@@ -191,13 +191,21 @@ class LinkController extends Controller
 
         // 3. Décider si on trace ce clic (bots + anti-spam)
         if ($this->shouldTrackClick($request, $tracked)) {
-            // Fire & Forget : On pousse le job dans la queue
-            TrackClickJob::dispatch(
-                $tracked->id,
-                $request->ip() ?? '0.0.0.0',
-                (string) $request->userAgent(),
-                $request->headers->get('referer')
-            );
+            try {
+                // Fire & Forget : On pousse le job dans la queue
+                TrackClickJob::dispatch(
+                    $tracked->id,
+                    $request->ip() ?? '0.0.0.0',
+                    (string) $request->userAgent(),
+                    $request->headers->get('referer')
+                );
+            } catch (\Throwable $e) {
+                // Si Redis est down, on ne veut pas bloquer la redirection
+                Log::error('Failed to dispatch TrackClickJob', [
+                    'tracked_link_id' => $tracked->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         // 4. Redirection finale avec propagation des paramètres GET

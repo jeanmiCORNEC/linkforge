@@ -18,7 +18,7 @@ import LegalLayout from '@/Layouts/LegalLayout.vue';
             </p>
             <p>
                 <strong>Localisation des données :</strong><br>
-                Les données sont hébergées sur des serveurs situés en Union Européenne (région eu-west-3 Paris) afin de garantir la souveraineté numérique et la conformité RGPD.
+                Les données sont hébergées sur des serveurs situés en Union Européenne (Allemagne) afin de garantir la souveraineté numérique et la conformité RGPD.
             </p>
 
             <h2>2. Utilisation et Conservation des données</h2>
