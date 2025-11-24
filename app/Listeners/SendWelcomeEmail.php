@@ -13,6 +13,13 @@ class SendWelcomeEmail implements ShouldQueue
     use InteractsWithQueue;
 
     /**
+     * The number of seconds the job can wait before executing.
+     *
+     * @var int
+     */
+    public $delay = 10;
+
+    /**
      * Create the event listener.
      */
     public function __construct()

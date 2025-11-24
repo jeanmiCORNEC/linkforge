@@ -40,6 +40,13 @@ class SubscriptionController extends Controller
                 ]);
         } catch (IncompletePayment $exception) {
             return redirect()->route('cashier.payment', [$exception->payment->id, 'redirect' => route('profile.edit')]);
+        } catch (\Stripe\Exception\InvalidRequestException $e) {
+            // Handle "No such customer" error (common in dev/staging)
+            if (str_contains($e->getMessage(), 'No such customer')) {
+                $user->forceFill(['stripe_id' => null])->save();
+                return redirect()->route('subscription.checkout', ['interval' => $interval]);
+            }
+            throw $e;
         }
     }
 
