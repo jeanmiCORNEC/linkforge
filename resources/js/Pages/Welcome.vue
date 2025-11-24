@@ -193,7 +193,7 @@ const ogImageUrl = computed(() => {
 
         <main class="flex-1">
             <!-- HERO -->
-            <section id="hero" class="border-b border-slate-200 dark:border-slate-800 bg-gradient-to-b from-white via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
+            <section id="hero" class="scroll-mt-24 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-b from-white via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
                 <div class="max-w-6xl mx-auto px-4 py-14 grid md:grid-cols-2 gap-12 items-center">
                     <div class="space-y-5">
                         <p class="inline-flex items-center rounded-full border border-indigo-500/40 bg-indigo-500/10 px-3 py-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-200 uppercase tracking-[0.15em]">
@@ -269,7 +269,7 @@ const ogImageUrl = computed(() => {
             </section>
 
             <!-- SOCIAL PROOF -->
-            <section id="proof" class="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+            <section id="proof" class="scroll-mt-24 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
                 <div class="max-w-6xl mx-auto px-4 py-8">
                     <p class="text-xs uppercase tracking-[0.2em] text-slate-500 text-center mb-4">Compatible avec vos plateformes</p>
                     <div class="flex flex-wrap items-center justify-center gap-6 text-sm font-medium">
@@ -286,7 +286,7 @@ const ogImageUrl = computed(() => {
             </section>
 
             <!-- PROBLÈME -->
-            <section id="problem" class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/90">
+            <section id="problem" class="scroll-mt-24 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/90">
                 <div class="max-w-6xl mx-auto px-4 py-12 space-y-6">
                     <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Vous publiez du contenu, mais vous avancez à l'aveugle ?</h2>
                     <div class="grid md:grid-cols-3 gap-4 text-sm text-slate-600 dark:text-slate-300">
@@ -307,7 +307,7 @@ const ogImageUrl = computed(() => {
             </section>
 
             <!-- SOLUTION / FEATURES -->
-            <section id="features" class="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+            <section id="features" class="scroll-mt-24 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
                 <div class="max-w-6xl mx-auto px-4 py-12 space-y-8">
                     <h2 class="text-2xl font-bold text-slate-900 dark:text-white">LinkForge est le remède</h2>
                     <div class="grid md:grid-cols-3 gap-6 text-sm text-slate-600 dark:text-slate-300">
@@ -352,7 +352,7 @@ const ogImageUrl = computed(() => {
             </section>
 
             <!-- PRICING -->
-            <section id="pricing" class="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+            <section id="pricing" class="scroll-mt-24 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
                 <div class="max-w-6xl mx-auto px-4 py-12 space-y-6">
                     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                         <div>
