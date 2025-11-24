@@ -37,12 +37,22 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $referrerId = null;
+        if ($request->hasCookie('linkforge_ref')) {
+            $refCode = $request->cookie('linkforge_ref');
+            $referrer = User::where('referral_code', $refCode)->first();
+            if ($referrer) {
+                $referrerId = $referrer->id;
+            }
+        }
+
         $user = User::create([
             'name' => $request->name,
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'plan' => 'free',
+            'referrer_id' => $referrerId,
         ]);
 
         event(new Registered($user));

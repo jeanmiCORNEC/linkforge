@@ -146,6 +146,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
+
+    // Affiliation
+    Route::get('/affiliation', [App\Http\Controllers\AffiliationController::class, 'index'])
+        ->name('affiliation.index');
+    Route::post('/affiliation/generate', [App\Http\Controllers\AffiliationController::class, 'generate'])
+        ->name('affiliation.generate');
 });
 
 // Route publique de redirection courte

@@ -30,6 +30,11 @@ class FeatureManager
     {
         $plan = $user->plan ?? 'free';
 
+        // Si l'utilisateur est en période d'essai (via parrainage ou autre), on le considère comme Pro
+        if ($user->onTrial()) {
+            $plan = 'pro';
+        }
+
         $features = self::PLAN_FEATURES[$plan] ?? self::PLAN_FEATURES['free'];
 
         return new FeatureScope($features);
