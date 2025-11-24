@@ -173,8 +173,9 @@ class LinkController extends Controller
 
         // 1. Retrouver la tracked_link + le lien associé (short_code prioritaire)
         // On cache le résultat de la requête DB pendant 24h
+        // On charge aussi 'link.user' pour récupérer le code de parrainage du créateur
         $tracked = Cache::remember($cacheKey, now()->addDay(), function () use ($code) {
-            return TrackedLink::with('link')
+            return TrackedLink::with('link.user')
                 ->where('short_code', $code)
                 ->orWhere('tracking_key', $code)
                 ->first();
@@ -187,6 +188,13 @@ class LinkController extends Controller
         // 2. Si le lien est inactif -> 404
         if (! $tracked->link || ! $tracked->link->is_active) {
             abort(404);
+        }
+
+        // 2bis. Attribution du parrainage (Cookie)
+        // Si le créateur du lien a un code parrain, on le stocke dans le cookie du visiteur.
+        // Ainsi, si le visiteur s'inscrit sur LinkForge après avoir cliqué sur ce lien, le créateur sera son parrain.
+        if ($tracked->link->user && $tracked->link->user->referral_code) {
+            \Illuminate\Support\Facades\Cookie::queue('linkforge_ref', $tracked->link->user->referral_code, 43200);
         }
 
         // 3. Décider si on trace ce clic (bots + anti-spam)
