@@ -41,6 +41,11 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(function (\Illuminate\Routing\Exceptions\InvalidSignatureException $e, \Illuminate\Http\Request $request) {
+            return redirect()->route('verification.notice')
+                ->with('error', 'Le lien de vérification est invalide ou a expiré. Veuillez en demander un nouveau.');
+        });
+
         $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response, Throwable $exception, \Illuminate\Http\Request $request) {
             if (! app()->environment(['local', 'testing']) && in_array($response->getStatusCode(), [500, 503, 404, 403])) {
                 return \Inertia\Inertia::render('Error', ['status' => $response->getStatusCode()])

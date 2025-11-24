@@ -29,14 +29,5 @@ class AppServiceProvider extends ServiceProvider
         
         Vite::prefetch(concurrency: 3);
 
-        \Illuminate\Support\Facades\Event::listen(
-            \Laravel\Cashier\Events\WebhookReceived::class,
-            \App\Listeners\StripeEventListener::class
-        );
-
-        \Illuminate\Support\Facades\Event::listen(
-            \Illuminate\Auth\Events\Registered::class,
-            \App\Listeners\SendWelcomeEmail::class
-        );
     }
 }

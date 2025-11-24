@@ -63,7 +63,7 @@ import LegalLayout from '@/Layouts/LegalLayout.vue';
 
             <h2>7. Contact</h2>
             <p>
-                Pour toute question sur la confidentialité, contactez-nous à <a href="mailto:hello@linkforge.app">hello@linkforge.app</a>.
+                Pour toute question sur la confidentialité, contactez-nous à <a href="mailto:jmcfunonline@gmail.com">jmcfunonline@gmail.com</a>.
             </p>
         </article>
     </LegalLayout>
