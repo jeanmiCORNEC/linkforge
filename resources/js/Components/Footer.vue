@@ -22,6 +22,9 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
                     <Link :href="route('privacy.show')" class="hover:text-indigo-600 dark:hover:text-indigo-300 transition">
                         Confidentialité
                     </Link>
+                    <Link :href="route('affiliation.index')" class="hover:text-indigo-600 dark:hover:text-indigo-300 transition">
+                        Affiliation
+                    </Link>
                     <a href="mailto:hello@linkforge.app" class="hover:text-indigo-600 dark:hover:text-indigo-300 transition">
                         Contact
                     </a>

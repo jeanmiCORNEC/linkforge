@@ -24,6 +24,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'plan',
+        'referral_code',
+        'referrer_id',
+        'referral_rewarded_at',
     ];
 
     /**
@@ -46,6 +49,8 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'trial_ends_at' => 'datetime',
+            'referral_rewarded_at' => 'datetime',
         ];
     }
 
