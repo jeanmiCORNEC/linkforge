@@ -200,8 +200,11 @@ const ogImageUrl = computed(() => {
                             Ne devinez plus d'où vient votre trafic
                         </p>
                         <h1 class="text-3xl md:text-4xl font-bold tracking-tight leading-tight text-slate-900 dark:text-white">
-                            Le gestionnaire de liens intelligent pour créateurs et solopreneurs.
+                            Sécurisez vos commissions Amazon &amp; Vinted
                         </h1>
+                        <h2 class="text-xl md:text-2xl font-semibold tracking-tight text-slate-700 dark:text-slate-300">
+                            L'alternative Française à Bitly
+                        </h2>
                         <p class="text-sm md:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
                             Créez des liens courts, organisez vos campagnes et découvrez exactement ce qui convertit. Devices, pays, sources : tout est dans un dashboard clair.
                         </p>
@@ -270,18 +273,54 @@ const ogImageUrl = computed(() => {
 
             <!-- SOCIAL PROOF -->
             <section id="proof" class="scroll-mt-24 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
-                <div class="max-w-6xl mx-auto px-4 py-8">
-                    <p class="text-xs uppercase tracking-[0.2em] text-slate-500 text-center mb-4">Compatible avec vos plateformes</p>
-                    <div class="flex flex-wrap items-center justify-center gap-6 text-sm font-medium">
-                        <span class="text-pink-500 font-semibold">TikTok</span>
-                        <span class="text-fuchsia-500 font-semibold">Instagram</span>
-                        <span class="text-red-600 font-semibold">YouTube</span>
-                        <span class="text-blue-600 font-semibold">LinkedIn</span>
-                        <span class="text-blue-500 font-semibold">Facebook</span>
-                        <span class="text-slate-900 dark:text-white font-semibold">X (Twitter)</span>
-                        <span class="text-indigo-500 font-semibold">Vinted</span>
-                        <span class="text-orange-500 font-semibold">Leboncoin</span>
+                <div class="max-w-6xl mx-auto px-4 py-10 space-y-6">
+                    <p class="text-xs uppercase tracking-[0.2em] text-slate-500 text-center">Compatible avec vos plateformes</p>
+                    <div class="flex flex-wrap items-center justify-center gap-6 md:gap-8">
+                        <div class="flex flex-col items-center gap-2">
+                            <img src="/images/tiktok.jpeg" alt="TikTok" class="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover shadow-md" />
+                            <span class="text-sm md:text-base font-semibold text-slate-700 dark:text-slate-300">TikTok</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <img src="/images/instagram.jpeg" alt="Instagram" class="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover shadow-md" />
+                            <span class="text-sm md:text-base font-semibold text-slate-700 dark:text-slate-300">Instagram</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <img src="/images/youtube.jpeg" alt="YouTube" class="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover shadow-md" />
+                            <span class="text-sm md:text-base font-semibold text-slate-700 dark:text-slate-300">YouTube</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <img src="/images/linkedin.jpeg" alt="LinkedIn" class="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover shadow-md" />
+                            <span class="text-sm md:text-base font-semibold text-slate-700 dark:text-slate-300">LinkedIn</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <img src="/images/facebook.jpeg" alt="Facebook" class="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover shadow-md" />
+                            <span class="text-sm md:text-base font-semibold text-slate-700 dark:text-slate-300">Facebook</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <img src="/images/twitter.jpeg" alt="X (Twitter)" class="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover shadow-md" />
+                            <span class="text-sm md:text-base font-semibold text-slate-700 dark:text-slate-300">X (Twitter)</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <img src="/images/leboncoin.jpeg" alt="Leboncoin" class="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover shadow-md" />
+                            <span class="text-sm md:text-base font-semibold text-slate-700 dark:text-slate-300">Leboncoin</span>
+                        </div>
                     </div>
+                    
+                    <div class="pt-6 space-y-3">
+                        <p class="text-xs uppercase tracking-[0.2em] text-slate-500 text-center">Sécurisé pour :</p>
+                        <div class="flex flex-wrap items-center justify-center gap-6 md:gap-8">
+                            <div class="flex flex-col items-center gap-2">
+                                <img src="/images/amazon.jpeg" alt="Amazon Associates" class="w-16 h-16 md:w-20 md:h-20 rounded-lg object-cover shadow-md" />
+                                <span class="text-sm md:text-base font-bold text-orange-600">Amazon Associates</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <img src="/images/vinted.jpeg" alt="Vinted" class="w-16 h-16 md:w-20 md:h-20 rounded-lg object-cover shadow-md" />
+                                <span class="text-sm md:text-base font-bold text-indigo-500">Vinted</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p class="text-xs text-center text-slate-600 dark:text-slate-400 pt-2">Infrastructure hébergée en UE (Allemagne). Société et Support basés en France.</p>
                 </div>
             </section>
 
