@@ -222,7 +222,8 @@ class LinkController extends Controller
             $destination = $this->appendQueryParameters($destination, $request->query());
         }
 
-        return redirect()->away($destination);
+        return redirect()->away($destination)
+            ->header('X-Robots-Tag', 'noindex, nofollow');
     }
 
     /**

@@ -21,5 +21,9 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // To seed demo data for marketing screenshots, run:
+        // php artisan db:seed --class=DemoDataSeeder
+        // This creates a demo user (demo@linkforge.fr / password) with realistic data
     }
 }

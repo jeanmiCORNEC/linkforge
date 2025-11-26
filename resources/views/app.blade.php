@@ -30,6 +30,17 @@
         @routes
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
+        <!-- Google tag (gtag.js) - ACTIVE UNIQUEMENT EN PROD -->
+        @if(app()->environment('production'))
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-JRFQ83LV00"></script>
+            <script>
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+
+              gtag('config', 'G-JRFQ83LV00');
+            </script>
+        @endif
     </head>
     <body class="font-sans antialiased">
         @inertia
