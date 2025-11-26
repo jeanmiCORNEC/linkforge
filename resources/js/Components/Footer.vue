@@ -25,7 +25,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
                     <Link :href="route('affiliation.index')" class="hover:text-indigo-600 dark:hover:text-indigo-300 transition">
                         Affiliation
                     </Link>
-                    <a href="mailto:jmcfunonline@gmail.com" class="hover:text-indigo-600 dark:hover:text-indigo-300 transition">
+                    <a href="mailto:contact@linkforge.fr" class="hover:text-indigo-600 dark:hover:text-indigo-300 transition">
                         Contact
                     </a>
                 </div>

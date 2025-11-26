@@ -25,7 +25,7 @@ Route::get('/', function () {
             if ($plan['cta_action'] === 'register' && $canRegister) {
                 $ctaUrl = route('register', ['plan' => $plan['id']]);
             } elseif ($plan['cta_action'] === 'contact') {
-                $ctaUrl = 'mailto:jmcfunonline@gmail.com';
+                $ctaUrl = 'mailto:contact@linkforge.fr';
             }
 
             $plan['cta_url'] = $ctaUrl;

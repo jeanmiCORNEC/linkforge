@@ -74,7 +74,7 @@ import LegalLayout from '@/Layouts/LegalLayout.vue';
 
             <h2>7. Contact</h2>
             <p>
-                Pour toute question concernant ces conditions, contactez-nous à <a href="mailto:jmcfunonline@gmail.com">jmcfunonline@gmail.com</a>.
+                Pour toute question concernant ces conditions, contactez-nous à <a href="mailto:contact@linkforge.fr">contact@linkforge.fr</a>.
             </p>
         </article>
     </LegalLayout>
